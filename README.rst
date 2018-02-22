@@ -46,12 +46,21 @@ fields = ('orthography', 'frequency', 'syllables')
 # We also use it to select only monosyllables.
 fil = lambda x: not set(x['orthography']).intersection({"'", ',', '-', '/', '.'}) and len(x['syllables']) == 1
 
-# Link to epl.cd
 # We set merge duplicates to True because some of
-# the distinctions in Celex do not matter to us.
-english = Celex("/Users/stephantulkens/Documents/corpora/celex/epl.cd", fields=fields, filter_function=fil, merge_duplicates=True)
+# the distinctions in Celex (e.g. POS) do not matter to us.
+
+# Link to epl.cd
+english = Celex("epl.cd",
+                fields=fields,
+                filter_function=fil,
+                merge_duplicates=True)
+
 # Link to dpl.cd
-dutch = Celex("/Users/stephantulkens/Documents/corpora/celex/dpl.cd", fields=fields, language='nld', filter_function=fil, merge_duplicates=True)
+dutch = Celex("dpl.cd",
+              fields=fields,
+              language='nld',
+              filter_function=fil,
+              merge_duplicates=True)
 
 corpora = FeatureUnion((("eng", english), ("nld", dutch)))
 
