@@ -1,0 +1,4 @@
+numpy==1.14.0
+setuptools==36.0.1
+ipapy==0.0.8.0
+scikit_learn==0.19.1
