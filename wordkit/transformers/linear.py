@@ -23,10 +23,12 @@ class LinearTransformer(FeatureTransformer):
     position.
 
     Parameters
-    ==========
-    Features : dictionary
+    ----------
+    features : dict
         A dictionary of features, where the keys are characters and the
         values are numpy arrays.
+    field : str
+        The field to retrieve from the incoming dictionaries.
 
     """
 
@@ -43,12 +45,12 @@ class LinearTransformer(FeatureTransformer):
         Fit the orthographizer by setting the vector length and word length.
 
         Parameters
-        ==========
+        ----------
         X : list of strings or list of dictionaries.
             The input words.
 
         Returns
-        =======
+        -------
         self : LinearTransformer
             The fitted LinearTransformer instance.
 
@@ -70,12 +72,12 @@ class LinearTransformer(FeatureTransformer):
         Raises a ValueError if the word is too long.
 
         Parameters
-        ==========
-        x : dictionary with 'orthography' as key or string.
-            The word to  vectorize.
+        ----------
+        x : dictionary with self.field as key or string.
+            The word to vectorize.
 
         Returns
-        =======
+        -------
         v : numpy array
             A vectorized version of the word.
 

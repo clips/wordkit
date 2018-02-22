@@ -10,7 +10,7 @@ class BaseTransformer(TransformerMixin):
     Base class for transformers without input features.
 
     Parameters
-    ==========
+    ----------
     field : string
         The field to extract from the incoming dictionaries. For example, if
         you want to featurize orthographic forms, you can pass "orthography"
@@ -33,7 +33,7 @@ class BaseTransformer(TransformerMixin):
         Raises a ValueError if the result is non-empty.
 
         Parameters
-        ==========
+        ----------
         x : string
             An input string.
 
@@ -60,7 +60,16 @@ class BaseTransformer(TransformerMixin):
         """
         Transform a list of words.
 
-        :param words: The list of words.
+        Parameters
+        ----------
+        words : list of string or list of dict
+            A list of words.
+
+        Returns
+        -------
+        features : np.array
+            The featurized representations of the input words.
+
         """
         if not self._is_fit:
             raise ValueError("The transformer has not been fit yet.")
@@ -80,9 +89,11 @@ class FeatureTransformer(BaseTransformer):
     Base class for transformers which have features.
 
     Parameters
-    ==========
+    ----------
     features : dict or tuple of dicts
         A key to array mapping, or a collection of key to array mappings.
+    field : str
+        The field to retrieve for featurization from incoming records.
     vec_len : int, optional, default 0
         The vector length.
 

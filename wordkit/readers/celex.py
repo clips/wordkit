@@ -109,18 +109,14 @@ class Celex(Reader):
     }
 
     Parameters
-    ==========
+    ----------
     path : string
         The path to the corpus this reader has to read.
-    fields : iterable, optional, default ("orthography", "syllables", "frequency")
+    fields : iterable, default ("orthography", "syllables", "frequency")
         An iterable of strings containing the fields this reader has
         to read from the corpus.
     language : string, optional, default ("eng")
         The language of the corpus.
-    min_freq : int, optional, default None
-        Words with a frequency below this value are discarded.
-    max_freq : int, optional, default None
-        Words with a frequency above this value are discarded.
     merge_duplicates : bool, optional, default False
         Whether to merge duplicates which are indistinguishable according
         to the selected fields.
@@ -129,6 +125,14 @@ class Celex(Reader):
         Whether to translate phonemes using the CELEX_2IPA translation table.
         If this is set to False, the transformer will not be compatible with
         downstream phonological featurizers deliverd with Wordkit.
+    filter_function : function
+        The filtering function to use. A filtering function is a function
+        which accepts a dictionary as argument and which returns a boolean
+        value. If the filtering function returns False, the item is not
+        retrieved from the corpus.
+
+        Example of a filtering function could be a function which constrains
+        the frequencies of retrieved words, or the number of syllables.
     disc_mode : bool, optional, default False
         Whether to get disc phonemes from CELEX. If this is set to True,
         translate phonemes is automatically set to False.
@@ -172,13 +176,13 @@ class Celex(Reader):
         Extract word information from the CELEX database.
 
         Parameters
-        ==========
+        ----------
         wordlist : list of strings or None.
             The list of words to be extracted from the corpus.
             If this is None, all words are extracted.
 
         Returns
-        =======
+        -------
         words : list of dictionaries
             Each entry in the dictionary represents the structured information
             associated with each word. This list need not be the length of the

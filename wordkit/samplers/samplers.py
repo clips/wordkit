@@ -8,7 +8,7 @@ class Sampler(TransformerMixin):
     Sample from a list of words, based on the frequency of those words.
 
     Parameters
-    ==========
+    ----------
     X : numpy array
         Your vectorized data.
     words : list of strings.
@@ -53,14 +53,16 @@ class Sampler(TransformerMixin):
         Sample from the featurized data.
 
         Parameters
-        ==========
+        ----------
         num_to_sample : int
             The number of items to sample.
 
         Returns
-        =======
-        words : a tuple consisting of an aligned list of sampled input datums,
-        as well as an aligned list of words.
+        -------
+        features : np.array
+            A matrix of sampled data.
+        words : tuple
+            The sampled words.
 
         """
         samples = np.random.choice(np.arange(len(self.X)),

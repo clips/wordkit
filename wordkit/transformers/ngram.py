@@ -21,7 +21,7 @@ class OpenNGramTransformer(WickelTransformer):
     appropriately.
 
     Parameters
-    ==========
+    ----------
     n : int
         The value of n to use for the n-combations.
     field : string

@@ -18,9 +18,11 @@ class WickelTransformer(BaseTransformer):
     and "AT#". Note the addition of the beginning and end markers.
 
     Parameters
-    ==========
+    ----------
     n : int
         The value of n to use in the character ngrams.
+    field : str
+        The field to which to apply this featurizer.
 
     """
 
@@ -35,13 +37,13 @@ class WickelTransformer(BaseTransformer):
         Fit the orthographizer by setting the vector length and word length.
 
         Parameters
-        ==========
+        ----------
         X : dictionary of with 'orthography' as key or list of strings.
             This is usually the output of a wordkit reader, but can also
             simply be a list of strings.
 
         Returns
-        =======
+        -------
         self : WickelTransformer
             The transformer itself.
 
@@ -67,12 +69,12 @@ class WickelTransformer(BaseTransformer):
         Raises a ValueError if the word is too long.
 
         Parameters
-        ==========
+        ----------
         x : string or dictionary
             The word to convert.
 
         Returns
-        =======
+        -------
         v : numpy array
             A vectorized representation of the input word.
 

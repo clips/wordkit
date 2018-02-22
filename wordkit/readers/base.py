@@ -24,7 +24,7 @@ class Reader(TransformerMixin):
     an index to the information in a corpus.
 
     Parameters
-    ==========
+    ----------
     path : string
         The path to the corpus this reader has to read.
     fields : iterable
@@ -40,8 +40,8 @@ class Reader(TransformerMixin):
         A custom function you can use to filter the output.
         An example of this could be a frequency selection function.
 
-    Examples
-    ========
+    Example
+    -------
     >>> from string import ascii_lowercase
     >>> def freq_alpha(x):
     >>>     a = set(x['orthography']) - set(ascii_lowercase)
@@ -102,14 +102,14 @@ class Reader(TransformerMixin):
         fields, which are given at initialization time.
 
         Parameters
-        ==========
+        ----------
         X : list of strings.
             The orthographic form of the input words.
         y: None
             For sklearn compatibility.
 
         Returns
-        =======
+        -------
         words : list of dictionaries
             Each entry in the dictionary represents the structured information
             associated with each word. This list need not be the length of the

@@ -24,7 +24,7 @@ class ONCTransformer(FeatureTransformer):
     This transformer can not handle orthographic fields.
 
     Parameters
-    ==========
+    ----------
     features : tuple of dictionaries
         A tuple of dictionaries, containing vowel and consonant features,
         respectively.

@@ -11,12 +11,12 @@ def one_hot_characters(characters):
     matrices of one-hot encoded vectors.
 
     Parameters
-    ==========
+    ----------
     characters : string or list
         The unique characters occurring in your dataset.
 
     Returns
-    =======
+    -------
     features : dict
         A dictionary mapping from characters to one-hot encoded arrays.
 

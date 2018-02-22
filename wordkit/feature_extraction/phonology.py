@@ -19,19 +19,19 @@ def one_hot_phonemes(phonemes=DEFAULT,
     one-hot binary vector.
 
     Parameters
-    ==========
+    ----------
     phonemes : list, optional, default
         The phonemes used.
 
     Returns
-    =======
+    -------
     features : tuple
         A tuple of dictionaries. The first dictionary contains the vowels and
         their features, the second dictionary the consonants and their
         features.
 
-    Examples
-    ========
+    Example
+    -------
     # For default features
     >>> features = one_hot_phonemes()
 

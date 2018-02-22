@@ -33,16 +33,20 @@ class CVTransformer(FeatureTransformer):
     strings using consonant vowel representations.
 
     Parameters
-    ==========
+    ----------
     features : tuple of dictionaries
         A tuple of dictionaries, containing vowel and consonant features,
         respectively.
-
     grid_structure : string, optional, default="CCCVV"
         A list describing the Consonant Vowel structure of the
         CVTransformer. During fitting, the CVTransformer determines how
         many of these grid clusters are necessary to fit the entire
         dataset.
+    left : bool
+        Whether to use right- or left-justified encoding when placing
+        phonemes on the grid.
+    field : str, default 'phonology'
+        The field to use.
 
     """
 
@@ -94,9 +98,13 @@ class CVTransformer(FeatureTransformer):
         of consonant clusters, equal to the number of consonant clusters in
         the grid.
 
-        :return: A list of 'C' and 'V' strings, representing
-         whether that position in the grid represents a vowel
-         or a consonant.
+        returns
+        -------
+        grid : list
+            A list of 'C' and 'V' strings, representing
+            whether that position in the grid represents a vowel
+            or a consonant.
+
         """
         first_v = self.grid_structure.index("V")
         grid = self.grid_structure * self.max_length
@@ -109,12 +117,12 @@ class CVTransformer(FeatureTransformer):
         Fit the CVTransformer to find the optimal number of grids required.
 
         Parameters
-        ==========
+        ----------
         X : list of phoneme strings, or a list of dictionaries.
             The words you want to fit the CVTransformer on.
 
         Returns
-        =======
+        -------
         self : CVTransformer
             The CVTransformer.
 
@@ -170,12 +178,12 @@ class CVTransformer(FeatureTransformer):
         Convert a phoneme sequence to a vector representation.
 
         Parameters
-        ==========
+        ----------
         x : a single phoneme sequence or dictionary with 'phonology' as a key.
             The phoneme sequence.
 
         Returns
-        =======
+        -------
         v : numpy array
             A vectorized version of the phoneme sequence.
 

@@ -4,9 +4,8 @@ wordkit
 This is the repository of the `wordkit` package, a Python 3.X package for the featurization of words into orthographic and phonological vectors.
 
 A paper that describes `wordkit` was accepted at LREC 2018.
-If you use `wordkit` in your research, please cite the following paper:
+If you use `wordkit` in your research, please cite the following paper::
 
-::
   bibtexref
 
 Additionally, if you use any of the corpus readers in `wordkit`, you MUST cite the accompanying corpora. Similarly, if you use the CVTransformer, please cite the `patpho` paper.
