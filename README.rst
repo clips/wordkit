@@ -10,12 +10,12 @@ If you use `wordkit` in your research, please cite the following paper::
 
 Additionally, if you use any of the corpus readers in `wordkit`, you MUST cite the accompanying corpora. Similarly, if you use the CVTransformer, please cite the `patpho` paper.
 
-`wordkit` makes heavy use of [ipapy](https://github.com/pettarin/ipapy), a package which parses unicode IPA characters into their IPA representations.
+`wordkit` makes heavy use of `ipapy <https://github.com/pettarin/ipapy>`, a package which parses unicode IPA characters into their IPA representations.
 
 Experiments
 '''''''''''
 
-The code for replicating the experiments in the `wordkit` paper can be found [here](https://github.com/stephantul/lrec2018).
+The code for replicating the experiments in the `wordkit` paper can be found `here <https://github.com/stephantul/lrec2018>`.
 
 Requirements
 ''''''''''''
