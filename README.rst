@@ -6,9 +6,8 @@ This is the repository of the `wordkit` package, a Python 3.X package for the fe
 A paper that describes `wordkit` was accepted at LREC 2018.
 If you use `wordkit` in your research, please cite the following paper:
 
-``
-bibtexref
-``
+.. code-block::
+  bibtexref
 
 Additionally, if you use any of the corpus readers in `wordkit`, you MUST cite the accompanying corpora. Similarly, if you use the CVTransformer, please cite the `patpho` paper.
 
@@ -22,11 +21,10 @@ The code for replicating the experiments in the `wordkit` paper can be found [he
 Requirements
 ''''''''''''
 
-``
-sklearn
-ipapy
-numpy
-``
+.. code-block::
+  sklearn
+  ipapy
+  numpy
 
 Example
 '''''''
