@@ -1,13 +1,57 @@
 """Base class for readers."""
 import os
+import regex as re
 
 from collections import defaultdict
 from sklearn.base import TransformerMixin
 
 
+remove_double = re.compile(r"(ː)(\1){1,}")
+
+diacritics = ("ː",
+              '̤',
+              'ˠ',
+              '̠',
+              '̈',
+              '̞',
+              '̩',
+              '̻',
+              'ʰ',
+              'ʼ',
+              '̝',
+              'ʲ',
+              '̥',
+              '̟',
+              'ˤ',
+              '̃',
+              '̺',
+              '͡',
+              '̯',
+              '̪',
+              '̰',
+              'ʷ')
+
+
 def identity(x):
     """Identity function."""
     return x
+
+
+def segment_phonology(phonemes, items=diacritics, to_keep=diacritics):
+    """Segment a list of phonemes into chunks by joining suprasegmentals."""
+    phonemes = remove_double.sub("\g<1>", phonemes)
+    phonemes = [list(p) for p in phonemes]
+    idx = 0
+    while idx < len(phonemes):
+        x = phonemes[idx]
+        if x[0] in items:
+            if x[0] in to_keep:
+                phonemes[idx-1].append(x[0])
+            phonemes.pop(idx)
+        else:
+            idx += 1
+
+    return tuple(["".join(x) for x in phonemes if x])
 
 
 class Reader(TransformerMixin):
@@ -39,6 +83,10 @@ class Reader(TransformerMixin):
     filter_function : filter_function, optional, default identity
         A custom function you can use to filter the output.
         An example of this could be a frequency selection function.
+    diacritics : tuple
+        The diacritic markers from the IPA alphabet to keep. All diacritics
+        which are IPA valid can be correctly parsed by wordkit, but it may
+        not be desirable to actually have them in the dataset.
 
     Example
     -------
@@ -62,7 +110,8 @@ class Reader(TransformerMixin):
                  field_ids,
                  language,
                  merge_duplicates=False,
-                 filter_function=None):
+                 filter_function=None,
+                 diacritics=diacritics):
         """Base class for readers."""
         if not os.path.exists(path):
             raise ValueError("The file you specified does not "
@@ -84,6 +133,7 @@ class Reader(TransformerMixin):
         self.language = language
         self.orthographyfield = field_ids['orthography']
         self.filter_function = filter_function
+        self.diacritics = diacritics
 
     def fit(self, X, y=None):
         """Static, no fit."""

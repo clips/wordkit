@@ -1,7 +1,7 @@
 """Tools for working with the multilingual corpora from Deri and Knight."""
 import re
 
-from .base import Reader, identity
+from .base import Reader, identity, segment_phonology, diacritics
 from ipapy.ipastring import IPAString
 
 language2field = {'orthography': 2, 'phonology': 3}
@@ -38,7 +38,8 @@ class Deri(Reader):
         An iterable of strings containing the fields this reader has
         to read from the corpus.
     language : string, default ("eng")
-        The language of the corpus.
+        The language of the corpus. If this is set to None, all languages
+        will be retrieved from the corpus.
     merge_duplicates : bool, default False
         Whether to merge duplicates which are indistinguishable according
         to the selected fields.
@@ -51,6 +52,10 @@ class Deri(Reader):
 
         Example of a filtering function could be a function which constrains
         the frequencies of retrieved words, or the number of syllables.
+    diacritics : tuple
+        The diacritic markers from the IPA alphabet to keep. All diacritics
+        which are IPA valid can be correctly parsed by wordkit, but it may
+        not be desirable to actually have them in the dataset.
 
     """
 
@@ -59,13 +64,15 @@ class Deri(Reader):
                  fields=("orthography", "phonology"),
                  language='eng',
                  merge_duplicates=False,
-                 filter_function=identity):
+                 filter_function=identity,
+                 diacritics=diacritics):
         """Extract words from Deri and Knight corpora."""
         super().__init__(path,
                          fields,
                          language2field,
                          merge_duplicates,
-                         filter_function)
+                         filter_function,
+                         diacritics=diacritics)
 
         self.language = language
         self.matcher = re.compile(r"([:/]|rhymes)")
@@ -98,7 +105,7 @@ class Deri(Reader):
 
             line = line.strip()
             columns = line.split("\t")
-            if columns[0] not in self.language:
+            if self.language is not None and columns[0] not in self.language:
                 continue
             orthography = columns[self.orthographyfield].lower()
 
@@ -117,10 +124,14 @@ class Deri(Reader):
             if use_p:
                 syll = columns[self.fields['phonology']].split()
                 syll = "".join(syll)
-                syll = "".join([str(x) for x in IPAString(unicode_string=syll)
-                                if not x.is_suprasegmental])
+                try:
+                    syll = "".join([str(x)
+                                    for x in IPAString(unicode_string=syll)])
+                except ValueError:
+                    print(syll)
 
-                out['phonology'] = syll
+                out['phonology'] = segment_phonology(syll,
+                                                     to_keep=self.diacritics)
             if 'language' in self.fields:
                 out['language'] = self.language
 

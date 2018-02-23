@@ -2,7 +2,7 @@
 import re
 import logging
 
-from .base import Reader, identity
+from .base import Reader, identity, segment_phonology
 from itertools import chain
 from copy import copy
 
@@ -67,18 +67,6 @@ CELEX_2IPA = {"p": "p",
               "G": "x",
               "y": "y",
               ":": "ː"}
-
-
-def segment(phonemes, suprasegmentals=("ː",)):
-    """Segment a list of phonemes into chunks by joining suprasegmentals."""
-    phonemes = remove_double.sub("ː", phonemes)
-    phonemes = [list(p) for p in phonemes]
-    for idx, x in enumerate(phonemes):
-        if len(x) == 1 and x[0] in suprasegmentals:
-            phonemes[idx-1].append(x[0])
-            x.pop()
-
-    return tuple(["".join(x) for x in phonemes if x])
 
 
 def celex_to_ipa(phonemes):
@@ -225,7 +213,7 @@ class Celex(Reader):
                         for x in self.braces.split(syll) if x]
                 if self.translate_phonemes:
                     syll = [celex_to_ipa(x) for x in syll]
-                syll = [segment(x) for x in syll]
+                syll = [segment_phonology(x) for x in syll]
                 if use_syll:
                     out['syllables'] = tuple(syll)
                 if use_p:
