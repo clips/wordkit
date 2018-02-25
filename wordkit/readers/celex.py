@@ -166,7 +166,7 @@ class Celex(Reader):
         else:
             self.replace = re.compile(r"(,|r\*)")
             self.braces = re.compile(r"[\[\]]+")
-            self.double_braces = re.compile(r"(\[[^\]]+)\[(.+)\]([^\[])")
+            self.double_braces = re.compile(r"(\[[^\]]+?)\[(.+?)\]([^\[])")
         self.translate_phonemes = translate_phonemes
         self.disc_mode = disc_mode
 
