@@ -22,10 +22,19 @@ language2field = {'eng': {'orthography': 1,
                           'frequency': 2,
                           'syllables': 5,
                           'language': None,
+                          'disc': 3},
+                  'ger': {'orthography': 1,
+                          'phonology': 4,
+                          'frequency': 2,
+                          'syllables': 4,
+                          'language': None,
                           'disc': 3}}
 
 
-CELEX_2IPA = {"p": "p",
+CELEX_2IPA = {"O~": "ɒ̃",
+              "A~": "ɒ",
+              "&~": "æ",
+              "p": "p",
               "b": "b",
               "t": "t",
               "d": "d",
@@ -58,7 +67,6 @@ CELEX_2IPA = {"p": "p",
               "O": "ɔ",
               "3": "ɜ",
               "A": "ɑ",
-              "~": "ŋ",
               "a": "a",
               "e": "e",
               "i": "i",
@@ -68,10 +76,12 @@ CELEX_2IPA = {"p": "p",
               "y": "y",
               ":": "ː"}
 
+celex_regex = re.compile(r"{}".format("|".join(CELEX_2IPA.keys())))
+
 
 def celex_to_ipa(phonemes):
     """Convert celex phonemes to IPA unicode format."""
-    return "".join([CELEX_2IPA[p] for p in phonemes])
+    return "".join([CELEX_2IPA[p] for p in celex_regex.findall(phonemes)])
 
 
 class Celex(Reader):
@@ -156,6 +166,7 @@ class Celex(Reader):
         else:
             self.replace = re.compile(r"(,|r\*)")
             self.braces = re.compile(r"[\[\]]+")
+            self.double_braces = re.compile(r"(\[[^\]]+)\[(.+)\]([^\[])")
         self.translate_phonemes = translate_phonemes
         self.disc_mode = disc_mode
 
@@ -208,16 +219,23 @@ class Celex(Reader):
                     logging.info("{} has no associated phonological or "
                                  "syllable info, skipping".format(orthography))
                     continue
-
-                syll = [self.replace.sub("", x)
-                        for x in self.braces.split(syll) if x]
-                if self.translate_phonemes:
-                    syll = [celex_to_ipa(x) for x in syll]
-                syll = [segment_phonology(x) for x in syll]
+                phon = syll
                 if use_syll:
+                    syll = self.double_braces.sub("\g<1>\g<2>][\g<2>\g<3>",
+                                                  syll)
+                    syll = [self.replace.sub("", x)
+                            for x in self.braces.split(syll) if x]
+                    if self.translate_phonemes:
+                        syll = [celex_to_ipa(x) for x in syll]
+                    syll = [segment_phonology(x) for x in syll]
                     out['syllables'] = tuple(syll)
                 if use_p:
-                    out['phonology'] = tuple(chain.from_iterable(syll))
+                    phon = [self.replace.sub("", x)
+                            for x in self.braces.split(phon) if x]
+                    if self.translate_phonemes:
+                        phon = [celex_to_ipa(x) for x in phon]
+                    phon = [segment_phonology(x) for x in phon]
+                    out['phonology'] = tuple(chain.from_iterable(phon))
             if use_freq:
                 out['frequency'] = int(columns[self.fields['frequency']])
             result.append(out)
