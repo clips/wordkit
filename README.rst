@@ -35,7 +35,7 @@ Example
   from sklearn.pipeline import FeatureUnion
 
   # The fields we want to extract from our corpora.
-  fields = ('orthography', 'frequency', 'syllables')
+  fields = ('orthography', 'frequency', 'phonology', 'syllables')
 
   # Filter function
   # A filter function can be added to a corpus to filter out any
@@ -69,28 +69,38 @@ Example
   words = corpora.transform([])
 
   # words[0] =>
-  # {'frequency': 413887, 'orthography': 'a', 'phonology': ('e', 'ɪ')}
+  # {'frequency': 1267035,
+  # 'orthography': 'a',
+  # 'phonology': ('e', 'ɪ'),
+  # 'syllables': (('e', 'ɪ'),)}
 
   # You can also query specific words
   wind = corpora.transform(["wind"])
 
   # This gives
   # wind =>
-  #[{'orthography': 'wind', 'syllables': (('w', 'a', 'ɪ', 'n', 'd'),), 'frequency': 298},
-  # {'orthography': 'wind', 'syllables': (('w', 'ɪ', 'n', 'd'),), 'frequency': 2170},
-  # {'orthography': 'wind', 'syllables': (('w', 'ɪ', 'n', 't'),), 'frequency': 4702}]
+  #[{'orthography': 'wind', 'syllables': (('w', 'a', 'ɪ', 'n', 'd'),), 'phonology': ('w', 'a', 'ɪ', 'n', 'd'), 'frequency': 298},
+  # {'orthography': 'wind', 'syllables': (('w', 'ɪ', 'n', 'd'),), 'phonology': ('w', 'ɪ', 'n', 'd'), 'frequency': 2170},
+  # {'orthography': 'wind', 'syllables': (('w', 'ɪ', 'n', 't'),), 'phonology': ('w', 'ɪ', 'n', 't'), 'frequency': 4702}],
 
   # Now, let's transform into features
   # Orthography is a linear transformer with the fourteen segment feature set.
   o = LinearTransformer(fourteen, field='orthography')
   # For phonology we use Wickelphones.
-  p = WickelTransformer(n=1, field='syllables')
+  p = WickelTransformer(n=1, field='phonology')
 
   featurizer = FeatureUnion([("o", o), ("p", p)])
 
   # Fit and transform the featurizers.
   X = featurizer.fit_transform(words)
-  # A (7650, 6615) matrix.
+  # A (7650, 4795) matrix.
+
+  # Get the feature vector length for each featurizer
+  o.vec_len # 112
+  p.vec_len # 4683
+
+  # Inspect the features of the Wickeltransformer
+  p.features
 
 Contributors
 ''''''''''''
