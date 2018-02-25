@@ -169,7 +169,7 @@ class Reader(TransformerMixin):
         words = self._retrieve(X, kwargs=kwargs)
 
         if 'language' in self.fields:
-            for w in words:
+            for w in (x for x in words if 'language' not in x):
                 w.update({"language": self.language})
 
         if self.merge_duplicates:
