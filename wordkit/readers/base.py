@@ -8,7 +8,7 @@ from sklearn.base import TransformerMixin
 
 remove_double = re.compile(r"(ː)(\1){1,}")
 
-diacritics = ("ː",
+diacritics = ('ː',
               '̤',
               'ˠ',
               '̠',
@@ -38,7 +38,32 @@ def identity(x):
 
 
 def segment_phonology(phonemes, items=diacritics, to_keep=diacritics):
-    """Segment a list of phonemes into chunks by joining suprasegmentals."""
+    """
+    Segment a list of characters into chunks by joining diacritics.
+
+    This function turns a string of phonemes, which might have diacritics and
+    suprasegmentals as separate characters, into a list of phonemes in which
+    any diacritics or suprasegmentals have been joined.
+
+    It also removes any diacritics which are not in the list to_keep,
+    allowing the user to systematically remove any distinction which is not
+    deemed useful for the current research.
+
+    Additionally, any double longness markers are removed, and replaced by
+    a single marker.
+
+    Parameters
+    ----------
+    phonemes : list
+        A list of phoneme characters to segment.
+    items : list
+        A list of characters which to treat as diacritics.
+    to_keep : list
+        A list of diacritics from the list passed to items which to keep.
+        Any items in this list are not removed as spurious diacritics.
+        If to_keep and items are the same list, all items are kept.
+
+    """
     phonemes = remove_double.sub("\g<1>", phonemes)
     phonemes = [list(p) for p in phonemes]
     idx = 0
@@ -79,6 +104,8 @@ class Reader(TransformerMixin):
     merge_duplicates : bool, optional, default False
         Whether to merge duplicates which are indistinguishable according
         to the selected fields.
+        Note that frequency is not counted as a field for determining
+        duplicates. Frequency is instead added together for any duplicates.
         If this is False, duplicates may occur in the output.
     filter_function : filter_function, optional, default identity
         A custom function you can use to filter the output.
@@ -112,7 +139,7 @@ class Reader(TransformerMixin):
                  merge_duplicates=False,
                  filter_function=None,
                  diacritics=diacritics):
-        """Base class for readers."""
+        """Init the base class."""
         if not os.path.exists(path):
             raise ValueError("The file you specified does not "
                              "exist: {}".format(path))
@@ -169,9 +196,12 @@ class Reader(TransformerMixin):
         words = self._retrieve(X, kwargs=kwargs)
 
         if 'language' in self.fields:
+            # Only add language if the transformer has not added it.
             for w in (x for x in words if 'language' not in x):
                 w.update({"language": self.language})
 
+        # Merging duplicates means that any duplicates are removed
+        # and their frequencies are added together.
         if self.merge_duplicates:
             new_words = defaultdict(int)
             for w in words:
@@ -188,14 +218,8 @@ class Reader(TransformerMixin):
                 if 'frequency' in self.fields:
                     d['frequency'] = v
                 words.append(d)
-        else:
-            new_words = {tuple(w.items()) for w in words}
-            new_words = [dict(w) for w in words]
 
-        # Break lazy evaluation because users expect lists.
-        words = list(filter(self.filter_function, words))
-
-        return words
+        return list(filter(self.filter_function, words))
 
     def _retrieve(self,
                   wordlist,
