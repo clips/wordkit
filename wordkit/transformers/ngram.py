@@ -103,7 +103,7 @@ class ConstrainedOpenNGramTransformer(WickelTransformer):
 
 
 class WeightedOpenBigramTransformer(ConstrainedOpenNGramTransformer):
-    """
+    r"""
     A transformer for weighted open bigrams.
 
     A weighted open bigram is an open bigram with a distance-dependent weight.
@@ -116,6 +116,18 @@ class WeightedOpenBigramTransformer(ConstrainedOpenNGramTransformer):
 
     The WeightedOpenBigramTransformer can only handle bigrams, because there
     is no nice way to assign values to trigrams based on their contiguity.
+
+    @article{whitney2001brain,
+      title={How the brain encodes the order of letters in a printed word:
+             The SERIOL model and selective literature review},
+      author={Whitney, Carol},
+      journal={Psychonomic Bulletin \& Review},
+      volume={8},
+      number={2},
+      pages={221--243},
+      year={2001},
+      publisher={Springer}
+    }
 
     Parameters
     ----------
