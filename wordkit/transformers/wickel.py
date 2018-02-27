@@ -23,14 +23,17 @@ class WickelTransformer(BaseTransformer):
         The value of n to use in the character ngrams.
     field : str
         The field to which to apply this featurizer.
+    use_padding : bool, default True
+        Whether to include "#" characters as padding characters.
 
     """
 
-    def __init__(self, n, field):
+    def __init__(self, n, field, use_padding=True):
         """Initialize the transformer."""
         super().__init__(field)
         self.n = n
         self.vec_len = 0
+        self.use_padding = use_padding
 
     def fit(self, X):
         """
@@ -54,7 +57,7 @@ class WickelTransformer(BaseTransformer):
             words = X
         grams = set()
         for x in words:
-            grams.update(self._ngrams(x, self.n))
+            grams.update(self._decompose(x))
         self.features = {g: idx for idx, g in enumerate(grams)}
         # The vector length is equal to the number of features.
         self.vec_len = len(self.features)
@@ -82,15 +85,21 @@ class WickelTransformer(BaseTransformer):
         if type(x) == dict:
             x = x[self.field]
         z = np.zeros(self.vec_len)
-        indices = [self.features[g] for g in self._ngrams(x, self.n)]
+        indices = [self.features[g] for g in self._decompose(x)]
         z[indices] = 1
 
         return z
 
     @staticmethod
-    def _ngrams(word, n):
+    def _ngrams(word, n, num_padding):
         """Lazily get all ngrams in a string."""
-        prepend = ("#",) * n
-        col = prepend + tuple(word) + prepend
-        for i in range(n, len(col)-n):
-            yield col[i-n: i+(n+1)]
+        if num_padding:
+            padding = ("#",) * num_padding
+            word = padding + tuple(word) + padding
+
+        for i in range(n, len(word)+1):
+            yield word[i-n: i]
+
+    def _decompose(self, word):
+        """Decompose a string into ngrams."""
+        return self._ngrams(word, self.n, self.n-1 if self.use_padding else 0)
