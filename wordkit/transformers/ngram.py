@@ -1,4 +1,5 @@
 """Transform orthography."""
+import numpy as np
 from .wickel import WickelTransformer
 from itertools import combinations
 from functools import reduce
@@ -23,12 +24,12 @@ class OpenNGramTransformer(WickelTransformer):
 
     If you use the OpenNGramTransformer, please cite:
 
-        @article{grainger2004modeling,
-          title={Modeling letter position coding in printed word perception.},
-          author={Grainger, Jonathan and Van Heuven, Walter JB},
-          year={2004},
-          publisher={Nova Science Publishers}
-        }
+    @article{grainger2004modeling,
+      title={Modeling letter position coding in printed word perception.},
+      author={Grainger, Jonathan and Van Heuven, Walter JB},
+      year={2004},
+      publisher={Nova Science Publishers}
+    }
 
     Parameters
     ----------
@@ -97,4 +98,49 @@ class ConstrainedOpenNGramTransformer(WickelTransformer):
         """Get all unordered n-combinations of characters in a word."""
         grams = self._ngrams(word, self.window+1, 1 if self.use_padding else 0)
         combs = (combinations(x, self.n) for x in grams)
-        return reduce(set.union, combs, set())
+        result = list(reduce(set.union, combs, set()))
+        return zip(np.ones(len(result)), result)
+
+
+class WeightedOpenBigramTransformer(ConstrainedOpenNGramTransformer):
+    """
+    A transformer for weighted open bigrams.
+
+    A weighted open bigram is an open bigram with a distance-dependent weight.
+    The weight assigned to each bigram depends on the distance between the
+    constituent letters of said bigram.
+
+    That is: if the letters of a bigram are contiguous, their weight is higher
+    than the weight of two letters that happen to be further away from each
+    other.
+
+    The WeightedOpenBigramTransformer can only handle bigrams, because there
+    is no nice way to assign values to trigrams based on their contiguity.
+
+    Parameters
+    ----------
+    field : string
+        The field to apply this transformer to.
+    weights : tuple
+        The weights to apply at each distance. The first weight is applied at
+        distance one, the second at distance two etc. Any letters which are
+        have a distance greater than (len(weights) + 1) are given a weight of 0
+    use_padding : bool, default False
+        Whether to use padding.
+
+    """
+
+    def __init__(self, field, weights, use_padding=False):
+        """Init the object."""
+        super().__init__(2, len(weights), field, use_padding)
+        self.weights = weights
+
+    def _decompose(self, word):
+        """Decompose a word into its consituent letters."""
+        grams = self._ngrams(word, self.window+1, 1 if self.use_padding else 0)
+        gram_index = list(range(self.window+1))
+
+        for gram in grams:
+            combs = combinations(zip(gram_index, gram), self.n)
+            for (a, l1), (b, l2) in combs:
+                yield self.weights[abs(a-b)-1], (l1, l2)
