@@ -305,7 +305,7 @@ allowed_languages = {'fas',
                      'tpw',
                      'ara'}
 
-language2field = {'orthography': 2, 'phonology': 4, 'language': 0}
+language2field = {'orthography': 2, 'phonology': 3, 'language': 0}
 
 
 class Deri(Reader):
