@@ -46,7 +46,10 @@ class OpenNGramTransformer(WickelTransformer):
 
     def _decompose(self, word):
         """Get all unordered n-combinations of characters in a word."""
-        return set(combinations(word, self.n))
+        combs = set(combinations(word, self.n))
+        if not combs:
+            combs = [word]
+        return zip(np.ones(len(combs)), combs)
 
 
 class ConstrainedOpenNGramTransformer(WickelTransformer):
