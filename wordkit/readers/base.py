@@ -8,7 +8,7 @@ from sklearn.base import TransformerMixin
 
 remove_double = re.compile(r"(ː)(\1){1,}")
 
-diacritics = ('ː',
+diacritics = {'ː',
               '̤',
               'ˠ',
               '̠',
@@ -29,7 +29,7 @@ diacritics = ('ː',
               '̯',
               '̪',
               '̰',
-              'ʷ')
+              'ʷ'}
 
 
 def identity(x):

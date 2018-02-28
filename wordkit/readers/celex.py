@@ -1,5 +1,5 @@
 """Tools for working with Celex."""
-import re
+import regex as re
 import logging
 
 from .base import Reader, identity, segment_phonology
@@ -10,6 +10,10 @@ remove_double = re.compile(r"ː+")
 
 
 logger = logging.getLogger(__name__)
+
+
+MAX_FREQ = {'eng': 18632568, 'nld': 40370584, 'ger': 5054170}
+MAX_FREQ = {k: v / 1000000 for k, v in MAX_FREQ.items()}
 
 language2field = {'eng': {'orthography': 1,
                           'phonology': 7,
@@ -238,6 +242,7 @@ class Celex(Reader):
                     out['phonology'] = tuple(chain.from_iterable(phon))
             if use_freq:
                 out['frequency'] = int(columns[self.fields['frequency']])
+                out['frequency'] /= MAX_FREQ[self.language]
             result.append(out)
 
         return result
