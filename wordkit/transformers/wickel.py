@@ -6,16 +6,19 @@ from .base import BaseTransformer
 
 class WickelTransformer(BaseTransformer):
     """
-    A transformer for naive Wickelfeatures.
+    A transformer for Wickelgraphs or Wickelphones.
 
-    Wickelfeatures are more commonly known under the name of character ngrams.
-    Wickelfeatures assume that words are represented as unordered ngrams of
-    characters. For each character in the word, the n letters on the left
-    and right are added to it. This introduces a modicum of context into the
-    letter representations.
+    Wickelgraphs are more commonly known under the name of character ngrams.
 
-    For example, using a n=1 the word "CAT" gets represented as "#CA", "CAT",
-    and "AT#". Note the addition of the beginning and end markers.
+    Wickelgraphs assume that words are represented as unordered ngrams of
+    characters. This introduces some idea of context into the letter
+    representations, and allows the model to generalize beyond specific letter
+    positions.
+
+    For example, using n=3 the word "CAT" gets represented as "#CA", "CAT",
+    and "AT#". Note the addition of the beginning and end markers. If you
+    set use_padding to False, these end markers get removed, and "CAT" becomes
+    a single ngram ("CAT").
 
     Parameters
     ----------
