@@ -133,7 +133,8 @@ class CVTransformer(FeatureTransformer):
         self._check(X)
         first_v = self.grid_structure.index("V")
         self.grid = self.grid_structure + self.grid_structure[:first_v]
-        last_v = self.grid[::-1].index("V")
+        last_v = -first_v
+        print(self.grid, first_v, last_v)
         idx = 0
 
         while idx < len(X):
@@ -141,10 +142,10 @@ class CVTransformer(FeatureTransformer):
                 self._put_on_grid(X[idx])
                 idx += 1
             except ValueError:
-                self.grid = self.grid[:-last_v] + self.grid_structure
-                self.grid += self.grid[-last_v:]
+                self.grid = self.grid[:last_v] + self.grid_structure
+                self.grid += self.grid_structure[:first_v]
+
         # Add the number of consonants to the end of the grid structure
-        self.grid += self.grid_structure[:last_v]
 
         # The grid indexer contains the number of _Features_
         # the grid contains up to that point.
