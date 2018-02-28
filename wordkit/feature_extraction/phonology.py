@@ -1,16 +1,114 @@
 """Functions for extracting and handling phonological features."""
 import numpy as np
-from itertools import chain
-from functools import partial
-from collections import defaultdict
+from functools import reduce
+from sklearn.feature_extraction import DictVectorizer
 
 from ipapy.ipastring import IPAString
 
-DEFAULT = "ɡæsɪrbʌɒɑtyðəvepʒuhʃoxdɛfiwθjlɔʊmnaŋɜkz"
+DEFAULT = tuple("ɡæsɪrbʌɒɑtyðəvepʒuhʃoxdɛfiwθjlɔʊmnaŋɜkz")
+FORBIDDEN_DESCRIPTORS = {"suprasegmental", "vowel", "consonant", "diacritic"}
 
 
-def one_hot_phonemes(phonemes=DEFAULT,
-                     use_long=False):
+def phoneme_set_to_string(phonemes):
+    """Convert a phoneme set (a tuple) into a single IPA character."""
+    return ["".join([x.unicode_repr for x in p])
+            for p in phonemes]
+
+
+def parse_phonemes(phonemes):
+    """Parse the incoming tuple of phonemes as IPA characters."""
+    phonemes = [IPAString(unicode_string=p) for p in phonemes]
+
+    vowels = filter(lambda x: x[0].is_vowel, phonemes)
+    consonants = filter(lambda x: not x[0].is_vowel, phonemes)
+
+    return list(vowels), list(consonants)
+
+
+def phoneme_descriptors(phonemes, forbidden=FORBIDDEN_DESCRIPTORS):
+    """Retrieve the set of descriptors for complex phonemes."""
+    descriptors = []
+
+    for p in phonemes:
+        desc = reduce(set.union, [p.descriptors for p in p], set())
+        desc -= forbidden
+        descriptors.append(desc)
+
+    return descriptors, reduce(set.union, descriptors, set())
+
+
+def grouped_phoneme_descriptors(phonemes, allowed=None):
+    """Retrieve the set of descriptors for complex phonemes."""
+    diacritic_descriptors = set()
+    results = []
+    for p in phonemes:
+        result = {}
+        if p[0].is_consonant:
+            result["manner"] = p[0].manner
+            result["place"] = p[0].place
+            result["voicing"] = p[0].voicing
+        else:
+            result["backness"] = p[0].backness
+            result["height"] = p[0].height
+            result["roundness"] = p[0].roundness
+        for diacritic in p[1:]:
+            desc = set(diacritic.descriptors) - FORBIDDEN_DESCRIPTORS
+            diacritic_descriptors.update(desc)
+            for x in desc:
+                result[x] = x
+
+        if allowed is not None:
+            result = {k: v for k, v in result.items() if v in allowed}
+
+        results.append(result)
+
+    for x in results:
+        for key in diacritic_descriptors - x.keys():
+            x[key] = "absent"
+
+    return results
+
+
+def phoneme_feature_vectors(phonemes, forbidden=FORBIDDEN_DESCRIPTORS):
+    """
+    Create feature vectors for phonemes on the basis of their descriptors.
+
+    A descriptor is a string description of a quality a certain phoneme
+    possesses. Examples of descriptions are "back", "central", "near-close".
+
+    This function first gathers all descriptors for each phoneme, and then
+    creates a single binary feature for each unique descriptor.
+    Each phoneme is then assigned a 1 for features for which it possesses the
+    descriptor, and 0 for features for which it doesn't possess the
+    descriptor.
+
+    Parameters
+    ----------
+    phonemes : tuple
+        A tuple of strings, where each string is a phoneme. Phonemes can
+        consist of multiple characters.
+    forbidden : set
+        descriptors from this set are filtered out. The standard set of
+        forbidden descriptors contains "suprasegmental", "vowel", and
+        "consonant".
+
+    """
+    descriptors, all_descriptors = phoneme_descriptors(phonemes,
+                                                       FORBIDDEN_DESCRIPTORS)
+
+    all_descriptors = {v: idx for idx, v in enumerate(all_descriptors)}
+
+    phoneme = np.zeros((len(descriptors),
+                        len(all_descriptors)))
+
+    for idx, p in enumerate(descriptors):
+        indices = [all_descriptors[d] for d in p]
+        phoneme[idx, indices] = 1
+
+    return phoneme
+
+
+def one_hot_phonemes(phonemes=DEFAULT):
     """
     Encode phonemes as one-hot vectors.
 
@@ -36,48 +134,18 @@ def one_hot_phonemes(phonemes=DEFAULT,
     >>> features = one_hot_phonemes()
 
     """
-    phonemes = IPAString(unicode_string="".join(phonemes),
-                         single_char_parsing=True)
-    phonemes = [p for p in phonemes if not p.is_diacritic]
+    vowels, consonants = parse_phonemes(phonemes)
 
-    vowels = [p.unicode_repr for p in phonemes if p.is_vowel]
-    consonants = [p.unicode_repr for p in phonemes if not p.is_vowel]
+    vowels = phoneme_set_to_string(vowels)
+    consonants = phoneme_set_to_string(consonants)
 
-    num_vowels = len(vowels)
-    if use_long:
-        num_vowels *= 2
-
-    vowel_dict = defaultdict(partial(np.zeros, num_vowels))
-
-    for idx, p in enumerate(vowels):
-
-        vowel_dict[p][idx] = 1.
-        if use_long:
-            vowel_dict[p+'ː'][idx + len(vowels)] = 1.
-
-    num_consonants = len(consonants)
-    if use_long:
-        num_consonants *= 2
-
-    consonant_dict = defaultdict(partial(np.zeros, num_consonants))
-
-    for idx, p in enumerate(consonants):
-
-        consonant_dict[p][idx] = 1.
-        if use_long:
-            consonant_dict[p+'ː'][idx + len(consonants)] = 1.
+    vowel_dict = dict(zip(vowels, np.eye(len(vowels))))
+    consonant_dict = dict(zip(consonants, np.eye(len(consonants))))
 
     return vowel_dict, consonant_dict
 
 
-def extract_phoneme_features(phonemes=DEFAULT,
-                             use_is_vowel=True,
-                             use_place=True,
-                             use_manner=True,
-                             use_voicing=True,
-                             use_backness=True,
-                             use_height=True,
-                             use_longness=True):
+def extract_phoneme_features(phonemes=DEFAULT):
     """
     Extract symbolic features from your phonemes.
 
@@ -88,18 +156,6 @@ def extract_phoneme_features(phonemes=DEFAULT,
     ----------
     phonemes : list, optional, default
         A string or other iterable of IPA characters you want to use.
-    use_is_vowel: bool, optional, default True
-        Whether to extract vowelness as a feature.
-    use_place: bool, optional, default True
-        Whether to use place as a feature.
-    use_manner: bool, optional, default True
-        Whether to use manner as a feature.
-    use_voicing: bool, optional, default True
-        Whether to use voicing as a feature.
-    use_backness: bool, optional, default True
-        Whether to use backness as a feature.
-    use_height: bool, optional, default True
-        Whether to use height as a feature.
 
     Returns
     -------
@@ -113,249 +169,82 @@ def extract_phoneme_features(phonemes=DEFAULT,
     >>> features = extract_phoneme_features()
 
     """
-    phonemes = IPAString(unicode_string="".join(phonemes),
-                         single_char_parsing=True)
+    vowels, consonants = parse_phonemes(phonemes)
 
-    phonemes = [p for p in phonemes
-                if not p.is_diacritic or p.is_suprasegmental]
+    vowel_strings = phoneme_set_to_string(vowels)
+    consonant_strings = phoneme_set_to_string(consonants)
 
-    vowels = filter(lambda x: x.is_vowel, phonemes)
-    consonants = filter(lambda x: not x.is_vowel, phonemes)
+    vowel_features = phoneme_feature_vectors(vowels)
+    consonant_features = phoneme_feature_vectors(consonants)
 
-    vowels = {p.unicode_repr: extract_single_phoneme(p,
-                                                     use_is_vowel,
-                                                     use_place,
-                                                     use_manner,
-                                                     use_voicing,
-                                                     use_backness,
-                                                     use_height)
-              for p in vowels}
-
-    consonants = {p.unicode_repr: extract_single_phoneme(p,
-                                                         use_is_vowel,
-                                                         use_place,
-                                                         use_manner,
-                                                         use_voicing,
-                                                         use_backness,
-                                                         use_height)
-                  for p in consonants}
-
-    if use_longness:
-        vowels = {k: v + ['short'] for k, v in vowels.items()}
-        long_vowels = {"{}ː".format(k): v[:-1] + ['long']
-                       for k, v in vowels.items()}
-        vowels.update(long_vowels)
-
-        consonants = {k: v + ['short'] for k, v in consonants.items()}
-        long_consonants = {"{}ː".format(k): v[:-1] + ['long']
-                           for k, v in consonants.items()}
-        consonants.update(long_consonants)
+    vowels = dict(zip(vowel_strings, vowel_features))
+    consonants = dict(zip(consonant_strings, consonant_features))
 
     return vowels, consonants
 
 
-def extract_single_phoneme(phoneme,
-                           use_is_vowel,
-                           use_place,
-                           use_voicing,
-                           use_backness,
-                           use_manner,
-                           use_height):
+def extract_grouped_phoneme_features(phonemes):
     """
-    Extract symbolic features from a single phoneme.
+    Extract phoneme features which are grouped per feature.
 
-    Parameters
-    ----------
-    phoneme : IPAChar
-        A single IPA character from which to extract features
-    use_is_vowel: bool, optional, default True
-        Whether to extract vowelness as a feature.
-    use_place: bool, optional, default True
-        Whether to use place as a feature.
-    use_manner: bool, optional, default True
-        Whether to use manner as a feature.
-    use_voicing: bool, optional, default True
-        Whether to use voicing as a feature.
-    use_backness: bool, optional, default True
-        Whether to use backness as a feature.
-    use_height: bool, optional, default True
-        Whether to use height as a feature.
-
-    Returns
-    -------
-    features: list
-        A list of strings, representing the symbolic features associated
-        with this phoneme according to the IPA specification.
-
-    Example
-    -------
-    >>> from ipapy import IPA_CHARS
-    >>> features = extract_single_phoneme(IPA_CHARS[0])
-
+    This leads to a the same encoding as the extract_phoneme_features
+    function.
     """
-    features = list()
+    vowels, consonants = parse_phonemes(phonemes)
 
-    if use_is_vowel:
-        if phoneme.is_vowel:
-            features.append("vowel")
-        else:
-            features.append("consonant")
-    if use_place:
-        if not phoneme.is_vowel:
-            features.append(phoneme.place)
-    if use_voicing:
-        if not phoneme.is_vowel:
-            features.append(phoneme.voicing)
-    if use_backness:
-        if phoneme.is_vowel:
-            features.append(phoneme.backness)
-    if use_manner:
-        if not phoneme.is_vowel:
-            features.append(phoneme.manner)
-    if use_height:
-        if phoneme.is_vowel:
-            features.append(phoneme.height)
+    vowel_strings = phoneme_set_to_string(vowels)
+    consonant_strings = phoneme_set_to_string(consonants)
 
-    return features
+    vowel_features = grouped_phoneme_descriptors(vowels)
+    consonant_features = grouped_phoneme_descriptors(consonants)
 
+    d = DictVectorizer(sparse=False)
+    vowel_features = d.fit_transform(vowel_features)
+    d = DictVectorizer(sparse=False)
+    consonant_features = d.fit_transform(consonant_features)
 
-def phoneme_features(features,
-                     phonemes=list(DEFAULT),
-                     use_is_vowel=True,
-                     use_place=True,
-                     use_manner=True,
-                     use_voicing=True,
-                     use_backness=True,
-                     use_height=True,
-                     use_longness=True):
-    """
-    Replace symbolic features by a set of predefined feature vectors.
-
-    Parameters
-    ----------
-    phonemes : list
-        A single IPA character from which to extract features
-    use_is_vowel: bool, optional, default True
-        Whether to extract vowelness as a feature.
-    use_place: bool, optional, default True
-        Whether to use place as a feature.
-    use_manner: bool, optional, default True
-        Whether to use manner as a feature.
-    use_voicing: bool, optional, default True
-        Whether to use voicing as a feature.
-    use_backness: bool, optional, default True
-        Whether to use backness as a feature.
-    use_height: bool, optional, default True
-        Whether to use height as a feature.
-
-    Returns
-    -------
-    features: tuple
-        A tuple of dictionaries. The first dictionary contains the vowels and
-        their features, the second dictionary the consonants and their
-        features.
-
-    """
-    # Not all feature sets explicitly code vowelness or consonantness
-    # but we don't want to crash the system if the user desires these features.
-    if 'vowel' not in features:
-        features['vowel'] = (1,)
-    if 'consonant' not in features:
-        features['consonant'] = (0,)
-
-    if 'long' not in features:
-        features['long'] = (1,)
-
-    if 'short' not in features:
-        features['short'] = (0,)
-
-    vowels, consonants = extract_phoneme_features(phonemes,
-                                                  use_is_vowel,
-                                                  use_place,
-                                                  use_manner,
-                                                  use_voicing,
-                                                  use_backness,
-                                                  use_height,
-                                                  use_longness)
-
-    vowels = {k: np.concatenate([features[x] for x in v])
-              for k, v in vowels.items()}
-
-    consonants = {k: np.concatenate([features[x] for x in v])
-                  for k, v in consonants.items()}
+    vowels = dict(zip(vowel_strings, vowel_features))
+    consonants = dict(zip(consonant_strings, consonant_features))
 
     return vowels, consonants
 
 
-def one_hot_phoneme_features(phonemes=DEFAULT,
-                             use_is_vowel=True,
-                             use_place=True,
-                             use_manner=True,
-                             use_voicing=True,
-                             use_backness=True,
-                             use_height=True):
-    """
-    Replace symbolic features by one-hot encoded features.
+def predefined_features(phonemes,
+                        phoneme_features):
+    """Use phonemes with pre-defined features."""
+    vowels, consonants = parse_phonemes(phonemes)
 
-    If, for example, the dimension "backness" is selected, and this dimension
-    happens to have five different configurations, we will reserve five
-    binary variables for backness.
+    v_string = phoneme_set_to_string(vowels)
+    c_string = phoneme_set_to_string(consonants)
 
-    As such, this featurization technique gives very large feature spaces,
-    but are ideal if the user doesn't want to assume any linguistic theory.
+    v_descriptors = grouped_phoneme_descriptors(vowels,
+                                                phoneme_features.keys())
+    c_descriptors = grouped_phoneme_descriptors(consonants,
+                                                phoneme_features.keys())
 
-    Parameters
-    ----------
-    phoneme : IPAChar
-        A single IPA character from which to extract features
-    use_is_vowel: bool, optional, default True
-        Whether to extract vowelness as a feature.
-    use_place: bool, optional, default True
-        Whether to use place as a feature.
-    use_manner: bool, optional, default True
-        Whether to use manner as a feature.
-    use_voicing: bool, optional, default True
-        Whether to use voicing as a feature.
-    use_backness: bool, optional, default True
-        Whether to use backness as a feature.
-    use_height: bool, optional, default True
-        Whether to use height as a feature.
+    vowel_vectors = []
 
-    Returns
-    -------
-    features: tuple
-        A tuple of dictionaries. The first dictionary contains the vowels and
-        their features, the second dictionary the consonants and their
-        features.
+    for descriptors in v_descriptors:
+        vec = []
+        for k, v in sorted(descriptors.items()):
+            if v != 'absent':
+                vec.extend(phoneme_features[v])
+            else:
+                vec.append(0)
+        vowel_vectors.append(vec)
 
-    """
-    vowels, consonants = extract_phoneme_features(phonemes,
-                                                  use_is_vowel,
-                                                  use_place,
-                                                  use_manner,
-                                                  use_voicing,
-                                                  use_backness,
-                                                  use_height)
+    consonant_vectors = []
 
-    vowel_features = set(chain.from_iterable(vowels.values()))
-    consonant_features = set(chain.from_iterable(consonants.values()))
+    for descriptors in c_descriptors:
+        vec = []
+        for k, v in sorted(descriptors.items()):
+            if v != 'absent':
+                vec.extend(phoneme_features[v])
+            else:
+                vec.append(0)
+        consonant_vectors.append(vec)
 
-    vowel_feature_space = np.eye(len(vowel_features))
-    consonant_feature_space = np.eye(len(consonant_features))
+    vowel_dict = dict(zip(v_string, vowel_vectors))
+    consonant_dict = dict(zip(c_string, consonant_vectors))
 
-    vowel_features = {k: vowel_feature_space[idx]
-                      for idx, k in enumerate(vowel_features)}
-
-    consonant_features = {k: consonant_feature_space[idx]
-                          for idx, k in enumerate(consonant_features)}
-
-    vowel_features.update(consonant_features)
-
-    return phoneme_features(vowel_features,
-                            phonemes,
-                            use_is_vowel,
-                            use_place,
-                            use_manner,
-                            use_voicing,
-                            use_backness,
-                            use_height)
+    return vowel_dict, consonant_dict
