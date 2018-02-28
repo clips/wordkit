@@ -9,13 +9,13 @@ DEFAULT = tuple("ɡæsɪrbʌɒɑtyðəvepʒuhʃoxdɛfiwθjlɔʊmnaŋɜkz")
 FORBIDDEN_DESCRIPTORS = {"suprasegmental", "vowel", "consonant", "diacritic"}
 
 
-def phoneme_set_to_string(phonemes):
+def _phoneme_set_to_string(phonemes):
     """Convert a phoneme set (a tuple) into a single IPA character."""
     return ["".join([x.unicode_repr for x in p])
             for p in phonemes]
 
 
-def parse_phonemes(phonemes):
+def _parse_phonemes(phonemes):
     """Parse the incoming tuple of phonemes as IPA characters."""
     phonemes = [IPAString(unicode_string=p) for p in phonemes]
 
@@ -25,7 +25,7 @@ def parse_phonemes(phonemes):
     return list(vowels), list(consonants)
 
 
-def phoneme_descriptors(phonemes, forbidden=FORBIDDEN_DESCRIPTORS):
+def _phoneme_descriptors(phonemes, forbidden=FORBIDDEN_DESCRIPTORS):
     """Retrieve the set of descriptors for complex phonemes."""
     descriptors = []
 
@@ -37,7 +37,7 @@ def phoneme_descriptors(phonemes, forbidden=FORBIDDEN_DESCRIPTORS):
     return descriptors, reduce(set.union, descriptors, set())
 
 
-def grouped_phoneme_descriptors(phonemes, allowed=None):
+def _grouped_phoneme_descriptors(phonemes, allowed=None):
     """Retrieve the set of descriptors for complex phonemes."""
     diacritic_descriptors = set()
     results = []
@@ -69,7 +69,7 @@ def grouped_phoneme_descriptors(phonemes, allowed=None):
     return results
 
 
-def phoneme_feature_vectors(phonemes, forbidden=FORBIDDEN_DESCRIPTORS):
+def _phoneme_feature_vectors(phonemes, forbidden=FORBIDDEN_DESCRIPTORS):
     """
     Create feature vectors for phonemes on the basis of their descriptors.
 
@@ -89,12 +89,12 @@ def phoneme_feature_vectors(phonemes, forbidden=FORBIDDEN_DESCRIPTORS):
         consist of multiple characters.
     forbidden : set
         descriptors from this set are filtered out. The standard set of
-        forbidden descriptors contains "suprasegmental", "vowel", and
-        "consonant".
+        forbidden descriptors contains "suprasegmental", "vowel",
+        "consonant", and "diacritic".
 
     """
-    descriptors, all_descriptors = phoneme_descriptors(phonemes,
-                                                       FORBIDDEN_DESCRIPTORS)
+    descriptors, all_descriptors = _phoneme_descriptors(phonemes,
+                                                        FORBIDDEN_DESCRIPTORS)
 
     all_descriptors = {v: idx for idx, v in enumerate(all_descriptors)}
 
@@ -108,7 +108,7 @@ def phoneme_feature_vectors(phonemes, forbidden=FORBIDDEN_DESCRIPTORS):
     return phoneme
 
 
-def one_hot_phonemes(phonemes=DEFAULT):
+def extract_one_hot_phonemes(phonemes=DEFAULT):
     """
     Encode phonemes as one-hot vectors.
 
@@ -134,10 +134,10 @@ def one_hot_phonemes(phonemes=DEFAULT):
     >>> features = one_hot_phonemes()
 
     """
-    vowels, consonants = parse_phonemes(phonemes)
+    vowels, consonants = _parse_phonemes(phonemes)
 
-    vowels = phoneme_set_to_string(vowels)
-    consonants = phoneme_set_to_string(consonants)
+    vowels = _phoneme_set_to_string(vowels)
+    consonants = _phoneme_set_to_string(consonants)
 
     vowel_dict = dict(zip(vowels, np.eye(len(vowels))))
     consonant_dict = dict(zip(consonants, np.eye(len(consonants))))
@@ -150,7 +150,7 @@ def extract_phoneme_features(phonemes=DEFAULT):
     Extract symbolic features from your phonemes.
 
     This function associates the feature strings associated with each
-    phoneme in your dataset.
+    phoneme in your dataset with a set of features.
 
     Parameters
     ----------
@@ -169,13 +169,13 @@ def extract_phoneme_features(phonemes=DEFAULT):
     >>> features = extract_phoneme_features()
 
     """
-    vowels, consonants = parse_phonemes(phonemes)
+    vowels, consonants = _parse_phonemes(phonemes)
 
-    vowel_strings = phoneme_set_to_string(vowels)
-    consonant_strings = phoneme_set_to_string(consonants)
+    vowel_strings = _phoneme_set_to_string(vowels)
+    consonant_strings = _phoneme_set_to_string(consonants)
 
-    vowel_features = phoneme_feature_vectors(vowels)
-    consonant_features = phoneme_feature_vectors(consonants)
+    vowel_features = _phoneme_feature_vectors(vowels)
+    consonant_features = _phoneme_feature_vectors(consonants)
 
     vowels = dict(zip(vowel_strings, vowel_features))
     consonants = dict(zip(consonant_strings, consonant_features))
@@ -190,13 +190,13 @@ def extract_grouped_phoneme_features(phonemes):
     This leads to a the same encoding as the extract_phoneme_features
     function.
     """
-    vowels, consonants = parse_phonemes(phonemes)
+    vowels, consonants = _parse_phonemes(phonemes)
 
-    vowel_strings = phoneme_set_to_string(vowels)
-    consonant_strings = phoneme_set_to_string(consonants)
+    vowel_strings = _phoneme_set_to_string(vowels)
+    consonant_strings = _phoneme_set_to_string(consonants)
 
-    vowel_features = grouped_phoneme_descriptors(vowels)
-    consonant_features = grouped_phoneme_descriptors(consonants)
+    vowel_features = _grouped_phoneme_descriptors(vowels)
+    consonant_features = _grouped_phoneme_descriptors(consonants)
 
     d = DictVectorizer(sparse=False)
     vowel_features = d.fit_transform(vowel_features)
@@ -212,15 +212,15 @@ def extract_grouped_phoneme_features(phonemes):
 def predefined_features(phonemes,
                         phoneme_features):
     """Use phonemes with pre-defined features."""
-    vowels, consonants = parse_phonemes(phonemes)
+    vowels, consonants = _parse_phonemes(phonemes)
 
-    v_string = phoneme_set_to_string(vowels)
-    c_string = phoneme_set_to_string(consonants)
+    v_string = _phoneme_set_to_string(vowels)
+    c_string = _phoneme_set_to_string(consonants)
 
-    v_descriptors = grouped_phoneme_descriptors(vowels,
-                                                phoneme_features.keys())
-    c_descriptors = grouped_phoneme_descriptors(consonants,
-                                                phoneme_features.keys())
+    v_descriptors = _grouped_phoneme_descriptors(vowels,
+                                                 phoneme_features.keys())
+    c_descriptors = _grouped_phoneme_descriptors(consonants,
+                                                 phoneme_features.keys())
 
     vowel_vectors = []
 
