@@ -111,19 +111,15 @@ class Celex(Reader):
     ----------
     path : string
         The path to the corpus this reader has to read.
+    language : string, optional, default ("eng")
+        The language of the corpus.
     fields : iterable, default ("orthography", "syllables", "frequency")
         An iterable of strings containing the fields this reader has
         to read from the corpus.
-    language : string, optional, default ("eng")
-        The language of the corpus.
     merge_duplicates : bool, optional, default False
         Whether to merge duplicates which are indistinguishable according
         to the selected fields.
         If this is False, duplicates may occur in the output.
-    translate_phonemes : bool, optional, default True
-        Whether to translate phonemes using the CELEX_2IPA translation table.
-        If this is set to False, the transformer will not be compatible with
-        downstream phonological featurizers deliverd with Wordkit.
     filter_function : function
         The filtering function to use. A filtering function is a function
         which accepts a dictionary as argument and which returns a boolean
@@ -132,18 +128,14 @@ class Celex(Reader):
 
         Example of a filtering function could be a function which constrains
         the frequencies of retrieved words, or the number of syllables.
-    disc_mode : bool, optional, default False
-        Whether to get disc phonemes from CELEX. If this is set to True,
-        translate phonemes is automatically set to False.
 
     """
 
     def __init__(self,
                  path,
-                 fields=("orthography", "syllables", "frequency", "language"),
                  language=None,
+                 fields=("orthography", "syllables", "frequency", "language"),
                  merge_duplicates=False,
-                 translate_phonemes=True,
                  filter_function=identity):
         """Extract structured information from CELEX."""
         if language is None:
@@ -165,7 +157,6 @@ class Celex(Reader):
         self.replace = re.compile(r"(,|r\*)")
         self.braces = re.compile(r"[\[\]]+")
         self.double_braces = re.compile(r"(\[[^\]]+?)\[(.+?)\]([^\[])")
-        self.translate_phonemes = translate_phonemes
 
     def _retrieve(self, wordlist=None, **kwargs):
         """
@@ -191,6 +182,7 @@ class Celex(Reader):
         use_freq = 'frequency' in self.fields
 
         if wordlist:
+            print([x for x in wordlist if isinstance(x, float)])
             wordlist = set([x.lower() for x in wordlist])
         result = []
         words_added = set()
@@ -224,15 +216,11 @@ class Celex(Reader):
                                                   syll)
                     syll = [self.replace.sub("", x)
                             for x in self.braces.split(syll) if x]
-                    if self.translate_phonemes:
-                        syll = [celex_to_ipa(x) for x in syll]
                     syll = [segment_phonology(x) for x in syll]
                     out['syllables'] = tuple(syll)
                 if use_p:
                     phon = [self.replace.sub("", x)
                             for x in self.braces.split(phon) if x]
-                    if self.translate_phonemes:
-                        phon = [celex_to_ipa(x) for x in phon]
                     phon = [segment_phonology(x) for x in phon]
                     out['phonology'] = tuple(chain.from_iterable(phon))
             if use_freq:
