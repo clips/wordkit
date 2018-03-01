@@ -1,6 +1,7 @@
 """Tools for working with Celex."""
 import regex as re
 import logging
+import os
 
 from .base import Reader, identity, segment_phonology
 from itertools import chain
@@ -11,29 +12,25 @@ remove_double = re.compile(r"ː+")
 
 logger = logging.getLogger(__name__)
 
-
-MAX_FREQ = {'eng': 18632568, 'nld': 40370584, 'ger': 5054170}
+AUTO_LANGUAGE = {"epl.cd": "eng", "dpl.cd": "nld", "gpl.cd": "deu"}
+MAX_FREQ = {'eng': 18632568, 'nld': 40370584, 'deu': 5054170}
 MAX_FREQ = {k: v / 1000000 for k, v in MAX_FREQ.items()}
 
 language2field = {'eng': {'orthography': 1,
                           'phonology': 7,
                           'frequency': 2,
                           'syllables': 7,
-                          'language': None,
-                          'disc': 5},
+                          'language': None},
                   'nld': {'orthography': 1,
                           'phonology': 5,
                           'frequency': 2,
                           'syllables': 5,
-                          'language': None,
-                          'disc': 3},
-                  'ger': {'orthography': 1,
+                          'language': None},
+                  'deu': {'orthography': 1,
                           'phonology': 4,
                           'frequency': 2,
                           'syllables': 4,
-                          'language': None,
-                          'disc': 3}}
-
+                          'language': None}}
 
 CELEX_2IPA = {"O~": "ɒ̃",
               "A~": "ɒ",
@@ -144,18 +141,19 @@ class Celex(Reader):
     def __init__(self,
                  path,
                  fields=("orthography", "syllables", "frequency", "language"),
-                 language='eng',
+                 language=None,
                  merge_duplicates=False,
                  translate_phonemes=True,
-                 filter_function=identity,
-                 disc_mode=False):
+                 filter_function=identity):
         """Extract structured information from CELEX."""
-        p = copy(language2field[language])
+        if language is None:
+            try:
+                language = AUTO_LANGUAGE[os.path.split(path)[1]]
+            except KeyError:
+                raise ValueError("You passed None to language, but we failed "
+                                 "to determine the language automatically.")
 
-        if disc_mode:
-            p['syllables'] = p['disc']
-            p['phonology'] = p['disc']
-            translate_phonemes = False
+        p = copy(language2field[language])
 
         super().__init__(path,
                          fields,
@@ -164,15 +162,10 @@ class Celex(Reader):
                          merge_duplicates,
                          filter_function)
 
-        if disc_mode:
-            self.replace = re.compile(r"'")
-            self.braces = re.compile(r"-")
-        else:
-            self.replace = re.compile(r"(,|r\*)")
-            self.braces = re.compile(r"[\[\]]+")
-            self.double_braces = re.compile(r"(\[[^\]]+?)\[(.+?)\]([^\[])")
+        self.replace = re.compile(r"(,|r\*)")
+        self.braces = re.compile(r"[\[\]]+")
+        self.double_braces = re.compile(r"(\[[^\]]+?)\[(.+?)\]([^\[])")
         self.translate_phonemes = translate_phonemes
-        self.disc_mode = disc_mode
 
     def _retrieve(self, wordlist=None, **kwargs):
         """
