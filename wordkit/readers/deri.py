@@ -5,7 +5,7 @@ from .base import Reader, identity, segment_phonology, diacritics
 from ipapy.ipastring import IPAString
 
 
-allowed_languages = {'fas',
+ALLOWED_LANGUAGES = {'fas',
                      'isl',
                      'kld',
                      'tzm',
@@ -335,12 +335,12 @@ class Deri(Reader):
     ----------
     path : string
         The path to the corpus this reader has to read.
-    fields : iterable, default ("orthography", "phonology")
-        An iterable of strings containing the fields this reader has
-        to read from the corpus.
     language : string, default ("eng")
         The language of the corpus. If this is set to None, all languages
         will be retrieved from the corpus.
+    fields : iterable, default ("orthography", "phonology")
+        An iterable of strings containing the fields this reader has
+        to read from the corpus.
     merge_duplicates : bool, default False
         Whether to merge duplicates which are indistinguishable according
         to the selected fields.
@@ -362,8 +362,8 @@ class Deri(Reader):
 
     def __init__(self,
                  path,
+                 language=None,
                  fields=("orthography", "phonology"),
-                 language='eng',
                  merge_duplicates=False,
                  filter_function=identity,
                  diacritics=diacritics):
@@ -375,7 +375,7 @@ class Deri(Reader):
                          filter_function,
                          diacritics=diacritics)
 
-        if language is not None and language not in allowed_languages:
+        if language is not None and language not in ALLOWED_LANGUAGES:
             raise ValueError("The language you supplied is not in the list "
                              "of allowed languages for this corpus.")
         self.language = language
