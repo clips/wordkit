@@ -185,6 +185,7 @@ class Celex(Reader):
             input list, as words can be expressed in multiple ways.
 
         """
+        use_o = 'orthography' in self.fields
         use_p = 'phonology' in self.fields
         use_syll = 'syllables' in self.fields
         use_freq = 'frequency' in self.fields
@@ -206,7 +207,8 @@ class Celex(Reader):
             if wordlist and orthography not in wordlist:
                 continue
             words_added.add(orthography)
-            out['orthography'] = orthography
+            if use_o:
+                out['orthography'] = orthography
             if use_p or use_syll:
                 try:
                     syll = columns[self.fields['phonology']]
