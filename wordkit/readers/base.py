@@ -152,9 +152,8 @@ class Reader(TransformerMixin):
                              "{}.".format(difference,
                                           set(field_ids.keys())))
 
-        fields = {f: field_ids[f] for f in fields}
         self.path = path
-        self.fields = dict(fields)
+        self.fields = {f: field_ids[f] for f in fields}
         self.field_ids = field_ids
         self.merge_duplicates = merge_duplicates
         self.language = language
