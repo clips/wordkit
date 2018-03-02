@@ -142,7 +142,7 @@ class CMU(Reader):
                  path,
                  language='eng',
                  fields=("orthography", "phonology"),
-                 merge_duplicates=False,
+                 merge_duplicates=True,
                  filter_function=identity):
         """Extract structured information from CMUDICT."""
         super().__init__(path,

@@ -37,6 +37,11 @@ def identity(x):
     return x
 
 
+def int_list():
+    """Return a list of ints."""
+    return [0, 0]
+
+
 def segment_phonology(phonemes, items=diacritics, to_keep=diacritics):
     """
     Segment a list of characters into chunks by joining diacritics.
@@ -136,8 +141,8 @@ class Reader(TransformerMixin):
                  fields,
                  field_ids,
                  language,
-                 merge_duplicates=False,
-                 filter_function=None,
+                 merge_duplicates,
+                 filter_function,
                  diacritics=diacritics):
         """Init the base class."""
         if not os.path.exists(path):
@@ -202,11 +207,13 @@ class Reader(TransformerMixin):
         # Merging duplicates means that any duplicates are removed
         # and their frequencies are added together.
         if self.merge_duplicates:
-            new_words = defaultdict(int)
+            new_words = defaultdict(int_list)
             for w in words:
-                it = tuple([i for i in w.items() if i[0] != 'frequency'])
+                frequencies = ('frequency', 'log_frequency')
+                it = tuple([i for i in w.items() if i[0] not in frequencies])
                 try:
-                    new_words[it] += w['frequency']
+                    new_words[it][0] += w['frequency']
+                    new_words[it][1] += w['log_frequency']
                 except KeyError:
                     pass
 
@@ -215,7 +222,9 @@ class Reader(TransformerMixin):
             for k, v in new_words.items():
                 d = dict(k)
                 if 'frequency' in self.fields:
-                    d['frequency'] = v
+                    d['frequency'] = v[0]
+                if 'log_frequency' in self.fields:
+                    d['log_frequency'] = v[1]
                 words.append(d)
 
         return list(filter(self.filter_function, words))

@@ -2,6 +2,7 @@
 import regex as re
 import logging
 import os
+import numpy as np
 
 from .base import Reader, identity, segment_phonology
 from itertools import chain
@@ -12,25 +13,44 @@ remove_double = re.compile(r"ː+")
 
 logger = logging.getLogger(__name__)
 
-AUTO_LANGUAGE = {"epl.cd": "eng", "dpl.cd": "nld", "gpl.cd": "deu"}
-MAX_FREQ = {'eng': 18632568, 'nld': 40370584, 'deu': 5054170}
+AUTO_LANGUAGE = {"epl.cd": "eng",
+                 "dpl.cd": "nld",
+                 "gpl.cd": "deu",
+                 "epw.cd": "eng",
+                 "dpw.cd": "nld",
+                 "gpw.cd": "deu"}
+
+# MAX_FREQ has different content depending on whether we are using lemmas
+# or words, so we index the MAX_FREQ dictionary using both the language
+# and whether we are using lemmas.
+MAX_FREQ = {('eng', True): 18632568,
+            ('eng', False): 18740716,
+            ('nld', True): 40370584,
+            ('nld', False): 40181484,
+            ('deu', True): 5054170,
+            ('deu', False): 1000000}
+
+# MAX_FREQ is scaled to 1M, which scales the corpus to 1M words.
 MAX_FREQ = {k: v / 1000000 for k, v in MAX_FREQ.items()}
 
 language2field = {'eng': {'orthography': 1,
                           'phonology': 7,
                           'frequency': 2,
                           'syllables': 7,
-                          'language': None},
+                          'language': None,
+                          'log_frequency': 2},
                   'nld': {'orthography': 1,
                           'phonology': 5,
                           'frequency': 2,
                           'syllables': 5,
-                          'language': None},
+                          'language': None,
+                          'log_frequency': 2},
                   'deu': {'orthography': 1,
                           'phonology': 4,
                           'frequency': 2,
                           'syllables': 4,
-                          'language': None}}
+                          'language': None,
+                          'log_frequency': 2}}
 
 CELEX_2IPA = {"O~": "ɒ̃",
               "A~": "ɒ",
@@ -135,8 +155,9 @@ class Celex(Reader):
                  path,
                  language=None,
                  fields=("orthography", "syllables", "frequency", "language"),
-                 merge_duplicates=False,
-                 filter_function=identity):
+                 merge_duplicates=True,
+                 filter_function=identity,
+                 lemmas=None):
         """Extract structured information from CELEX."""
         if language is None:
             try:
@@ -145,7 +166,20 @@ class Celex(Reader):
                 raise ValueError("You passed None to language, but we failed "
                                  "to determine the language automatically.")
 
+        if lemmas is None:
+            if path.endswith("l.cd"):
+                self.lemmas = True
+            elif path.endswith("w.cd"):
+                self.lemmas = False
+            else:
+                raise ValueError("You passed None to lemmas, but we failed "
+                                 "to determine wether your files contained "
+                                 "lemmas automatically.")
+
         p = copy(language2field[language])
+        if not self.lemmas:
+            p['phonology'] += 1
+            p['syllables'] += 1
 
         super().__init__(path,
                          fields,
@@ -180,12 +214,13 @@ class Celex(Reader):
         use_p = 'phonology' in self.fields
         use_syll = 'syllables' in self.fields
         use_freq = 'frequency' in self.fields
+        use_log_freq = 'log_frequency' in self.fields
 
         if wordlist:
-            print([x for x in wordlist if isinstance(x, float)])
             wordlist = set([x.lower() for x in wordlist])
         result = []
         words_added = set()
+        max_freq = MAX_FREQ[(self.language, self.lemmas)]
 
         # path to phonology part of the CELEX database
         for line in open(self.path):
@@ -216,16 +251,22 @@ class Celex(Reader):
                                                   syll)
                     syll = [self.replace.sub("", x)
                             for x in self.braces.split(syll) if x]
-                    syll = [segment_phonology(x) for x in syll]
+                    syll = [segment_phonology(celex_to_ipa(x)) for x in syll]
                     out['syllables'] = tuple(syll)
                 if use_p:
                     phon = [self.replace.sub("", x)
                             for x in self.braces.split(phon) if x]
-                    phon = [segment_phonology(x) for x in phon]
+                    phon = [segment_phonology(celex_to_ipa(x)) for x in phon]
                     out['phonology'] = tuple(chain.from_iterable(phon))
             if use_freq:
-                out['frequency'] = int(columns[self.fields['frequency']])
-                out['frequency'] /= MAX_FREQ[self.language]
+                # We use one-smoothed frequencies.
+                freq = int(columns[self.fields['frequency']]) + 1
+                out['frequency'] = freq
+                out['frequency'] /= max_freq
+            if use_log_freq:
+                freq = int(columns[self.fields['frequency']]) + 1
+                out['log_frequency'] = np.log10(freq)
+                out['log_frequency'] /= np.log10(max_freq)
             result.append(out)
 
         return result

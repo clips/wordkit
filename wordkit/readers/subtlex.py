@@ -2,9 +2,10 @@
 from .base import Reader, identity
 import pandas as pd
 import os
+import numpy as np
 
 
-field_ids = {"orthography": 0, "frequency": 1}
+field_ids = {"orthography": 0, "frequency": 1, "log_frequency": None}
 
 MAX_FREQ = {"eng-uk": 201863977,
             "eng-us": 49705658,
@@ -49,7 +50,7 @@ class Subtlex(Reader):
     def __init__(self,
                  path,
                  language,
-                 fields=("orthography", "frequency"),
+                 fields=("orthography", "frequency", "log_frequency"),
                  filter_function=identity):
         """Initialize the subtlex reader."""
         if language not in ALLOWED_LANGUAGES:
@@ -69,6 +70,11 @@ class Subtlex(Reader):
         result = []
         wordlist = {x.lower() for x in wordlist}
 
+        use_log = "log_frequency" in self.fields
+
+        if use_log:
+            max_log_freq = np.log10(MAX_FREQ[self.language])
+
         if os.path.splitext(self.path)[1].startswith(".xls"):
             f = pd.read_excel(self.path)
         else:
@@ -80,13 +86,24 @@ class Subtlex(Reader):
 
         for line in data:
 
+            out = {}
+
             orth = line[self.fields['orthography']]
             if isinstance(orth, float):
                 continue
             if wordlist and orth not in wordlist:
                 continue
+            if "orthography" in self.fields:
+                out["orthography"] = orth
 
-            freq = line[self.fields['frequency']] / MAX_FREQ[self.language]
-            result.append({"orthography": orth, "frequency": freq})
+            if "frequency" in self.fields:
+                freq = line[self.fields['frequency']] / MAX_FREQ[self.language]
+                out["frequency"] = freq
+            if use_log:
+                logfreq = np.log10(line[self.fields['frequency']])
+                logfreq /= max_log_freq
+                out["logfreq"] = logfreq
+
+            result.append(out)
 
         return result
