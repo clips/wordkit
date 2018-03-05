@@ -4,8 +4,15 @@ import pandas as pd
 import os
 import numpy as np
 
-
 field_ids = {"orthography": 0, "frequency": 1, "log_frequency": None}
+# Currently redundant, but useful for future-proofing.
+language2field = {"eng-uk": field_ids,
+                  "eng-us": field_ids,
+                  "nld": field_ids,
+                  "esp": field_ids,
+                  "deu": field_ids,
+                  "chi": field_ids}
+
 
 MAX_FREQ = {"eng-uk": 201863977,
             "eng-us": 49705658,
@@ -13,6 +20,8 @@ MAX_FREQ = {"eng-uk": 201863977,
             "esp": 9264447,
             "deu": 21126690,
             "chi": 33645637}
+
+
 MAX_FREQ = {k: v / 1000000 for k, v in MAX_FREQ.items()}
 ALLOWED_LANGUAGES = set(MAX_FREQ.keys())
 
@@ -59,7 +68,7 @@ class Subtlex(Reader):
                                                             ALLOWED_LANGUAGES))
         super().__init__(path,
                          fields,
-                         field_ids,
+                         language2field[language],
                          language,
                          merge_duplicates=True,
                          filter_function=filter_function,
