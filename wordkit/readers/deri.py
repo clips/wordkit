@@ -371,6 +371,7 @@ class Deri(Reader):
         super().__init__(path,
                          fields,
                          language2field,
+                         language,
                          merge_duplicates,
                          filter_function,
                          diacritics=diacritics)
@@ -378,7 +379,6 @@ class Deri(Reader):
         if language is not None and language not in ALLOWED_LANGUAGES:
             raise ValueError("The language you supplied is not in the list "
                              "of allowed languages for this corpus.")
-        self.language = language
         self.matcher = re.compile(r"([:/]|rhymes)")
 
     def _retrieve(self, wordlist=None, **kwargs):
@@ -386,13 +386,13 @@ class Deri(Reader):
         Extract sequences of phonemes for each word from the databases.
 
         Parameters
-        ==========
+        ----------
         wordlist : list of strings or None.
             The list of words to be extracted from the corpus.
             If this is None, all words are extracted.
 
         Returns
-        =======
+        -------
         words : list of dictionaries
             Each entry in the dictionary represents the structured information
             associated with each word. This list need not be the length of the
