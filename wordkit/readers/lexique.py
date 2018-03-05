@@ -1,0 +1,177 @@
+"""Read the Lexique database."""
+import numpy as np
+import regex as re
+from .base import Reader, identity, segment_phonology
+from itertools import chain
+
+max_freq = 17686411 / 1000000
+
+
+LEXIQUE_2IPA = {'n°': 'nə',
+                't°': 'tə',
+                'a': 'a',
+                'k': 'k',
+                '§': 'ɔ̃',
+                'p': 'p',
+                'l': 'l',
+                'i': 'i',
+                'j': 'j',
+                '@': 'ɑ̃',
+                'O': 'ɔ',
+                'R': 'ʁ',
+                'E': 'ɛ',
+                's': 's',
+                'y': 'y',
+                'o': 'o',
+                'S': 'ʃ',
+                'b': 'b',
+                '1': 'œ̃',
+                '2': 'ø',
+                '5': 'ɛ̃',
+                '8': 'ɥ',
+                '9': 'œ',
+                'G': 'ŋ',
+                'N': 'ɲ',
+                'Z': 'ʒ',
+                'd': 'd',
+                'e': 'e',
+                'f': 'f',
+                'g': 'g',
+                'm': 'm',
+                'n': 'n',
+                't': 't',
+                'u': 'u',
+                'v': 'v',
+                'w': 'w',
+                'x': 'x',
+                'z': 'z'}
+
+lexique_regex = re.compile(r"{}".format("|".join(LEXIQUE_2IPA.keys())))
+
+
+def lexique_to_ipa(phonemes):
+    """Convert Lexique phonemes to IPA unicode format."""
+    return "".join([LEXIQUE_2IPA[p] for p in lexique_regex.findall(phonemes)])
+
+
+class Lexique(Reader):
+    """
+    Read the Lexique corpus.
+
+    This reader reads the Lexique corpus, which contains frequency,
+    orthography, phonology and syllable fields for 125,733 French words.
+
+    The Lexique corpus does not have an associated publication, and can be
+    accessed at this link: http://www.lexique.org/
+
+    Parameters
+    ----------
+    path : str
+        The path to the Lexique corpus file.
+    fields : tuple
+        The fields to retrieve from the corpus.
+    merge_duplicates : bool, optional, default False
+        Whether to merge duplicates which are indistinguishable according
+        to the selected fields.
+        Note that frequency is not counted as a field for determining
+        duplicates. Frequency is instead added together for any duplicates.
+        If this is False, duplicates may occur in the output.
+    filter_function : filter_function, optional, default identity
+        A custom function you can use to filter the output.
+        An example of this could be a frequency selection function.
+
+    """
+
+    def __init__(self,
+                 path,
+                 fields,
+                 merge_duplicates=True,
+                 filter_function=identity):
+        """Initialize the reader."""
+        super().__init__(path,
+                         fields,
+                         {"orthography": 0,
+                          "phonology": 22,
+                          "frequency": [6, 7, 8, 9],
+                          "syllables": 22,
+                          "log_frequency": None},
+                         "fra",
+                         merge_duplicates,
+                         filter_function)
+
+    def _retrieve(self, wordlist, **kwargs):
+        """
+        Extract word information for each word from the databases.
+
+        Parameters
+        ----------
+        wordlist : list of strings or None.
+            The list of words to be extracted from the corpus.
+            If this is None, all words are extracted.
+
+        Returns
+        -------
+        words : list of dictionaries
+            Each entry in the dictionary represents the structured information
+            associated with each word. This list need not be the length of the
+            input list, as words can be expressed in multiple ways.
+
+        """
+        f = open(self.path)
+        # skip header
+        next(f)
+
+        use_o = 'orthography' in self.fields
+        use_p = 'phonology' in self.fields
+        use_syll = 'syllables' in self.fields
+        use_freq = 'frequency' in self.fields
+        use_log_freq = 'log_frequency' in self.fields
+
+        if wordlist:
+            wordlist = set([x.lower() for x in wordlist])
+        result = []
+        words_added = set()
+
+        for idx, line in enumerate(f):
+            columns = line.strip().split("\t")
+            orthography = columns[self.orthographyfield].lower()
+
+            out = {}
+
+            if wordlist and orthography not in wordlist:
+                continue
+            words_added.add(orthography)
+            if use_o:
+                out['orthography'] = orthography
+            if use_p or use_syll:
+                try:
+                    syll = columns[self.fields['phonology']]
+                except KeyError:
+                    try:
+                        syll = columns[self.fields['syllables']]
+                    except IndexError:
+                        print(columns, len(columns), idx)
+
+                if use_syll or use_p:
+                    syll = syll.split("-")
+                    syll = [lexique_to_ipa(x) for x in syll]
+                    syll = [segment_phonology(x) for x in syll]
+                    if use_p:
+                        out['phonology'] = tuple(chain.from_iterable(syll))
+                    if use_syll:
+                        out['syllables'] = tuple(syll)
+
+            if use_freq:
+                # We use one-smoothed frequencies.
+                freq = sum([float(columns[x])
+                            for x in self.fields["frequency"]])
+                out['frequency'] = freq + 1
+                out['frequency'] /= max_freq
+            if use_log_freq:
+                freq = sum([float(columns[x])
+                            for x in self.fields["frequency"]])
+                out['log_frequency'] = np.log10(freq + 1)
+                out['log_frequency'] /= np.log10(max_freq)
+            result.append(out)
+
+        return result
