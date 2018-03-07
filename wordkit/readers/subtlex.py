@@ -76,7 +76,6 @@ class Subtlex(Reader):
 
     def _retrieve(self, wordlist=None, **kwargs):
         """Retrieve the word-frequency pairs from the Subtlex database."""
-        result = []
         wordlist = {x.lower() for x in wordlist}
 
         use_log = "log_frequency" in self.fields
@@ -95,7 +94,7 @@ class Subtlex(Reader):
 
         for line in data:
 
-            out = {}
+            word = {}
 
             orth = line[self.fields['orthography']]
             if isinstance(orth, float):
@@ -103,16 +102,14 @@ class Subtlex(Reader):
             if wordlist and orth not in wordlist:
                 continue
             if "orthography" in self.fields:
-                out["orthography"] = orth
+                word["orthography"] = orth
 
             if "frequency" in self.fields:
                 freq = line[self.fields['frequency']] / MAX_FREQ[self.language]
-                out["frequency"] = freq
+                word["frequency"] = freq
             if use_log:
                 logfreq = np.log10(line[self.fields['frequency']])
                 logfreq /= max_log_freq
-                out["logfreq"] = logfreq
+                word["logfreq"] = logfreq
 
-            result.append(out)
-
-        return result
+            yield word

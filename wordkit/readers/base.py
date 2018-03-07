@@ -197,7 +197,7 @@ class Reader(TransformerMixin):
             input list, as words can be expressed in multiple ways.
 
         """
-        words = self._retrieve(X, kwargs=kwargs)
+        words = list(self._retrieve(X, kwargs=kwargs))
 
         if 'language' in self.fields:
             # Only add language if the transformer has not added it.

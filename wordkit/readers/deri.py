@@ -402,7 +402,6 @@ class Deri(Reader):
         use_p = 'phonology' in self.fields
 
         wordlist = set([x.lower() for x in wordlist])
-        result = []
         words_added = set()
 
         for line in open(self.path):
@@ -413,7 +412,7 @@ class Deri(Reader):
                 continue
             orthography = columns[self.orthographyfield].lower()
 
-            out = {}
+            word = {}
 
             if wordlist and orthography not in wordlist:
                 continue
@@ -424,7 +423,7 @@ class Deri(Reader):
             except StopIteration:
                 pass
             words_added.add(orthography)
-            out['orthography'] = "_".join(orthography.split())
+            word['orthography'] = "_".join(orthography.split())
             if use_p:
                 syll = columns[self.fields['phonology']].split()
                 syll = "".join(syll)
@@ -434,11 +433,9 @@ class Deri(Reader):
                 except ValueError:
                     print(syll)
 
-                out['phonology'] = segment_phonology(syll,
-                                                     to_keep=self.diacritics)
+                word['phonology'] = segment_phonology(syll,
+                                                      to_keep=self.diacritics)
             if 'language' in self.fields:
-                out['language'] = columns[self.fields['language']]
+                word['language'] = columns[self.fields['language']]
 
-            result.append(out)
-
-        return result
+            yield word

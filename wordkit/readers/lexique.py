@@ -129,20 +129,20 @@ class Lexique(Reader):
 
         if wordlist:
             wordlist = set([x.lower() for x in wordlist])
-        result = []
+
         words_added = set()
 
         for idx, line in enumerate(f):
             columns = line.strip().split("\t")
             orthography = columns[self.orthographyfield].lower()
 
-            out = {}
+            word = {}
 
             if wordlist and orthography not in wordlist:
                 continue
             words_added.add(orthography)
             if use_o:
-                out['orthography'] = orthography
+                word['orthography'] = orthography
             if use_p or use_syll:
                 try:
                     syll = columns[self.fields['phonology']]
@@ -157,21 +157,20 @@ class Lexique(Reader):
                     syll = [lexique_to_ipa(x) for x in syll]
                     syll = [segment_phonology(x) for x in syll]
                     if use_p:
-                        out['phonology'] = tuple(chain.from_iterable(syll))
+                        word['phonology'] = tuple(chain.from_iterable(syll))
                     if use_syll:
-                        out['syllables'] = tuple(syll)
+                        word['syllables'] = tuple(syll)
 
             if use_freq:
                 # We use one-smoothed frequencies.
                 freq = sum([float(columns[x])
                             for x in self.fields["frequency"]])
-                out['frequency'] = freq + 1
-                out['frequency'] /= max_freq
+                word['frequency'] = freq + 1
+                word['frequency'] /= max_freq
             if use_log_freq:
                 freq = sum([float(columns[x])
                             for x in self.fields["frequency"]])
-                out['log_frequency'] = np.log10(freq + 1)
-                out['log_frequency'] /= np.log10(max_freq)
-            result.append(out)
+                word['log_frequency'] = np.log10(freq + 1)
+                word['log_frequency'] /= np.log10(max_freq)
 
-        return result
+            yield word

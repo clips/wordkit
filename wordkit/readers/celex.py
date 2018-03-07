@@ -100,9 +100,10 @@ CELEX_2IPA = {"O~": "ɒ̃",
 celex_regex = re.compile(r"{}".format("|".join(CELEX_2IPA.keys())))
 
 
-def celex_to_ipa(phonemes):
+def celex_to_ipa(syllables):
     """Convert celex phonemes to IPA unicode format."""
-    return "".join([CELEX_2IPA[p] for p in celex_regex.findall(phonemes)])
+    for syll in syllables:
+        yield "".join([CELEX_2IPA[p] for p in celex_regex.findall(syll)])
 
 
 class Celex(Reader):
@@ -218,7 +219,7 @@ class Celex(Reader):
 
         if wordlist:
             wordlist = set([x.lower() for x in wordlist])
-        result = []
+
         words_added = set()
         max_freq = MAX_FREQ[(self.language, self.lemmas)]
 
@@ -229,13 +230,13 @@ class Celex(Reader):
             columns = line.split('\\')
             orthography = columns[self.orthographyfield].lower()
 
-            out = {}
+            word = {}
 
             if wordlist and orthography not in wordlist:
                 continue
             words_added.add(orthography)
             if use_o:
-                out['orthography'] = orthography
+                word['orthography'] = orthography
             if use_p or use_syll:
                 try:
                     syll = columns[self.fields['phonology']]
@@ -251,22 +252,21 @@ class Celex(Reader):
                                                   syll)
                     syll = [self.replace.sub("", x)
                             for x in self.braces.split(syll) if x]
-                    syll = [segment_phonology(celex_to_ipa(x)) for x in syll]
-                    out['syllables'] = tuple(syll)
+                    syll = [segment_phonology(x) for x in celex_to_ipa(syll)]
+                    word['syllables'] = tuple(syll)
                 if use_p:
                     phon = [self.replace.sub("", x)
                             for x in self.braces.split(phon) if x]
-                    phon = [segment_phonology(celex_to_ipa(x)) for x in phon]
-                    out['phonology'] = tuple(chain.from_iterable(phon))
+                    syll = [segment_phonology(x) for x in celex_to_ipa(phon)]
+                    word['phonology'] = tuple(chain.from_iterable(phon))
             if use_freq:
                 # We use one-smoothed frequencies.
                 freq = int(columns[self.fields['frequency']]) + 1
-                out['frequency'] = freq
-                out['frequency'] /= max_freq
+                word['frequency'] = freq
+                word['frequency'] /= max_freq
             if use_log_freq:
                 freq = int(columns[self.fields['frequency']]) + 1
-                out['log_frequency'] = np.log10(freq)
-                out['log_frequency'] /= np.log10(max_freq)
-            result.append(out)
+                word['log_frequency'] = np.log10(freq)
+                word['log_frequency'] /= np.log10(max_freq)
 
-        return result
+            yield word

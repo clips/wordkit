@@ -172,7 +172,6 @@ class CMU(Reader):
         use_p = 'phonology' in self.fields
 
         wordlist = set([x.lower() for x in wordlist])
-        result = []
         words_added = set()
 
         for line in open(self.path):
@@ -182,18 +181,16 @@ class CMU(Reader):
             columns = columns[0], columns[1:]
             orthography = columns[self.orthographyfield].lower()
 
-            out = {}
+            word = {}
 
             if wordlist and orthography not in wordlist:
                 continue
             words_added.add(orthography)
-            out['orthography'] = orthography
+            word['orthography'] = orthography
             if use_p:
                 syll = cmu_to_ipa(columns[self.fields['phonology']])
-                out['phonology'] = "".join(syll)
+                word['phonology'] = "".join(syll)
             if 'language' in self.fields:
-                out['language'] = self.language
+                word['language'] = self.language
 
-            result.append(out)
-
-        return result
+            yield word
