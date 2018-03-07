@@ -49,9 +49,10 @@ LEXIQUE_2IPA = {'n°': 'nə',
 lexique_regex = re.compile(r"{}".format("|".join(LEXIQUE_2IPA.keys())))
 
 
-def lexique_to_ipa(phonemes):
+def lexique_to_ipa(syllables):
     """Convert Lexique phonemes to IPA unicode format."""
-    return "".join([LEXIQUE_2IPA[p] for p in lexique_regex.findall(phonemes)])
+    for syll in syllables:
+        yield "".join([LEXIQUE_2IPA[p] for p in lexique_regex.findall(syll)])
 
 
 class Lexique(Reader):
@@ -154,7 +155,7 @@ class Lexique(Reader):
 
                 if use_syll or use_p:
                     syll = syll.split("-")
-                    syll = [lexique_to_ipa(x) for x in syll]
+                    syll = tuple(lexique_to_ipa(syll))
                     syll = [segment_phonology(x) for x in syll]
                     if use_p:
                         word['phonology'] = tuple(chain.from_iterable(syll))
