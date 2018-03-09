@@ -2,7 +2,6 @@
 from .base import Reader, identity
 import pandas as pd
 import os
-import numpy as np
 
 field_ids = {"orthography": 0, "frequency": 1, "log_frequency": None}
 # Currently redundant, but useful for future-proofing.
@@ -15,8 +14,8 @@ language2field = {"eng-uk": field_ids,
 
 
 MAX_FREQ = {"eng-uk": 201863977,
-            "eng-us": 49705658,
-            "nld": 43209236,
+            "eng-us": 49766042,
+            "nld": 43343958,
             "esp": 9264447,
             "deu": 21126690,
             "chi": 33645637}
@@ -36,6 +35,9 @@ class Subtlex(Reader):
     In general, all the Subtlex corpora are associated with a paper.
     For an overview, visit:
         http://crr.ugent.be/programs-data/subtitle-frequencies
+
+    Please make sure to read the associated articles, and cite them whenever
+    you use a version of Subtlex!
 
     This class can read both the Excel and csv versions of the subtlex files.
     If you can, please consider converting the Excel files offered by the
@@ -72,16 +74,16 @@ class Subtlex(Reader):
                          language,
                          merge_duplicates=True,
                          filter_function=filter_function,
-                         diacritics=None)
+                         diacritics=None,
+                         frequency_divider=MAX_FREQ[language])
 
     def _retrieve(self, wordlist=None, **kwargs):
         """Retrieve the word-frequency pairs from the Subtlex database."""
         wordlist = {x.lower() for x in wordlist}
 
         use_log = "log_frequency" in self.fields
-
-        if use_log:
-            max_log_freq = np.log10(MAX_FREQ[self.language])
+        use_freq = "frequency" in self.fields
+        use_orth = "orthography" in self.fields
 
         if os.path.splitext(self.path)[1].startswith(".xls"):
             f = pd.read_excel(self.path)
@@ -101,15 +103,11 @@ class Subtlex(Reader):
                 continue
             if wordlist and orth not in wordlist:
                 continue
-            if "orthography" in self.fields:
+            if use_orth:
                 word["orthography"] = orth
 
-            if "frequency" in self.fields:
-                freq = line[self.fields['frequency']] / MAX_FREQ[self.language]
+            if use_freq or use_log:
+                freq = line[self.fields['frequency']]
                 word["frequency"] = freq
-            if use_log:
-                logfreq = np.log10(line[self.fields['frequency']])
-                logfreq /= max_log_freq
-                word["logfreq"] = logfreq
 
             yield word
