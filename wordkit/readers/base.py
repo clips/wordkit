@@ -1,6 +1,7 @@
 """Base class for readers."""
 import os
 import regex as re
+import numpy as np
 
 from collections import defaultdict
 from sklearn.base import TransformerMixin
@@ -35,11 +36,6 @@ diacritics = {'ː',
 def identity(x):
     """Identity function."""
     return x
-
-
-def int_list():
-    """Return a list of ints."""
-    return [0, 0]
 
 
 def segment_phonology(phonemes, items=diacritics, to_keep=diacritics):
@@ -143,7 +139,8 @@ class Reader(TransformerMixin):
                  language,
                  merge_duplicates,
                  filter_function,
-                 diacritics=diacritics):
+                 diacritics=diacritics,
+                 frequency_divider=1):
         """Init the base class."""
         if not os.path.exists(path):
             raise ValueError("The file you specified does not "
@@ -165,6 +162,7 @@ class Reader(TransformerMixin):
         self.orthographyfield = field_ids['orthography']
         self.filter_function = filter_function
         self.diacritics = diacritics
+        self.frequency_divider = frequency_divider
 
     def fit(self, X, y=None):
         """Static, no fit."""
@@ -207,24 +205,33 @@ class Reader(TransformerMixin):
         # Merging duplicates means that any duplicates are removed
         # and their frequencies are added together.
         if self.merge_duplicates:
-            new_words = defaultdict(int_list)
+            new_words = defaultdict(int)
             for w in words:
-                frequencies = ('frequency', 'log_frequency')
-                it = tuple([i for i in w.items() if i[0] not in frequencies])
+                it = tuple([i for i in w.items() if i[0] != "frequency"])
                 try:
-                    new_words[it][0] += w['frequency']
-                    new_words[it][1] += w['log_frequency']
+                    new_words[it] += w['frequency'] + 1
                 except KeyError:
                     pass
 
             words = []
 
+            if 'log_frequency' in self.fields:
+                max_log_freq = np.log10(self.frequency_divider)
+
             for k, v in new_words.items():
                 d = dict(k)
                 if 'frequency' in self.fields:
-                    d['frequency'] = v[0]
+                    d['frequency'] = v / self.frequency_divider
                 if 'log_frequency' in self.fields:
-                    d['log_frequency'] = v[1]
+                    # Note to reader:
+                    # this looks wrong, because you're not supposed to use
+                    # division in log space.
+                    # In this case, however, we're trying to maintain
+                    # the distances between logs.
+                    # that is, we want each logged frequency to have the same
+                    # proportional distance to each other logged frequency as
+                    # before.
+                    d['log_frequency'] = np.log10(v) / max_log_freq
                 words.append(d)
 
         return list(filter(self.filter_function, words))

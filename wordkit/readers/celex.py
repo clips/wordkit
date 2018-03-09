@@ -2,7 +2,6 @@
 import regex as re
 import logging
 import os
-import numpy as np
 
 from .base import Reader, identity, segment_phonology
 from itertools import chain
@@ -187,7 +186,8 @@ class Celex(Reader):
                          p,
                          language,
                          merge_duplicates,
-                         filter_function)
+                         filter_function,
+                         frequency_divider=MAX_FREQ[(language, self.lemmas)])
 
         self.replace = re.compile(r"(,|r\*)")
         self.braces = re.compile(r"[\[\]]+")
@@ -221,7 +221,6 @@ class Celex(Reader):
             wordlist = set([x.lower() for x in wordlist])
 
         words_added = set()
-        max_freq = MAX_FREQ[(self.language, self.lemmas)]
 
         # path to phonology part of the CELEX database
         for line in open(self.path):
@@ -259,14 +258,8 @@ class Celex(Reader):
                             for x in self.braces.split(phon) if x]
                     syll = [segment_phonology(x) for x in celex_to_ipa(phon)]
                     word['phonology'] = tuple(chain.from_iterable(phon))
-            if use_freq:
+            if use_freq or use_log_freq:
                 # We use one-smoothed frequencies.
-                freq = int(columns[self.fields['frequency']]) + 1
-                word['frequency'] = freq
-                word['frequency'] /= max_freq
-            if use_log_freq:
-                freq = int(columns[self.fields['frequency']]) + 1
-                word['log_frequency'] = np.log10(freq)
-                word['log_frequency'] /= np.log10(max_freq)
+                word['frequency'] = int(columns[self.fields['frequency']])
 
             yield word

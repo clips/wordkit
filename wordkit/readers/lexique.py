@@ -1,5 +1,4 @@
 """Read the Lexique database."""
-import numpy as np
 import regex as re
 from .base import Reader, identity, segment_phonology
 from itertools import chain
@@ -98,7 +97,8 @@ class Lexique(Reader):
                           "log_frequency": None},
                          "fra",
                          merge_duplicates,
-                         filter_function)
+                         filter_function,
+                         frequency_divider=max_freq)
 
     def _retrieve(self, wordlist, **kwargs):
         """
@@ -161,17 +161,9 @@ class Lexique(Reader):
                         word['phonology'] = tuple(chain.from_iterable(syll))
                     if use_syll:
                         word['syllables'] = tuple(syll)
-
-            if use_freq:
-                # We use one-smoothed frequencies.
+            if use_freq or use_log_freq:
                 freq = sum([float(columns[x])
                             for x in self.fields["frequency"]])
-                word['frequency'] = freq + 1
-                word['frequency'] /= max_freq
-            if use_log_freq:
-                freq = sum([float(columns[x])
-                            for x in self.fields["frequency"]])
-                word['log_frequency'] = np.log10(freq + 1)
-                word['log_frequency'] /= np.log10(max_freq)
+                word['frequency'] = freq
 
             yield word
