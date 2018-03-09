@@ -1,13 +1,11 @@
 """Read the Lexique database."""
-import regex as re
 from .base import Reader, identity, segment_phonology
 from itertools import chain
 
 max_freq = 17686411 / 1000000
 
 
-LEXIQUE_2IPA = {'n°': 'nə',
-                't°': 'tə',
+LEXIQUE_2IPA = {'°': 'ə',
                 'a': 'a',
                 'k': 'k',
                 '§': 'ɔ̃',
@@ -45,13 +43,11 @@ LEXIQUE_2IPA = {'n°': 'nə',
                 'x': 'x',
                 'z': 'z'}
 
-lexique_regex = re.compile(r"{}".format("|".join(LEXIQUE_2IPA.keys())))
-
 
 def lexique_to_ipa(syllables):
     """Convert Lexique phonemes to IPA unicode format."""
     for syll in syllables:
-        yield "".join([LEXIQUE_2IPA[p] for p in lexique_regex.findall(syll)])
+        yield "".join([LEXIQUE_2IPA[x] for x in syll])
 
 
 class Lexique(Reader):
