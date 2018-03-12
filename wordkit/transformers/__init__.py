@@ -2,7 +2,9 @@
 from .cv import CVTransformer
 from .linear import LinearTransformer
 from .onc import ONCTransformer
-from .ngram import OpenNGramTransformer, ConstrainedOpenNGramTransformer
+from .ngram import OpenNGramTransformer, \
+                   ConstrainedOpenNGramTransformer, \
+                   WeightedOpenBigramTransformer
 from .wickel import WickelTransformer
 
 __all__ = ["CVTransformer",
@@ -10,4 +12,5 @@ __all__ = ["CVTransformer",
            "ONCTransformer",
            "OpenNGramTransformer",
            "WickelTransformer",
-           "ConstrainedOpenNGramTransformer"]
+           "ConstrainedOpenNGramTransformer",
+           "WeightedOpenBigramTransformer"]

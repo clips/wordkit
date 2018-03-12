@@ -101,7 +101,10 @@ class WickelTransformer(BaseTransformer):
         if num_padding:
             padding = ("#",) * num_padding
             word = padding + tuple(word) + padding
-
+        if len(word) < n:
+            raise ValueError("You tried to featurize words shorter than "
+                             "{} characters, please remove these before "
+                             "featurization, or use padding".format(n))
         for i in range(n, len(word)+1):
             yield word[i-n: i]
 
