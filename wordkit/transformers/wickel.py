@@ -96,15 +96,19 @@ class WickelTransformer(BaseTransformer):
         return z
 
     @staticmethod
-    def _ngrams(word, n, num_padding):
+    def _ngrams(word, n, num_padding, strict=True):
         """Lazily get all ngrams in a string."""
         if num_padding:
             padding = ("#",) * num_padding
             word = padding + tuple(word) + padding
         if len(word) < n:
-            raise ValueError("You tried to featurize words shorter than "
-                             "{} characters, please remove these before "
-                             "featurization, or use padding".format(n))
+            if strict:
+                raise ValueError("You tried to featurize words shorter than "
+                                 "{} characters, please remove these before "
+                                 "featurization, or use padding".format(n))
+            else:
+                yield word
+
         for i in range(n, len(word)+1):
             yield word[i-n: i]
 
