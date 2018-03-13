@@ -29,16 +29,20 @@ class LinearTransformer(FeatureTransformer):
         values are numpy arrays.
     field : str
         The field to retrieve from the incoming dictionaries.
+    left : bool, default True
+        If this is set to True, all strings will be left-justified. If this
+        is set to False, they will be right-justified.
 
     """
 
-    def __init__(self, features, field):
+    def __init__(self, features, field, left=True):
         """Convert characters to vectors."""
         if " " not in features:
             features[" "] = np.zeros_like(list(features.values())[0])
         super().__init__(features, field)
         self.vec_len = 0
         self.max_word_length = 0
+        self.left = left
 
     def fit(self, X, y=None):
         """
@@ -85,8 +89,12 @@ class LinearTransformer(FeatureTransformer):
         if type(x) == dict:
             x = x[self.field]
         v = np.zeros((self.max_word_length, self.dlen))
+        if self.left:
+            offset = 0
+        else:
+            offset = self.max_word_length - len(x)
         for idx, c in enumerate(x):
-            v[idx] += self.features[c]
+            v[idx+offset] += self.features[c]
 
         return v.ravel()
 
