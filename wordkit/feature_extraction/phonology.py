@@ -5,7 +5,6 @@ from sklearn.feature_extraction import DictVectorizer
 
 from ipapy.ipastring import IPAString
 
-DEFAULT = tuple("ɡæsɪrbʌɒɑtyðəvepʒuhʃoxdɛfiwθjlɔʊmnaŋɜkz")
 FORBIDDEN_DESCRIPTORS = {"suprasegmental", "vowel", "consonant", "diacritic"}
 
 
@@ -108,7 +107,7 @@ def _phoneme_feature_vectors(phonemes, forbidden=FORBIDDEN_DESCRIPTORS):
     return phoneme
 
 
-def extract_one_hot_phonemes(phonemes=DEFAULT):
+def extract_one_hot_phonemes(phonemes):
     """
     Encode phonemes as one-hot vectors.
 
@@ -145,7 +144,7 @@ def extract_one_hot_phonemes(phonemes=DEFAULT):
     return vowel_dict, consonant_dict
 
 
-def extract_phoneme_features(phonemes=DEFAULT):
+def extract_phoneme_features(phonemes):
     """
     Extract symbolic features from your phonemes.
 
