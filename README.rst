@@ -87,7 +87,7 @@ Example
   # Orthography is a linear transformer with the fourteen segment feature set.
   o = LinearTransformer(fourteen, field='orthography')
   # For phonology we use Wickelphones.
-  p = WickelTransformer(n=1, field='phonology')
+  p = WickelTransformer(n=3, field='phonology')
 
   featurizer = FeatureUnion([("o", o), ("p", p)])
 
