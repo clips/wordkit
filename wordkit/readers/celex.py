@@ -256,7 +256,7 @@ class Celex(Reader):
                 if use_p:
                     phon = [self.replace.sub("", x)
                             for x in self.braces.split(phon) if x]
-                    syll = [segment_phonology(x) for x in celex_to_ipa(phon)]
+                    phon = [segment_phonology(x) for x in celex_to_ipa(phon)]
                     word['phonology'] = tuple(chain.from_iterable(phon))
             if use_freq or use_log_freq:
                 # We use one-smoothed frequencies.
