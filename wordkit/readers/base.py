@@ -143,8 +143,8 @@ class Reader(TransformerMixin):
                  frequency_divider=1):
         """Init the base class."""
         if not os.path.exists(path):
-            raise ValueError("The file you specified does not "
-                             "exist: {}".format(path))
+            raise FileNotFoundError("The file you specified does not "
+                                    "exist: {}".format(path))
 
         difference = set(fields) - set(field_ids.keys())
         if difference:
