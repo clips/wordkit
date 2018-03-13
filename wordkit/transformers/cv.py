@@ -134,7 +134,6 @@ class CVTransformer(FeatureTransformer):
         first_v = self.grid_structure.index("V")
         self.grid = self.grid_structure + self.grid_structure[:first_v]
         last_v = -first_v
-        print(self.grid, first_v, last_v)
         idx = 0
 
         while idx < len(X):
