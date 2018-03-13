@@ -128,7 +128,7 @@ class Reader(TransformerMixin):
     >>>            ("orthography", "frequency"),
     >>>            "eng",
     >>>            filter_function=freq_alpha)
-    >>> words = r.transform([])
+    >>> words = r.transform()
 
     """
 

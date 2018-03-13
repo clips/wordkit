@@ -20,6 +20,9 @@ class WickelTransformer(BaseTransformer):
     set use_padding to False, these end markers get removed, and "CAT" becomes
     a single ngram ("CAT").
 
+    Note that trying to featurize words which are smaller than the ngram size
+    will throw a ValueError. This can only happen if padding is set to False.
+
     Parameters
     ----------
     n : int

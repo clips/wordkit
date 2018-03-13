@@ -103,7 +103,7 @@ class ONCTransformer(FeatureTransformer):
         function and instantiation through passing a grid.
 
         Parameters
-        ==========
+        ----------
         grid : tuple of triples:
             A tuple of triples describing the grid clusters. See __init__
             for more documentation.
@@ -147,14 +147,13 @@ class ONCTransformer(FeatureTransformer):
         to describe the corpus. The number of phonemes per cluster can differ
         between syllables.
 
-
         Parameters
-        ==========
+        ----------
         X : a list of syllable tuples.
             Represents the words to fit the ONCTransformer on.
 
         Returns
-        =======
+        -------
         self : ONCTransformer
             Return a fitted ONCTransformer
 
@@ -201,12 +200,12 @@ class ONCTransformer(FeatureTransformer):
         pre-defined grid.
 
         Parameters
-        ==========
+        ----------
         x : A string or dictionary with 'syllables' as key.
             The word to vectorize
 
         Returns
-        =======
+        -------
         v : numpy array
             The vectorized word.
 
