@@ -130,7 +130,7 @@ def extract_one_hot_phonemes(phonemes):
     Example
     -------
     # For default features
-    >>> features = one_hot_phonemes()
+    >>> features = extract_one_hot_phonemes()
 
     """
     vowels, consonants = _parse_phonemes(phonemes)
@@ -186,7 +186,7 @@ def extract_grouped_phoneme_features(phonemes):
     """
     Extract phoneme features which are grouped per feature.
 
-    This leads to a the same encoding as the extract_phoneme_features
+    This leads to the same encoding as the extract_phoneme_features
     function.
     """
     vowels, consonants = _parse_phonemes(phonemes)
