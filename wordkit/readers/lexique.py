@@ -2,7 +2,7 @@
 from .base import Reader, identity, segment_phonology
 from itertools import chain
 
-max_freq = 17686411 / 1000000
+max_freq = 1963616 / 1000000
 
 
 LEXIQUE_2IPA = {'°': 'ə',
@@ -88,7 +88,7 @@ class Lexique(Reader):
                          fields,
                          {"orthography": 0,
                           "phonology": 22,
-                          "frequency": [6, 7, 8, 9],
+                          "frequency": [8, 9],
                           "syllables": 22,
                           "log_frequency": None},
                          "fra",
