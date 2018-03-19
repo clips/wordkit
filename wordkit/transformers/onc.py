@@ -259,7 +259,7 @@ class ONCTransformer(FeatureTransformer):
                     syll_vec[start: end] = self.vowels[x]
 
                 for lidx, x in enumerate(s[c:]):
-                    start = (lidx * self.vowel_length) + c_idx
+                    start = (lidx * self.consonant_length) + c_idx
                     end = start + self.consonant_length
                     syll_vec[start: end] = self.consonants[x]
 
@@ -277,7 +277,6 @@ class ONCTransformer(FeatureTransformer):
     def inverse_transform(self, X):
         """Transform a matrix back into their word representations."""
         # TODO: fix error if len(vowels) == len(consonants)
-        # TODO: use grid indexer here.
         vowel_keys, vowels = zip(*self.vowels.items())
         consonant_keys, consonants = zip(*self.consonants.items())
 
@@ -285,21 +284,28 @@ class ONCTransformer(FeatureTransformer):
         consonants = np.array(consonants)
 
         ends = self.grid_indexer[1:] + [self.vec_len]
-
         words = []
+        cumulative_dist_syll = np.cumsum(self.syl_len)
 
         for x in X:
             word = []
+            syll = []
+
             for b, e in zip(self.grid_indexer, ends):
+                if b in cumulative_dist_syll:
+                    word.append(tuple([x for x in syll if x != " "]))
+                    syll = []
                 if e - b == vowels.shape[1]:
                     diff = x[b:e] - vowels
                     res = np.linalg.norm(diff, axis=-1).argmin()
-                    word.append(vowel_keys[res])
+                    syll.append(vowel_keys[res])
                 else:
                     diff = x[b:e] - consonants
                     res = np.linalg.norm(diff, axis=-1).argmin()
-                    word.append(consonant_keys[res])
+                    syll.append(consonant_keys[res])
+            else:
+                word.append(tuple([x for x in syll if x != " "]))
 
-            words.append(tuple([x for x in word if x != " "]))
+            words.append(tuple([x for x in word if x]))
 
         return words
