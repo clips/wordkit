@@ -7,7 +7,7 @@ CONSONANTS = set("bcdfghklmnpqrstvwxz")
 BOTH = CONSONANTS.union(VOWELS)
 
 
-def one_hot_characters(characters):
+def extract_one_hot_characters(characters):
     """
     Extract one-hot encoded binary vectors for your characters.
 
@@ -31,7 +31,7 @@ def one_hot_characters(characters):
             for idx, l in enumerate(characters)}
 
 
-def consonant_vowel_characters(characters):
+def extract_consonant_vowel_characters(characters):
     """
     Split sets of characters into consonant and vowel character sets.
 
