@@ -90,24 +90,25 @@ class LinearTransformer(FeatureTransformer):
             x = x[self.field]
         v = np.zeros((self.max_word_length, self.dlen))
         if self.left:
-            offset = 0
+            x = x.ljust(self.max_word_length)
         else:
-            offset = self.max_word_length - len(x)
+            x = x.rjust(self.max_word_length)
         for idx, c in enumerate(x):
-            v[idx+offset] += self.features[c]
+            v[idx] += self.features[c]
 
         return v.ravel()
 
     def inverse_transform(self, X):
         """Transform a corpus back to word representations."""
         feature_length = self.vec_len // self.max_word_length
-        X_ = X.reshape((X.shape[0], self.max_word_length, feature_length))
+        X_ = X.reshape((-1, self.max_word_length, feature_length))
 
         keys, features = zip(*self.features.items())
         keys = [str(x) for x in keys]
         features = np.array(features)
 
-        res = np.linalg.norm(X_[None, :, :] - features[:, None, :], axis=-1)
-        res = res.argmin(1)
+        for x in X_:
+            res = np.linalg.norm(x[:, None, :] - features[None, :, :], axis=-1)
+            res = res.argmin(1)
 
-        return ["".join([keys[idx] for idx in x]) for x in res]
+            yield "".join([keys[idx] for idx in res]).strip()
