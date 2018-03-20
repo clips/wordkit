@@ -92,6 +92,7 @@ class BasePhonemeExtractor(BaseExtractor):
         phonemes : tuple
             A tuple of strings, where each string is a phoneme. Phonemes can
             consist of multiple characters.
+
         forbidden : set
             descriptors from this set are filtered out. The standard set of
             forbidden descriptors contains "suprasegmental", "vowel",

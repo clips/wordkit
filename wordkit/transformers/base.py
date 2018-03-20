@@ -92,12 +92,22 @@ class FeatureTransformer(BaseTransformer):
 
     Parameters
     ----------
-    features : dict or tuple of dicts
-        A key to array mapping, or a collection of key to array mappings.
+    features : dict, tuple of dicts, or FeatureExtractor instance.
+        features can either be
+            a dictionary of features, for characters.
+            a tuple of a dictionary of features, for vowels and consonants.
+            an initialized FeatureExtractor instance.
+
+        In the first two cases, the features you input to the Transformer are
+        used. In the final case, the FeatureExtractor is used to extract
+        features from your input during fitting.
+
+        The choice between pre-defined featues and an is purely a matter of
+        convenience. First extracting features using the FeatureExtractor
+        leads to the same result as using the FeatureExtractor directly.
+
     field : str
         The field to retrieve for featurization from incoming records.
-    vec_len : int, default 0
-        The vector length.
 
     """
 
@@ -120,7 +130,7 @@ class FeatureTransformer(BaseTransformer):
             self.extractor.field = self.field
 
     def fit(self, X, y=None):
-
+        """Fit the transformer."""
         if self.extractor:
             features = self.extractor.extract(X)
             if not isinstance(self.extractor, BasePhonemeExtractor):

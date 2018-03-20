@@ -49,10 +49,13 @@ class Subtlex(Reader):
     path : string
         The path to the file. The extension of this file will be used to
         determine the method we use to open the file.
+
     fields : tuple, default ("orthography", "frequency")
         The fields to retrieve from this corpus.
+
     language : string, default "english"
         The language the corpus is in.
+
     filter_function : function, default identity
         The function used to filter the output.
 

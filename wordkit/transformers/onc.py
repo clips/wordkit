@@ -25,11 +25,20 @@ class ONCTransformer(FeatureTransformer):
 
     Parameters
     ----------
-    features : tuple of dictionaries
-        A tuple of dictionaries, containing vowel and consonant features,
-        respectively.
+    features : tuple of dicts, or FeatureExtractor instance.
+        features can either be
+            a tuple of a dictionary of features, for vowels and consonants.
+            an initialized FeatureExtractor instance.
 
-    grid : tuple of triples, optional, default ()
+        In the first case, the features you input to the Transformer are
+        used. In the final case, the FeatureExtractor is used to extract
+        features from your input during fitting.
+
+        The choice between pre-defined featues and an is purely a matter of
+        convenience. First extracting features using the FeatureExtractor
+        leads to the same result as using the FeatureExtractor directly.
+
+    grid : tuple of triples, default ()
         Containing the number of ONC clusters, and the number of O, N, and C
         components of said clusters. Thus, if the user passes
         ((4, 2, 3), (2, 1, 2)), the ONCTransformer will have 2 clusters, with
@@ -84,7 +93,7 @@ class ONCTransformer(FeatureTransformer):
 
         Parameters
         ----------
-        grid : tuple of triples:
+        grid : tuple of triples
             A tuple of triples describing the grid clusters. See __init__
             for more documentation.
 
@@ -201,7 +210,7 @@ class ONCTransformer(FeatureTransformer):
 
         Parameters
         ----------
-        x : A string or dictionary with 'syllables' as key.
+        x : A string or dictionary with 'syllables' as key
             The word to vectorize
 
         Returns

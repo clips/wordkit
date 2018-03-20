@@ -24,11 +24,22 @@ class LinearTransformer(FeatureTransformer):
 
     Parameters
     ----------
-    features : dict
-        A dictionary of features, where the keys are characters and the
-        values are numpy arrays.
+    features : dict, or FeatureExtractor instance.
+        features can either be
+            a dictionary of features, for characters.
+            an initialized FeatureExtractor instance.
+
+        In the first case, the features you input to the Transformer are
+        used. In the final case, the FeatureExtractor is used to extract
+        features from your input during fitting.
+
+        The choice between pre-defined featues and an is purely a matter of
+        convenience. First extracting features using the FeatureExtractor
+        leads to the same result as using the FeatureExtractor directly.
+
     field : str
         The field to retrieve from the incoming dictionaries.
+
     left : bool, default True
         If this is set to True, all strings will be left-justified. If this
         is set to False, they will be right-justified.

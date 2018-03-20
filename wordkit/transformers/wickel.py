@@ -27,8 +27,10 @@ class WickelTransformer(BaseTransformer):
     ----------
     n : int
         The value of n to use in the character ngrams.
+
     field : str
         The field to which to apply this featurizer.
+
     use_padding : bool, default True
         Whether to include "#" characters as padding characters.
 

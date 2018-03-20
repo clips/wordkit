@@ -85,13 +85,16 @@ class BPal(Reader):
     ----------
     path : str
         The path to the nwphono.txt file.
+
     fields : tuple
         The fields to extract using this corpus reader. Any invalid fields
         will cause the reader to throw a ValueError.
+
     merge_duplicates : bool, optional, default False
         Whether to merge duplicates which are indistinguishable according
         to the selected fields.
         If this is False, duplicates may occur in the output.
+
     filter_function : function
         The filtering function to use. A filtering function is a function
         which accepts a dictionary as argument and which returns a boolean
