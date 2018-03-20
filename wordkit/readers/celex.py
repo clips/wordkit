@@ -131,15 +131,19 @@ class Celex(Reader):
     ----------
     path : string
         The path to the corpus this reader has to read.
-    language : string, optional, default ("eng")
+
+    language : string, default ("eng")
         The language of the corpus.
+
     fields : iterable, default ("orthography", "syllables", "frequency")
         An iterable of strings containing the fields this reader has
         to read from the corpus.
-    merge_duplicates : bool, optional, default False
+
+    merge_duplicates : bool, default False
         Whether to merge duplicates which are indistinguishable according
         to the selected fields.
         If this is False, duplicates may occur in the output.
+
     filter_function : function
         The filtering function to use. A filtering function is a function
         which accepts a dictionary as argument and which returns a boolean

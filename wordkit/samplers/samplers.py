@@ -11,18 +11,22 @@ class Sampler(TransformerMixin):
     ----------
     X : numpy array
         Your vectorized data.
+
     words : list of strings.
         The identities of the words.
+
     frequencies : numpy array or list of integers, default None.
         The frequencies of your input data. If this is None, the Sampler
         will sample uniformly.
+
     smoothing : bool
         Whether to smooth the distribution by adding 1 to frequency counts.
-        Incompatible with 'log' scaling (see below). If smoothing is used with
-        log scaling, the frequencies will not be smoothed.
-    mode : string, optional, default raw
-        can be 'raw' or 'log'. 'raw' uses the raw frequency counts, while 'log'
-        uses log scaling.
+        If mode is set to 'log', the frequencies are always smoothed to avoid
+        log(0).
+
+    mode : string {'raw', 'log'}, default 'raw'
+        The mode to use for frequency to probability conversion.
+        'raw' uses the raw frequency counts, while 'log' uses log scaling.
 
     """
 
@@ -61,6 +65,7 @@ class Sampler(TransformerMixin):
         -------
         features : np.array
             A matrix of sampled data.
+
         words : tuple
             The sampled words.
 

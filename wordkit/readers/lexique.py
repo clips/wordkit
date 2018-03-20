@@ -64,14 +64,17 @@ class Lexique(Reader):
     ----------
     path : str
         The path to the Lexique corpus file.
+
     fields : tuple
         The fields to retrieve from the corpus.
+
     merge_duplicates : bool, optional, default False
         Whether to merge duplicates which are indistinguishable according
         to the selected fields.
         Note that frequency is not counted as a field for determining
         duplicates. Frequency is instead added together for any duplicates.
         If this is False, duplicates may occur in the output.
+
     filter_function : filter_function, optional, default identity
         A custom function you can use to filter the output.
         An example of this could be a frequency selection function.

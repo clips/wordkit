@@ -27,8 +27,10 @@ class WickelTransformer(BaseTransformer):
     ----------
     n : int
         The value of n to use in the character ngrams.
+
     field : str
         The field to which to apply this featurizer.
+
     use_padding : bool, default True
         Whether to include "#" characters as padding characters.
 
@@ -38,7 +40,6 @@ class WickelTransformer(BaseTransformer):
         """Initialize the transformer."""
         super().__init__(field)
         self.n = n
-        self.vec_len = 0
         self.use_padding = use_padding
 
     def fit(self, X):
@@ -67,6 +68,7 @@ class WickelTransformer(BaseTransformer):
         self.features = {g: idx for idx, g in enumerate(grams)}
         # The vector length is equal to the number of features.
         self.vec_len = len(self.features)
+        self.feature_names = set(self.features.keys())
         self._is_fit = True
 
         return self

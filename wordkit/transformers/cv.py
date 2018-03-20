@@ -34,17 +34,29 @@ class CVTransformer(FeatureTransformer):
 
     Parameters
     ----------
-    features : tuple of dictionaries
-        A tuple of dictionaries, containing vowel and consonant features,
-        respectively.
-    grid_structure : string, optional, default="CCCVV"
+    features : tuple of dicts, or FeatureExtractor instance.
+        features can either be
+            a tuple of a dictionary of features, for vowels and consonants.
+            an initialized FeatureExtractor instance.
+
+        In the first case, the features you input to the Transformer are
+        used. In the final case, the FeatureExtractor is used to extract
+        features from your input during fitting.
+
+        The choice between pre-defined featues and an is purely a matter of
+        convenience. First extracting features using the FeatureExtractor
+        leads to the same result as using the FeatureExtractor directly.
+
+    grid_structure : string, default="CCCVV"
         A list describing the Consonant Vowel structure of the
         CVTransformer. During fitting, the CVTransformer determines how
         many of these grid clusters are necessary to fit the entire
         dataset.
+
     left : bool
         Whether to use right- or left-justified encoding when placing
         phonemes on the grid.
+
     field : str, default 'phonology'
         The field to use.
 
@@ -57,37 +69,8 @@ class CVTransformer(FeatureTransformer):
                  field='phonology'):
         """Put phonemes on a consonant vowel grid."""
         super().__init__(features, field)
-
-        vowels, consonants = features
-        if " " not in vowels:
-            vowels[" "] = np.zeros_like(list(vowels.values())[0])
-        if " " not in consonants:
-            consonants[" "] = np.zeros_like(list(consonants.values())[0])
-        self.features = copy(vowels)
-        self.features.update(consonants)
-        self.vowel_length = len(list(vowels.values())[0])
-        self.consonant_length = len(list(consonants.values())[0])
-        self.left = left
-
-        if any([len(v) != self.vowel_length for v in vowels.values()]):
-            raise ValueError("Not all vowel vectors have the same length")
-
-        if any([len(v) != self.consonant_length for v in consonants.values()]):
-            raise ValueError("Not all consonant vectors have the same length")
-
         self.grid_structure = grid_structure
-
-        # consonant dictionary
-        self.consonants = consonants
-        # vowel dictionary
-        self.vowels = vowels
-
-        # indexes
-        self.idx2consonant = {idx: c for idx, c in enumerate(self.consonants)}
-        self.consonant2idx = {v: k for k, v in self.idx2consonant.items()}
-        self.idx2vowel = {idx: v for idx, v in enumerate(self.vowels)}
-        self.vowel2idx = {v: k for k, v in self.idx2vowel.items()}
-        self.phoneme2idx = {p: idx for idx, p in enumerate(self.features)}
+        self.left = left
 
     def init_grid(self):
         """
@@ -112,7 +95,7 @@ class CVTransformer(FeatureTransformer):
 
         return grid
 
-    def fit(self, X, y=None):
+    def _fit(self, X):
         """
         Fit the CVTransformer to find the optimal number of grids required.
 
@@ -130,7 +113,36 @@ class CVTransformer(FeatureTransformer):
         if type(X[0]) == dict:
             X = [x[self.field] for x in X]
 
+        vowels, consonants = self.features
+        if " " not in vowels:
+            vowels[" "] = np.zeros_like(list(vowels.values())[0])
+        if " " not in consonants:
+            consonants[" "] = np.zeros_like(list(consonants.values())[0])
+        self.phonemes = copy(vowels)
+        self.phonemes.update(consonants)
+        self.feature_names = set(self.phonemes.keys())
+        self.vowel_length = len(list(vowels.values())[0])
+        self.consonant_length = len(list(consonants.values())[0])
+
+        if any([len(v) != self.vowel_length for v in vowels.values()]):
+            raise ValueError("Not all vowel vectors have the same length")
+
+        if any([len(v) != self.consonant_length for v in consonants.values()]):
+            raise ValueError("Not all consonant vectors have the same length")
+
+        # consonant dictionary
+        self.consonants = consonants
+        # vowel dictionary
+        self.vowels = vowels
         self._check(X)
+
+        # indexes
+        self.idx2consonant = {idx: c for idx, c in enumerate(self.consonants)}
+        self.consonant2idx = {v: k for k, v in self.idx2consonant.items()}
+        self.idx2vowel = {idx: v for idx, v in enumerate(self.vowels)}
+        self.vowel2idx = {v: k for k, v in self.idx2vowel.items()}
+        self.phoneme2idx = {p: idx for idx, p in enumerate(self.phonemes)}
+
         first_v = self.grid_structure.index("V")
         self.grid = self.grid_structure + self.grid_structure[:first_v]
         last_v = -first_v
@@ -196,7 +208,7 @@ class CVTransformer(FeatureTransformer):
         phon_vector = np.zeros(self.vec_len)
 
         for idx, phon in grid.items():
-            p = self.features[phon]
+            p = self.phonemes[phon]
             g_idx = self.grid_indexer[idx]
             phon_vector[g_idx: g_idx+len(p)] = p
 
@@ -273,21 +285,20 @@ class CVTransformer(FeatureTransformer):
         vowels = np.array(vowels)
         consonants = np.array(consonants)
 
-        ends = self.grid_indexer[1:] + [self.vec_len]
-
         words = []
 
-        for x in X:
-            word = []
-            for idx, (b, e) in enumerate(zip(self.grid_indexer, ends)):
-                if self.grid[idx] == "V":
-                    diff = x[b:e] - vowels
-                    res = np.linalg.norm(diff, axis=-1).argmin()
-                    word.append(vowel_keys[res])
-                else:
-                    diff = x[b:e] - consonants
-                    res = np.linalg.norm(diff, axis=-1).argmin()
-                    word.append(consonant_keys[res])
-            words.append(tuple([x for x in word if x != " "]))
+        idx = 0
+        for x in self.grid:
+            if x == "C":
+                s = consonants
+                s_k = consonant_keys
+            else:
+                s = vowels
+                s_k = vowel_keys
+            diff = X[:, idx:idx+s.shape[1]][:, None, :] - s[None, :, :]
+            indices = np.linalg.norm(diff, axis=-1).argmin(-1)
+            words.append([s_k[x] for x in indices])
+            idx += s.shape[1]
 
-        return words
+        reshaped = np.array(words).T
+        return tuple([tuple([z for z in x if z != " "]) for x in reshaped])

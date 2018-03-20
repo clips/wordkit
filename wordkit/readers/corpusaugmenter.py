@@ -24,13 +24,16 @@ class CorpusAugmenter(object):
     from_corpus : instance of a Reader
         An initialized Wordkit reader. This corpus will be used to augment
         the information in the to_corpus.
+
     to_corpus : instance of a Reader
         An initialized Wordkit reader. This corpus will be augmented with the
         information from the from_corpus.
+
     transfer_fields : tuple, default ()
         The fields to transfer from one corpus to the other. All the transfer
         fields must be in the from_corpus. If the to corpus has information in
         the transfer fields, it will be overwritten.
+
     union_fields : tuple, default None
         The fields to use in determining equivalence between two words in the
         corpora. For example, if union_fields = ("orthography",), only the

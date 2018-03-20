@@ -3,6 +3,8 @@ import numpy as np
 
 from itertools import chain
 from sklearn.base import TransformerMixin
+from ..feature_extraction.base import BaseExtractor
+from ..feature_extraction.phonology import BasePhonemeExtractor
 
 
 class BaseTransformer(TransformerMixin):
@@ -39,7 +41,7 @@ class BaseTransformer(TransformerMixin):
 
         """
         x = set(chain.from_iterable(x))
-        overlap = x.difference(set(self.features.keys()))
+        overlap = x.difference(self.feature_names)
         if overlap:
             raise ValueError("The sequence contained illegal features: {0}"
                              .format(overlap))
@@ -90,22 +92,53 @@ class FeatureTransformer(BaseTransformer):
 
     Parameters
     ----------
-    features : dict or tuple of dicts
-        A key to array mapping, or a collection of key to array mappings.
+    features : dict, tuple of dicts, or FeatureExtractor instance.
+        features can either be
+            a dictionary of features, for characters.
+            a tuple of a dictionary of features, for vowels and consonants.
+            an initialized FeatureExtractor instance.
+
+        In the first two cases, the features you input to the Transformer are
+        used. In the final case, the FeatureExtractor is used to extract
+        features from your input during fitting.
+
+        The choice between pre-defined featues and an is purely a matter of
+        convenience. First extracting features using the FeatureExtractor
+        leads to the same result as using the FeatureExtractor directly.
+
     field : str
         The field to retrieve for featurization from incoming records.
-    vec_len : int, optional, default 0
-        The vector length.
 
     """
 
-    def __init__(self, features, field, vec_len=0):
+    def __init__(self,
+                 features,
+                 field):
         """Wordkit transformer base class."""
         super().__init__(field)
-        try:
+        if isinstance(features, dict):
             self.features = {k: np.array(v) for k, v in features.items()}
             self.dlen = max([len(x) for x in features.values()])
-        except AttributeError:
+            self.extractor = None
+        elif isinstance(features, tuple):
             self.features = ({k: np.array(v) for k, v in features[0].items()},
                              {k: np.array(v) for k, v in features[1].items()})
-        self.vec_len = vec_len
+            self.extractor = None
+        elif isinstance(features, BaseExtractor):
+            self.features = {}
+            self.extractor = features
+            self.extractor.field = self.field
+
+    def fit(self, X, y=None):
+        """Fit the transformer."""
+        if self.extractor:
+            features = self.extractor.extract(X)
+            if not isinstance(self.extractor, BasePhonemeExtractor):
+                self.dlen = max([len(x) for x in features.values()])
+                self.features = {k: np.array(v) for k, v in features.items()}
+            else:
+                c, v = features
+                self.features = ({k: np.array(v) for k, v in c.items()},
+                                 {k: np.array(v) for k, v in v.items()})
+
+        return self._fit(X)

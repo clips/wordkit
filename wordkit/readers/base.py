@@ -57,8 +57,10 @@ def segment_phonology(phonemes, items=diacritics, to_keep=diacritics):
     ----------
     phonemes : list
         A list of phoneme characters to segment.
+
     items : list
         A list of characters which to treat as diacritics.
+
     to_keep : list
         A list of diacritics from the list passed to items which to keep.
         Any items in this list are not removed as spurious diacritics.

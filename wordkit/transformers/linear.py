@@ -24,11 +24,22 @@ class LinearTransformer(FeatureTransformer):
 
     Parameters
     ----------
-    features : dict
-        A dictionary of features, where the keys are characters and the
-        values are numpy arrays.
+    features : dict, or FeatureExtractor instance.
+        features can either be
+            a dictionary of features, for characters.
+            an initialized FeatureExtractor instance.
+
+        In the first case, the features you input to the Transformer are
+        used. In the final case, the FeatureExtractor is used to extract
+        features from your input during fitting.
+
+        The choice between pre-defined featues and an is purely a matter of
+        convenience. First extracting features using the FeatureExtractor
+        leads to the same result as using the FeatureExtractor directly.
+
     field : str
         The field to retrieve from the incoming dictionaries.
+
     left : bool, default True
         If this is set to True, all strings will be left-justified. If this
         is set to False, they will be right-justified.
@@ -37,14 +48,11 @@ class LinearTransformer(FeatureTransformer):
 
     def __init__(self, features, field, left=True):
         """Convert characters to vectors."""
-        if " " not in features:
-            features[" "] = np.zeros_like(list(features.values())[0])
         super().__init__(features, field)
-        self.vec_len = 0
         self.max_word_length = 0
         self.left = left
 
-    def fit(self, X, y=None):
+    def _fit(self, X):
         """
         Fit the orthographizer by setting the vector length and word length.
 
@@ -59,10 +67,13 @@ class LinearTransformer(FeatureTransformer):
             The fitted LinearTransformer instance.
 
         """
+        if " " not in self.features:
+            self.features[" "] = np.zeros_like(list(self.features.values())[0])
         if type(X[0]) == dict:
             words = [x[self.field] for x in X]
         else:
             words = X
+        self.feature_names = set(self.features.keys())
         self._check(words)
         self.max_word_length = max([len(x) for x in words])
         self.vec_len = self.max_word_length * self.dlen
