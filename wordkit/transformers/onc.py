@@ -38,19 +38,9 @@ class ONCTransformer(FeatureTransformer):
         convenience. First extracting features using the FeatureExtractor
         leads to the same result as using the FeatureExtractor directly.
 
-    grid : tuple of triples, default ()
-        Containing the number of ONC clusters, and the number of O, N, and C
-        components of said clusters. Thus, if the user passes
-        ((4, 2, 3), (2, 1, 2)), the ONCTransformer will have 2 clusters, with
-        the first onset being 4 consonants long, the first nucleus being 2
-        vowels and the first coda being 3 consonants.
-        If this is left blank, the optimal grid is calculated automatically.
-        If you leave the grid blank, there is the distinct possibility that
-        any held out data can not be fitted with this transformer, so beware.
-
     """
 
-    def __init__(self, features, grid=()):
+    def __init__(self, features):
         """Encode syllables with Onset Nucleus Coda encoding."""
         super().__init__(features, "syllables")
 
@@ -59,32 +49,18 @@ class ONCTransformer(FeatureTransformer):
         self.phon_indexer = []
         self.grid_indexer = []
 
-        if grid:
-            self._set_grid_params(grid)
-            self._is_fit = True
-
-        else:
-            self.num_syls = 0
-            self.o = 0
-            self.n = 0
-            self.c = 0
-            self.vec_len = 0
-            self.syl_len = 0
+        self.num_syls = 0
+        self.o = 0
+        self.n = 0
+        self.c = 0
+        self.vec_len = 0
+        self.syl_len = 0
+        self.grid = ""
 
         # Regex for detecting consecutive occurrences of the letter V
         self.r = re.compile(r"V+")
 
-    def grid(self):
-        """Extract the grid from a fit instance."""
-        if not self._is_fit:
-            raise ValueError("The vectorizer has not been fit yet. "
-                             "Hence, it does not have a grid to extract.")
-        grid = [(self.o[idx], self.n[idx], self.c[idx]) for
-                idx in range(self.num_syls)]
-
-        return grid
-
-    def _set_grid_params(self, grid):
+    def _set_grid_params(self, grid, num_syls):
         """
         Set the grid params given a grid.
 
@@ -98,18 +74,16 @@ class ONCTransformer(FeatureTransformer):
             for more documentation.
 
         """
-        self.o, self.n, self.c = [np.array(x) for x in zip(*grid)]
+        self.o, self.n, self.c = grid
         self.syl_len = (self.o * self.consonant_length)
         self.syl_len += (self.n * self.vowel_length)
         self.syl_len += (self.c * self.consonant_length)
-        self.vec_len = self.syl_len.sum()
-        self.num_syls = len(grid)
+        self.vec_len = self.syl_len * num_syls
+        self.num_syls = num_syls
 
-        grid = []
-
-        for idx in range(self.num_syls):
-            for n, cvc in zip([self.o[idx], self.n[idx], self.c[idx]], "CVC"):
-                grid.extend(n * cvc)
+        grid = ["C" * self.o, "V" * self.n, "C" * self.c]
+        self.grid = "".join(chain.from_iterable(grid * self.num_syls))
+        self.syllable_grid = grid
 
         self.phon_indexer = []
         self.grid_indexer = []
@@ -126,6 +100,8 @@ class ONCTransformer(FeatureTransformer):
                 self.phon_indexer.append(idx_2)
                 idx += self.vowel_length
                 idx_2 += len(self.vowel2idx)
+
+
 
     def _fit(self, X):
         """
@@ -155,8 +131,9 @@ class ONCTransformer(FeatureTransformer):
 
         self.vowels = vowels
         self.consonants = consonants
-        self.features = copy(vowels)
-        self.features.update(consonants)
+        self.phonemes = copy(vowels)
+        self.phonemes.update(consonants)
+        self.feature_names = set(self.phonemes.keys())
 
         self.vowel_length = len(next(self.vowels.values().__iter__()))
         self.consonant_length = len(next(self.consonants.values().__iter__()))
@@ -165,7 +142,7 @@ class ONCTransformer(FeatureTransformer):
         self.consonant2idx = {v: k for k, v in self.idx2consonant.items()}
         self.idx2vowel = {idx: v for idx, v in enumerate(self.vowels)}
         self.vowel2idx = {v: k for k, v in self.idx2vowel.items()}
-        self.phoneme2idx = {p: idx for idx, p in enumerate(self.features)}
+        self.phoneme2idx = {p: idx for idx, p in enumerate(self.phonemes)}
 
         if type(X[0]) == dict:
             X = [x[self.field] for x in X]
@@ -173,28 +150,24 @@ class ONCTransformer(FeatureTransformer):
 
         num_syls = max([len(x) for x in X])
 
-        o = np.zeros(num_syls, dtype=np.int32)
-        n = np.zeros(num_syls, dtype=np.int32)
-        c = np.zeros(num_syls, dtype=np.int32)
+        o = 0
+        n = 0
+        c = 0
 
-        for syll in X:
+        for syll in set(chain.from_iterable(X)):
 
-            for idx, cvc in enumerate(syll):
-                cvc = "".join(["C" if x in self.consonants
-                               else "V" for x in cvc])
-                c_l = len(cvc)
-                try:
-                    m = next(self.r.finditer(cvc))
-                    o[idx] = max(m.start(), o[idx])
-                    n[idx] = max(len(m.group()), n[idx])
-                    c[idx] = max(c_l - m.end(), c[idx])
-                except StopIteration:
-                    o[idx] = max(c_l, o[idx])
-        grid = []
-        for idx in range(num_syls):
-            grid.append([o[idx], n[idx], c[idx]])
+            cvc = "".join(["C" if x in self.consonants
+                           else "V" for x in syll])
+            c_l = len(cvc)
+            try:
+                m = next(self.r.finditer(cvc))
+                o = max(m.start(), o)
+                n = max(len(m.group()), n)
+                c = max(c_l - m.end(), c)
+            except StopIteration:
+                c = max(c_l, c)
 
-        self._set_grid_params(grid)
+        self._set_grid_params((o, n, c), num_syls)
         self._is_fit = True
 
         return self
@@ -234,11 +207,11 @@ class ONCTransformer(FeatureTransformer):
         for idx in range(self.num_syls):
 
             # Define a syllable zero vector
-            syll_vec = np.zeros(self.syl_len[idx])
+            syll_vec = np.zeros(self.syl_len,)
             # The vector index at which the nucleus starts
-            n_idx = self.o[idx] * self.consonant_length
+            n_idx = self.o * self.consonant_length
             # The vector index at which the coda starts
-            c_idx = (self.n[idx] * self.vowel_length) + n_idx
+            c_idx = (self.n * self.vowel_length) + n_idx
 
             try:
                 s = phonemes[idx]
@@ -285,36 +258,29 @@ class ONCTransformer(FeatureTransformer):
 
     def inverse_transform(self, X):
         """Transform a matrix back into their word representations."""
-        # TODO: fix error if len(vowels) == len(consonants)
         vowel_keys, vowels = zip(*self.vowels.items())
         consonant_keys, consonants = zip(*self.consonants.items())
 
         vowels = np.array(vowels)
         consonants = np.array(consonants)
 
-        ends = self.grid_indexer[1:] + [self.vec_len]
+        idx = 0
+
         words = []
-        cumulative_dist_syll = np.cumsum(self.syl_len)
-
-        for x in X:
-            word = []
-            syll = []
-
-            for b, e in zip(self.grid_indexer, ends):
-                if b in cumulative_dist_syll:
-                    word.append(tuple([x for x in syll if x != " "]))
-                    syll = []
-                if e - b == vowels.shape[1]:
-                    diff = x[b:e] - vowels
-                    res = np.linalg.norm(diff, axis=-1).argmin()
-                    syll.append(vowel_keys[res])
-                else:
-                    diff = x[b:e] - consonants
-                    res = np.linalg.norm(diff, axis=-1).argmin()
-                    syll.append(consonant_keys[res])
+        for x in self.grid:
+            if x == "C":
+                s = consonants
+                s_k = consonant_keys
             else:
-                word.append(tuple([x for x in syll if x != " "]))
+                s = vowels
+                s_k = vowel_keys
+            diff = X[:, idx:idx+s.shape[1]][:, None, :] - s[None, :, :]
+            indices = np.linalg.norm(diff, axis=-1).argmin(-1)
+            words.append([s_k[x] for x in indices])
+            idx += s.shape[1]
 
-            words.append(tuple([x for x in word if x]))
-
-        return words
+        reshaped = np.array(words).T.reshape(X.shape[0], self.num_syls, -1)
+        for word in reshaped:
+            yield tuple([tuple(x) for x in
+                        [[p for p in x if p != " "]
+                        for x in word] if x])
