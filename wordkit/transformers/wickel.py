@@ -38,7 +38,6 @@ class WickelTransformer(BaseTransformer):
         """Initialize the transformer."""
         super().__init__(field)
         self.n = n
-        self.vec_len = 0
         self.use_padding = use_padding
 
     def fit(self, X):

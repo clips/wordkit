@@ -3,6 +3,8 @@ import numpy as np
 
 from itertools import chain
 from sklearn.base import TransformerMixin
+from ..feature_extraction.base import BaseExtractor
+from ..feature_extraction.phonology import BasePhonemeExtractor
 
 
 class BaseTransformer(TransformerMixin):
@@ -94,18 +96,39 @@ class FeatureTransformer(BaseTransformer):
         A key to array mapping, or a collection of key to array mappings.
     field : str
         The field to retrieve for featurization from incoming records.
-    vec_len : int, optional, default 0
+    vec_len : int, default 0
         The vector length.
 
     """
 
-    def __init__(self, features, field, vec_len=0):
+    def __init__(self,
+                 features,
+                 field):
         """Wordkit transformer base class."""
         super().__init__(field)
-        try:
+        if isinstance(features, dict):
             self.features = {k: np.array(v) for k, v in features.items()}
             self.dlen = max([len(x) for x in features.values()])
-        except AttributeError:
+            self.extractor = None
+        elif isinstance(features, tuple):
             self.features = ({k: np.array(v) for k, v in features[0].items()},
                              {k: np.array(v) for k, v in features[1].items()})
-        self.vec_len = vec_len
+            self.extractor = None
+        elif isinstance(features, BaseExtractor):
+            self.features = {}
+            self.extractor = features
+            self.extractor.field = self.field
+
+    def fit(self, X, y=None):
+
+        if self.extractor:
+            features = self.extractor.extract(X)
+            if not isinstance(self.extractor, BasePhonemeExtractor):
+                self.dlen = max([len(x) for x in features.values()])
+                self.features = {k: np.array(v) for k, v in features.items()}
+            else:
+                c, v = features
+                self.features = ({k: np.array(v) for k, v in c.items()},
+                                 {k: np.array(v) for k, v in v.items()})
+
+        return self._fit(X)

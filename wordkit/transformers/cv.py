@@ -57,37 +57,8 @@ class CVTransformer(FeatureTransformer):
                  field='phonology'):
         """Put phonemes on a consonant vowel grid."""
         super().__init__(features, field)
-
-        vowels, consonants = features
-        if " " not in vowels:
-            vowels[" "] = np.zeros_like(list(vowels.values())[0])
-        if " " not in consonants:
-            consonants[" "] = np.zeros_like(list(consonants.values())[0])
-        self.features = copy(vowels)
-        self.features.update(consonants)
-        self.vowel_length = len(list(vowels.values())[0])
-        self.consonant_length = len(list(consonants.values())[0])
-        self.left = left
-
-        if any([len(v) != self.vowel_length for v in vowels.values()]):
-            raise ValueError("Not all vowel vectors have the same length")
-
-        if any([len(v) != self.consonant_length for v in consonants.values()]):
-            raise ValueError("Not all consonant vectors have the same length")
-
         self.grid_structure = grid_structure
-
-        # consonant dictionary
-        self.consonants = consonants
-        # vowel dictionary
-        self.vowels = vowels
-
-        # indexes
-        self.idx2consonant = {idx: c for idx, c in enumerate(self.consonants)}
-        self.consonant2idx = {v: k for k, v in self.idx2consonant.items()}
-        self.idx2vowel = {idx: v for idx, v in enumerate(self.vowels)}
-        self.vowel2idx = {v: k for k, v in self.idx2vowel.items()}
-        self.phoneme2idx = {p: idx for idx, p in enumerate(self.features)}
+        self.left = left
 
     def init_grid(self):
         """
@@ -112,7 +83,7 @@ class CVTransformer(FeatureTransformer):
 
         return grid
 
-    def fit(self, X, y=None):
+    def _fit(self, X):
         """
         Fit the CVTransformer to find the optimal number of grids required.
 
@@ -130,7 +101,35 @@ class CVTransformer(FeatureTransformer):
         if type(X[0]) == dict:
             X = [x[self.field] for x in X]
 
+        vowels, consonants = self.features
+        if " " not in vowels:
+            vowels[" "] = np.zeros_like(list(vowels.values())[0])
+        if " " not in consonants:
+            consonants[" "] = np.zeros_like(list(consonants.values())[0])
+        self.features = copy(vowels)
+        self.features.update(consonants)
+        self.vowel_length = len(list(vowels.values())[0])
+        self.consonant_length = len(list(consonants.values())[0])
+
+        if any([len(v) != self.vowel_length for v in vowels.values()]):
+            raise ValueError("Not all vowel vectors have the same length")
+
+        if any([len(v) != self.consonant_length for v in consonants.values()]):
+            raise ValueError("Not all consonant vectors have the same length")
+
+        # consonant dictionary
+        self.consonants = consonants
+        # vowel dictionary
+        self.vowels = vowels
         self._check(X)
+
+        # indexes
+        self.idx2consonant = {idx: c for idx, c in enumerate(self.consonants)}
+        self.consonant2idx = {v: k for k, v in self.idx2consonant.items()}
+        self.idx2vowel = {idx: v for idx, v in enumerate(self.vowels)}
+        self.vowel2idx = {v: k for k, v in self.idx2vowel.items()}
+        self.phoneme2idx = {p: idx for idx, p in enumerate(self.features)}
+
         first_v = self.grid_structure.index("V")
         self.grid = self.grid_structure + self.grid_structure[:first_v]
         last_v = -first_v

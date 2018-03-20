@@ -45,26 +45,6 @@ class ONCTransformer(FeatureTransformer):
         """Encode syllables with Onset Nucleus Coda encoding."""
         super().__init__(features, "syllables")
 
-        vowels, consonants = features
-        if " " not in vowels:
-            vowels[" "] = np.zeros_like(list(vowels.values())[0])
-        if " " not in consonants:
-            consonants[" "] = np.zeros_like(list(consonants.values())[0])
-
-        self.vowels = vowels
-        self.consonants = consonants
-        self.features = copy(vowels)
-        self.features.update(consonants)
-
-        self.vowel_length = len(next(self.vowels.values().__iter__()))
-        self.consonant_length = len(next(self.consonants.values().__iter__()))
-
-        self.idx2consonant = {idx: c for idx, c in enumerate(self.consonants)}
-        self.consonant2idx = {v: k for k, v in self.idx2consonant.items()}
-        self.idx2vowel = {idx: v for idx, v in enumerate(self.vowels)}
-        self.vowel2idx = {v: k for k, v in self.idx2vowel.items()}
-        self.phoneme2idx = {p: idx for idx, p in enumerate(self.features)}
-
         self._is_fit = False
 
         self.phon_indexer = []
@@ -138,7 +118,7 @@ class ONCTransformer(FeatureTransformer):
                 idx += self.vowel_length
                 idx_2 += len(self.vowel2idx)
 
-    def fit(self, X):
+    def _fit(self, X):
         """
         Calculate the best Onset Nucleus Coda grid given X.
 
@@ -158,6 +138,26 @@ class ONCTransformer(FeatureTransformer):
             Return a fitted ONCTransformer
 
         """
+        vowels, consonants = self.features
+        if " " not in vowels:
+            vowels[" "] = np.zeros_like(list(vowels.values())[0])
+        if " " not in consonants:
+            consonants[" "] = np.zeros_like(list(consonants.values())[0])
+
+        self.vowels = vowels
+        self.consonants = consonants
+        self.features = copy(vowels)
+        self.features.update(consonants)
+
+        self.vowel_length = len(next(self.vowels.values().__iter__()))
+        self.consonant_length = len(next(self.consonants.values().__iter__()))
+
+        self.idx2consonant = {idx: c for idx, c in enumerate(self.consonants)}
+        self.consonant2idx = {v: k for k, v in self.idx2consonant.items()}
+        self.idx2vowel = {idx: v for idx, v in enumerate(self.vowels)}
+        self.vowel2idx = {v: k for k, v in self.idx2vowel.items()}
+        self.phoneme2idx = {p: idx for idx, p in enumerate(self.features)}
+
         if type(X[0]) == dict:
             X = [x[self.field] for x in X]
         self._check(chain.from_iterable(X))

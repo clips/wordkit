@@ -37,14 +37,11 @@ class LinearTransformer(FeatureTransformer):
 
     def __init__(self, features, field, left=True):
         """Convert characters to vectors."""
-        if " " not in features:
-            features[" "] = np.zeros_like(list(features.values())[0])
         super().__init__(features, field)
-        self.vec_len = 0
         self.max_word_length = 0
         self.left = left
 
-    def fit(self, X, y=None):
+    def _fit(self, X):
         """
         Fit the orthographizer by setting the vector length and word length.
 
@@ -59,6 +56,8 @@ class LinearTransformer(FeatureTransformer):
             The fitted LinearTransformer instance.
 
         """
+        if " " not in self.features:
+            self.features[" "] = np.zeros_like(list(self.features.values())[0])
         if type(X[0]) == dict:
             words = [x[self.field] for x in X]
         else:
