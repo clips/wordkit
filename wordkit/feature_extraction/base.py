@@ -19,6 +19,9 @@ class BaseExtractor(object):
         """Extract features from a set of words."""
         if self.field is not None:
             X = [x[self.field] for x in X]
+        elif isinstance(X, dict):
+            raise ValueError("You didn't pass a field value to the extractor "
+                             "but also passed a dict.")
 
         if isinstance(X[0][0], str):
             all_symbols = set(chain.from_iterable(X))
