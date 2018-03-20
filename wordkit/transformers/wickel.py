@@ -68,6 +68,7 @@ class WickelTransformer(BaseTransformer):
         self.features = {g: idx for idx, g in enumerate(grams)}
         # The vector length is equal to the number of features.
         self.vec_len = len(self.features)
+        self.feature_names = set(self.features.keys())
         self._is_fit = True
 
         return self

@@ -73,6 +73,7 @@ class LinearTransformer(FeatureTransformer):
             words = [x[self.field] for x in X]
         else:
             words = X
+        self.feature_names = set(self.features.keys())
         self._check(words)
         self.max_word_length = max([len(x) for x in words])
         self.vec_len = self.max_word_length * self.dlen

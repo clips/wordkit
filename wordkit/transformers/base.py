@@ -41,7 +41,7 @@ class BaseTransformer(TransformerMixin):
 
         """
         x = set(chain.from_iterable(x))
-        overlap = x.difference(set(self.features.keys()))
+        overlap = x.difference(self.feature_names)
         if overlap:
             raise ValueError("The sequence contained illegal features: {0}"
                              .format(overlap))

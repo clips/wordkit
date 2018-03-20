@@ -118,8 +118,9 @@ class CVTransformer(FeatureTransformer):
             vowels[" "] = np.zeros_like(list(vowels.values())[0])
         if " " not in consonants:
             consonants[" "] = np.zeros_like(list(consonants.values())[0])
-        self.features = copy(vowels)
-        self.features.update(consonants)
+        self.phonemes = copy(vowels)
+        self.phonemes.update(consonants)
+        self.feature_names = set(self.phonemes.keys())
         self.vowel_length = len(list(vowels.values())[0])
         self.consonant_length = len(list(consonants.values())[0])
 
@@ -140,7 +141,7 @@ class CVTransformer(FeatureTransformer):
         self.consonant2idx = {v: k for k, v in self.idx2consonant.items()}
         self.idx2vowel = {idx: v for idx, v in enumerate(self.vowels)}
         self.vowel2idx = {v: k for k, v in self.idx2vowel.items()}
-        self.phoneme2idx = {p: idx for idx, p in enumerate(self.features)}
+        self.phoneme2idx = {p: idx for idx, p in enumerate(self.phonemes)}
 
         first_v = self.grid_structure.index("V")
         self.grid = self.grid_structure + self.grid_structure[:first_v]
@@ -207,7 +208,7 @@ class CVTransformer(FeatureTransformer):
         phon_vector = np.zeros(self.vec_len)
 
         for idx, phon in grid.items():
-            p = self.features[phon]
+            p = self.phonemes[phon]
             g_idx = self.grid_indexer[idx]
             phon_vector[g_idx: g_idx+len(p)] = p
 
@@ -284,21 +285,20 @@ class CVTransformer(FeatureTransformer):
         vowels = np.array(vowels)
         consonants = np.array(consonants)
 
-        ends = self.grid_indexer[1:] + [self.vec_len]
-
         words = []
 
-        for x in X:
-            word = []
-            for idx, (b, e) in enumerate(zip(self.grid_indexer, ends)):
-                if self.grid[idx] == "V":
-                    diff = x[b:e] - vowels
-                    res = np.linalg.norm(diff, axis=-1).argmin()
-                    word.append(vowel_keys[res])
-                else:
-                    diff = x[b:e] - consonants
-                    res = np.linalg.norm(diff, axis=-1).argmin()
-                    word.append(consonant_keys[res])
-            words.append(tuple([x for x in word if x != " "]))
+        idx = 0
+        for x in self.grid:
+            if x == "C":
+                s = consonants
+                s_k = consonant_keys
+            else:
+                s = vowels
+                s_k = vowel_keys
+            diff = X[:, idx:idx+s.shape[1]][:, None, :] - s[None, :, :]
+            indices = np.linalg.norm(diff, axis=-1).argmin(-1)
+            words.append([s_k[x] for x in indices])
+            idx += s.shape[1]
 
-        return words
+        reshaped = np.array(words).T
+        return tuple([tuple([z for z in x if z != " "]) for x in reshaped])
