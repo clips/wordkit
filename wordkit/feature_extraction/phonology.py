@@ -3,6 +3,7 @@ import numpy as np
 from functools import reduce
 from .base import BaseExtractor
 from sklearn.feature_extraction import DictVectorizer
+from itertools import chain
 
 from ipapy.ipastring import IPAString
 
@@ -41,7 +42,7 @@ class BasePhonemeExtractor(BaseExtractor):
         return descriptors, reduce(set.union, descriptors, set())
 
     @staticmethod
-    def _grouped_phoneme_descriptors(phonemes, allowed=None):
+    def _grouped_phoneme_descriptors(phonemes):
         """Retrieve the set of descriptors for complex phonemes."""
         diacritic_descriptors = set()
         results = []
@@ -60,9 +61,6 @@ class BasePhonemeExtractor(BaseExtractor):
                 diacritic_descriptors.update(desc)
                 for x in desc:
                     result[x] = x
-
-            if allowed is not None:
-                result = {k: v for k, v in result.items() if v in allowed}
 
             results.append(result)
 
@@ -255,13 +253,19 @@ class PredefinedFeatureExtractor(BasePhonemeExtractor):
         v_string = self._phoneme_set_to_string(vowels)
         c_string = self._phoneme_set_to_string(consonants)
 
-        v_descriptors = self._grouped_phoneme_descriptors(vowels,
-                                                          self.feature_names)
-        c_descriptors = self._grouped_phoneme_descriptors(consonants,
-                                                          self.feature_names)
+        v_descriptors = self._grouped_phoneme_descriptors(vowels)
+        c_descriptors = self._grouped_phoneme_descriptors(consonants)
+
+        all_descriptors = set(chain.from_iterable(v_descriptors))
+        all_descriptors.update(chain.from_iterable(c_descriptors))
+
+        diff = all_descriptors - self.feature_names
+
+        if diff:
+            raise ValueError("You extract features which are not in your "
+                             "feature set. {}".format(diff))
 
         vowel_vectors = []
-
         for descriptors in v_descriptors:
             vec = []
             for k, v in sorted(descriptors.items()):

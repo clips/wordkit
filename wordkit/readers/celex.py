@@ -163,6 +163,8 @@ class Celex(Reader):
                  filter_function=identity,
                  lemmas=None):
         """Extract structured information from CELEX."""
+        if not os.path.exists(path):
+            raise FileNotFoundError("{} not found.".format(path))
         if language is None:
             try:
                 language = AUTO_LANGUAGE[os.path.split(path)[1]]

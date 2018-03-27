@@ -101,16 +101,13 @@ class ONCTransformer(FeatureTransformer):
                 idx += self.vowel_length
                 idx_2 += len(self.vowel2idx)
 
-
-
     def _fit(self, X):
         """
         Calculate the best Onset Nucleus Coda grid given X.
 
         This function calculates the ideal Onset Nucleus Coda grid, that is,
         the number of consonants and vowels in each part of the grid necessary
-        to describe the corpus. The number of phonemes per cluster can differ
-        between syllables.
+        to describe the corpus.
 
         Parameters
         ----------
