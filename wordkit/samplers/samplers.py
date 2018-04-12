@@ -28,6 +28,9 @@ class Sampler(TransformerMixin):
         The mode to use for frequency to probability conversion.
         'raw' uses the raw frequency counts, while 'log' uses log scaling.
 
+    replacement : bool
+        Whether to sample with or without replacement.
+
     """
 
     def __init__(self,
@@ -35,7 +38,8 @@ class Sampler(TransformerMixin):
                  words,
                  frequencies=None,
                  smoothing=True,
-                 mode='raw'):
+                 mode='raw',
+                 replacement=True):
         """Sample from a distribution over words."""
         self.smoothing = smoothing
         self.mode = mode
@@ -51,6 +55,7 @@ class Sampler(TransformerMixin):
         self.X = X
         self.words = words
         self.frequencies = frequencies / np.sum(frequencies)
+        self.replacement = replacement
 
     def sample(self, num_to_sample):
         """
@@ -70,9 +75,18 @@ class Sampler(TransformerMixin):
             The sampled words.
 
         """
+        if not self.replacement and num_to_sample > len(self.X):
+            raise ValueError("Your tried to sample without replacement from "
+                             "a set which is smaller than your sample size "
+                             ": sample size: {} set size: {}"
+                             "".format(num_to_sample, len(self.X)))
+
         samples = np.random.choice(np.arange(len(self.X)),
                                    size=num_to_sample,
-                                   p=self.frequencies)
+                                   p=self.frequencies,
+                                   replace=self.replacement)
 
         data, words = zip(*[(self.X[x], self.words[x]) for x in samples])
-        return np.asarray(data), words
+        if isinstance(self.X, np.ndarray):
+            return np.asarray(data), words
+        return data, words
