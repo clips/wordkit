@@ -78,6 +78,8 @@ class BaseTransformer(TransformerMixin):
         total = np.zeros((len(words), self.vec_len))
 
         for idx, word in enumerate(words):
+            if isinstance(word, dict):
+                word = word[self.field]
             x = self.vectorize(word)
             # This ensures that transformers which return sequences of
             # differing lengths still return non-jagged arrays.
@@ -124,8 +126,10 @@ class FeatureTransformer(BaseTransformer):
             self.features = ({k: np.array(v) for k, v in features[0].items()},
                              {k: np.array(v) for k, v in features[1].items()})
             self.extractor = None
-        elif isinstance(features, BaseExtractor):
+        elif isinstance(features, BaseExtractor) or isinstance(features, type):
             self.features = {}
+            if isinstance(features, type):
+                features = features()
             self.extractor = features
             self.extractor.field = self.field
 
