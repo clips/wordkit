@@ -2,7 +2,6 @@
 import numpy as np
 from functools import reduce
 from .base import BaseExtractor
-from sklearn.feature_extraction import DictVectorizer
 from itertools import chain
 
 from ipapy.ipastring import IPAString
@@ -181,44 +180,6 @@ class PhonemeFeatureExtractor(BasePhonemeExtractor):
         consonants = dict(zip(consonant_strings, consonant_features))
 
         return vowels, consonants
-
-
-class GroupedPhonemeFeatureExtractor(BasePhonemeExtractor):
-    """
-    An extractor which groups features, and assigns each item a binary code.
-
-    This feature extractor has the same result as the PhonemeFeatureExtractor.
-
-    """
-
-    def _group_phoneme_descriptors(self, phonemes):
-        """
-        Extract phoneme features which are grouped per feature.
-
-        This leads to the same encoding as the extract_phoneme_features
-        function.
-        """
-        vowels, consonants = self._parse_phonemes(phonemes)
-
-        vowel_strings = self._phoneme_set_to_string(vowels)
-        consonant_strings = self._phoneme_set_to_string(consonants)
-
-        vowel_features = self._grouped_phoneme_descriptors(vowels)
-        consonant_features = self._grouped_phoneme_descriptors(consonants)
-
-        d = DictVectorizer(sparse=False)
-        vowel_features = d.fit_transform(vowel_features)
-        d = DictVectorizer(sparse=False)
-        consonant_features = d.fit_transform(consonant_features)
-
-        vowels = dict(zip(vowel_strings, vowel_features))
-        consonants = dict(zip(consonant_strings, consonant_features))
-
-        return vowels, consonants
-
-    def _process(self, phonemes):
-
-        return self._group_phoneme_descriptors(phonemes)
 
 
 class PredefinedFeatureExtractor(BasePhonemeExtractor):

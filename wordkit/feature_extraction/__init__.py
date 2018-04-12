@@ -2,11 +2,9 @@
 from .orthography import OneHotCharacterExtractor
 from .phonology import OneHotPhonemeExtractor, \
                        PhonemeFeatureExtractor, \
-                       PredefinedFeatureExtractor, \
-                       GroupedPhonemeFeatureExtractor
+                       PredefinedFeatureExtractor
 
 __all__ = ["OneHotCharacterExtractor",
            "OneHotPhonemeExtractor",
            "PhonemeFeatureExtractor",
-           "PredefinedFeatureExtractor",
-           "GroupedPhonemeFeatureExtractor"]
+           "PredefinedFeatureExtractor"]
