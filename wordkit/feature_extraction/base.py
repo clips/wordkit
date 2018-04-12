@@ -3,12 +3,7 @@ from itertools import chain
 
 
 class BaseExtractor(object):
-    """
-    Base class for feature extractors.
-
-    EXTRA STUFF HERE
-
-    """
+    """Base class for feature extractors."""
 
     def __init__(self, field=None):
         """Initialize the extractor."""
@@ -17,11 +12,12 @@ class BaseExtractor(object):
 
     def extract(self, X):
         """Extract features from a set of words."""
-        if self.field is not None:
+        if isinstance(X, dict):
+
+            if self.field is None:
+                raise ValueError("You didn't pass a field value to the "
+                                 "extractor but also passed a dict.")
             X = [x[self.field] for x in X]
-        elif isinstance(X, dict):
-            raise ValueError("You didn't pass a field value to the extractor "
-                             "but also passed a dict.")
 
         if isinstance(X[0][0], str):
             all_symbols = set(chain.from_iterable(X))
