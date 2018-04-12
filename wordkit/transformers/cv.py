@@ -200,8 +200,6 @@ class CVTransformer(FeatureTransformer):
             A vectorized version of the phoneme sequence.
 
         """
-        if type(x) == dict:
-            x = x['phonology']
         grid = self._put_on_grid(x)
 
         # convert syllabic grid to vector

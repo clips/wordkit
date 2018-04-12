@@ -64,14 +64,13 @@ class ONCTransformer(FeatureTransformer):
         """
         Set the grid params given a grid.
 
-        This function is meanth to remove duplication between the transform
-        function and instantiation through passing a grid.
-
         Parameters
         ----------
         grid : tuple of triples
             A tuple of triples describing the grid clusters. See __init__
             for more documentation.
+        num_syls : int
+            The number of syllables to use.
 
         """
         self.o, self.n, self.c = grid
@@ -175,8 +174,7 @@ class ONCTransformer(FeatureTransformer):
 
         This function converts a single list of syllable strings to a feature
         vector. In order to use this function, the vectorizer must have been
-        fit first, either by using the fit function, or by passing a
-        pre-defined grid.
+        fit first.
 
         Parameters
         ----------
@@ -189,15 +187,11 @@ class ONCTransformer(FeatureTransformer):
             The vectorized word.
 
         """
-        if type(x) == dict:
-            phonemes = x[self.field]
-        else:
-            phonemes = x
-        self._check(phonemes)
+        self._check(x)
         if not self._is_fit:
             raise ValueError("The vectorizer has not been fit yet.")
-        if len(phonemes) > self.num_syls:
-            raise ValueError("{0} is too long".format(phonemes))
+        if len(x) > self.num_syls:
+            raise ValueError("{0} is too long".format(x))
 
         vec = []
 
@@ -211,7 +205,7 @@ class ONCTransformer(FeatureTransformer):
             c_idx = (self.n * self.vowel_length) + n_idx
 
             try:
-                s = phonemes[idx]
+                s = x[idx]
             except IndexError:
                 # If the current word does not have syllable here,
                 # append the zero vector.

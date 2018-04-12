@@ -99,8 +99,6 @@ class LinearTransformer(FeatureTransformer):
         """
         if len(x) > self.max_word_length:
             raise ValueError("Your word is too long")
-        if type(x) == dict:
-            x = x[self.field]
         v = np.zeros((self.max_word_length, self.dlen))
         if self.left:
             x = x.ljust(self.max_word_length)

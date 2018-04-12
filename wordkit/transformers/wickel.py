@@ -90,8 +90,6 @@ class WickelTransformer(BaseTransformer):
             A vectorized representation of the input word.
 
         """
-        if type(x) == dict:
-            x = x[self.field]
         z = np.zeros(self.vec_len)
         weights, indices = zip(*[(w, self.features[g])
                                for w, g in self._decompose(x)])
