@@ -265,7 +265,6 @@ class Celex(Reader):
                     phon = [segment_phonology(x) for x in celex_to_ipa(phon)]
                     word['phonology'] = tuple(chain.from_iterable(phon))
             if use_freq or use_log_freq:
-                # We use one-smoothed frequencies.
                 word['frequency'] = int(columns[self.fields['frequency']])
 
             yield word
