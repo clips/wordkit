@@ -147,6 +147,9 @@ class Reader(TransformerMixin):
         if not os.path.exists(path):
             raise FileNotFoundError("The file you specified does not "
                                     "exist: {}".format(path))
+        fields = list(fields)
+        if 'log_frequency' in fields:
+            fields.append('frequency')
 
         difference = set(fields) - set(field_ids.keys())
         if difference:
@@ -207,34 +210,39 @@ class Reader(TransformerMixin):
         # Merging duplicates means that any duplicates are removed
         # and their frequencies are added together.
         if self.merge_duplicates:
-            new_words = defaultdict(int)
+            merged = defaultdict(int)
             for w in words:
                 it = tuple([i for i in w.items() if i[0] != "frequency"])
+                if not it:
+                    break
                 try:
-                    new_words[it] += w['frequency'] + 1
+                    merged[it] += w['frequency'] + 1
                 except KeyError:
                     pass
 
             words = []
-
-            if 'log_frequency' in self.fields:
-                max_log_freq = np.log10(self.frequency_divider)
-
-            for k, v in new_words.items():
+            for k, v in merged.items():
                 d = dict(k)
-                if 'frequency' in self.fields:
-                    d['frequency'] = v / self.frequency_divider
-                if 'log_frequency' in self.fields:
-                    # Note to reader:
-                    # this looks wrong, because you're not supposed to use
-                    # division in log space.
-                    # In this case, however, we're trying to maintain
-                    # the distances between logs.
-                    # that is, we want each logged frequency to have the same
-                    # proportional distance to each other logged frequency as
-                    # before.
-                    d['log_frequency'] = np.log10(v) / max_log_freq
+                d['frequency'] = v
                 words.append(d)
+
+        if 'log_frequency' in self.fields:
+            max_log_freq = np.log10(self.frequency_divider)
+
+        for k, v in words.items():
+            freq = d['frequency']
+            if 'frequency' in self.fields:
+                d['frequency'] = freq / self.frequency_divider
+            if 'log_frequency' in self.fields:
+                # Note to reader:
+                # this looks wrong, because you're not supposed to use
+                # division in log space.
+                # In this case, however, we're trying to maintain
+                # the distances between logs.
+                # that is, we want each logged frequency to have the same
+                # proportional distance to each other logged frequency as
+                # before.
+                d['log_frequency'] = np.log10(freq) / max_log_freq
 
         return list(filter(self.filter_function, words))
 
