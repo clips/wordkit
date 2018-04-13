@@ -11,8 +11,8 @@ class BaseExtractor(object):
         self.field = field
 
     def extract(self, X):
-        """Extract features from a set of words."""
-        if isinstance(X, dict):
+        """Extract features from a list of words."""
+        if isinstance(X[0], dict):
 
             if self.field is None:
                 raise ValueError("You didn't pass a field value to the "
