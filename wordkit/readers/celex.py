@@ -37,19 +37,19 @@ language2field = {'eng': {'orthography': 1,
                           'frequency': 2,
                           'syllables': 7,
                           'language': None,
-                          'log_frequency': 2},
+                          'log_frequency': None},
                   'nld': {'orthography': 1,
                           'phonology': 5,
                           'frequency': 2,
                           'syllables': 5,
                           'language': None,
-                          'log_frequency': 2},
+                          'log_frequency': None},
                   'deu': {'orthography': 1,
                           'phonology': 4,
                           'frequency': 2,
                           'syllables': 4,
                           'language': None,
-                          'log_frequency': 2}}
+                          'log_frequency': None}}
 
 CELEX_2IPA = {"O~": "ɒ̃",
               "A~": "ɒ",
@@ -233,7 +233,7 @@ class Celex(Reader):
 
             line = line.strip()
             columns = line.split('\\')
-            orthography = columns[self.orthographyfield].lower()
+            orthography = columns[self.field_ids['orthography']].lower()
 
             word = {}
 
@@ -244,9 +244,9 @@ class Celex(Reader):
                 word['orthography'] = orthography
             if use_p or use_syll:
                 try:
-                    syll = columns[self.fields['phonology']]
+                    syll = columns[self.field_ids['phonology']]
                 except KeyError:
-                    syll = columns[self.fields['syllables']]
+                    syll = columns[self.field_ids['syllables']]
                 if not syll:
                     logging.info("{} has no associated phonological or "
                                  "syllable info, skipping".format(orthography))
@@ -265,6 +265,7 @@ class Celex(Reader):
                     phon = [segment_phonology(x) for x in celex_to_ipa(phon)]
                     word['phonology'] = tuple(chain.from_iterable(phon))
             if use_freq or use_log_freq:
-                word['frequency'] = int(columns[self.fields['frequency']])
+                word['frequency'] = int(columns[self.field_ids['frequency']])
+                word['frequency'] += 1
 
             yield word

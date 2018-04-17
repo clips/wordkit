@@ -148,8 +148,6 @@ class Reader(TransformerMixin):
             raise FileNotFoundError("The file you specified does not "
                                     "exist: {}".format(path))
         fields = list(fields)
-        if 'log_frequency' in fields:
-            fields.append('frequency')
 
         difference = set(fields) - set(field_ids.keys())
         if difference:
@@ -160,11 +158,10 @@ class Reader(TransformerMixin):
                                           set(field_ids.keys())))
 
         self.path = path
-        self.fields = {f: field_ids[f] for f in fields}
+        self.fields = fields
         self.field_ids = field_ids
         self.merge_duplicates = merge_duplicates
         self.language = language
-        self.orthographyfield = field_ids['orthography']
         self.filter_function = filter_function
         self.diacritics = diacritics
         self.frequency_divider = frequency_divider
@@ -202,11 +199,6 @@ class Reader(TransformerMixin):
         """
         words = list(self._retrieve(X, kwargs=kwargs))
 
-        if 'language' in self.fields:
-            # Only add language if the transformer has not added it.
-            for w in (x for x in words if 'language' not in x):
-                w.update({"language": self.language})
-
         # Merging duplicates means that any duplicates are removed
         # and their frequencies are added together.
         if self.merge_duplicates:
@@ -216,23 +208,31 @@ class Reader(TransformerMixin):
                 if not it:
                     break
                 try:
-                    merged[it] += w['frequency'] + 1
+                    merged[it] += w['frequency']
                 except KeyError:
                     pass
+            else:
+                # Only do this if we haven't done a break.
+                words = []
+                for k, v in merged.items():
+                    d = dict(k)
+                    d['frequency'] = v
+                    words.append(d)
 
-            words = []
-            for k, v in merged.items():
-                d = dict(k)
-                d['frequency'] = v
-                words.append(d)
+        if 'language' in self.fields:
+            # Only add language if the transformer has not added it.
+            for w in (x for x in words if 'language' not in x):
+                w.update({"language": self.language})
 
         if 'log_frequency' in self.fields:
             max_log_freq = np.log10(self.frequency_divider)
 
-        for k, v in words.items():
-            freq = d['frequency']
+        for w in words:
+            freq = w['frequency']
             if 'frequency' in self.fields:
-                d['frequency'] = freq / self.frequency_divider
+                w['frequency'] = freq / self.frequency_divider
+            else:
+                w.pop('frequency')
             if 'log_frequency' in self.fields:
                 # Note to reader:
                 # this looks wrong, because you're not supposed to use
@@ -242,7 +242,7 @@ class Reader(TransformerMixin):
                 # that is, we want each logged frequency to have the same
                 # proportional distance to each other logged frequency as
                 # before.
-                d['log_frequency'] = np.log10(freq) / max_log_freq
+                w['log_frequency'] = np.log10(freq) / max_log_freq
 
         return list(filter(self.filter_function, words))
 

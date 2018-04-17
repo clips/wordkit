@@ -151,18 +151,19 @@ class BPal(Reader):
                 continue
 
             word = {}
+            w = columns[self.field_ids['orthography']]
 
-            if wordlist and columns[self.orthographyfield] not in wordlist:
+            if wordlist and w not in wordlist:
                 continue
 
             if use_ortho:
-                word['orthography'] = columns[self.field_ids['orthography']]
+                word['orthography'] = w
 
             if use_syll or use_phon:
                 try:
-                    syll = columns[self.field_ids['syllables']]
+                    syll = columns[self.fields['syllables']]
                 except KeyError:
-                    syll = columns[self.field_ids['phonology']]
+                    syll = columns[self.fields['phonology']]
 
                 syll = syll.split("-")
                 syll = tuple(bpal_to_ipa(syll))

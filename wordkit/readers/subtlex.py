@@ -101,7 +101,7 @@ class Subtlex(Reader):
 
             word = {}
 
-            orth = line[self.fields['orthography']]
+            orth = line[self.field_ids['orthography']]
             if isinstance(orth, float):
                 continue
             if wordlist and orth not in wordlist:
@@ -110,7 +110,7 @@ class Subtlex(Reader):
                 word["orthography"] = orth
 
             if use_freq or use_log:
-                freq = line[self.fields['frequency']]
+                freq = line[self.field_ids['frequency']]
                 word["frequency"] = freq
 
             yield word

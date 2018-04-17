@@ -415,7 +415,7 @@ class Deri(Reader):
             columns = line.split("\t")
             if self.language is not None and columns[0] not in self.language:
                 continue
-            orthography = columns[self.orthographyfield].lower()
+            orthography = columns[self.field_ids['orthography']].lower()
 
             word = {}
 
@@ -430,7 +430,7 @@ class Deri(Reader):
             words_added.add(orthography)
             word['orthography'] = "_".join(orthography.split())
             if use_p:
-                syll = columns[self.fields['phonology']].split()
+                syll = columns[self.field_ids['phonology']].split()
                 syll = "".join(syll)
                 try:
                     syll = "".join([str(x)
@@ -441,6 +441,6 @@ class Deri(Reader):
                 word['phonology'] = segment_phonology(syll,
                                                       to_keep=self.diacritics)
             if 'language' in self.fields:
-                word['language'] = columns[self.fields['language']]
+                word['language'] = columns[self.field_ids['language']]
 
             yield word

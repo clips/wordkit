@@ -183,7 +183,7 @@ class CMU(Reader):
             line = line.strip()
             columns = line.split()
             columns = columns[0], columns[1:]
-            orthography = columns[self.orthographyfield].lower()
+            orthography = columns[self.field_ids['orthography']].lower()
 
             word = {}
 
@@ -192,7 +192,7 @@ class CMU(Reader):
             words_added.add(orthography)
             word['orthography'] = orthography
             if use_p:
-                syll = cmu_to_ipa(columns[self.fields['phonology']])
+                syll = cmu_to_ipa(columns[self.field_ids['phonology']])
                 word['phonology'] = "".join(syll)
             if 'language' in self.fields:
                 word['language'] = self.language

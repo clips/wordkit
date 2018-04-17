@@ -134,7 +134,7 @@ class Lexique(Reader):
 
         for idx, line in enumerate(f):
             columns = line.strip().split("\t")
-            orthography = columns[self.orthographyfield].lower()
+            orthography = columns[self.field_ids['orthography']].lower()
 
             word = {}
 
@@ -145,10 +145,10 @@ class Lexique(Reader):
                 word['orthography'] = orthography
             if use_p or use_syll:
                 try:
-                    syll = columns[self.fields['phonology']]
+                    syll = columns[self.field_ids['phonology']]
                 except KeyError:
                     try:
-                        syll = columns[self.fields['syllables']]
+                        syll = columns[self.field_ids['syllables']]
                     except IndexError:
                         print(columns, len(columns), idx)
 
@@ -162,7 +162,7 @@ class Lexique(Reader):
                         word['syllables'] = tuple(syll)
             if use_freq or use_log_freq:
                 freq = sum([float(columns[x])
-                            for x in self.fields["frequency"]])
+                            for x in self.field_ids["frequency"]])
                 word['frequency'] = freq
 
             yield word
