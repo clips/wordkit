@@ -1,19 +1,19 @@
 # wordkit
 
-This is the repository of the `wordkit` package, a Python 3.X package for the featurization of words into orthographic and phonological vectors.
+This is the repository of the `wordkit` package, a `Python 3.X` package for the featurization of words into orthographic and phonological vectors.
 
 A paper that describes `wordkit` was accepted at LREC 2018.
-If you use `wordkit` in your research, please cite the following paper::
+If you use `wordkit` in your research, please cite the following paper:
 
 ```
 bibtexref
 ```
 
 
-Additionally, if you use any of the corpus readers in `wordkit`, you MUST cite the accompanying corpora.
+Additionally, if you use any of the corpus readers in `wordkit`, you MUST cite the accompanying corpora and transformers.
 All of these references can be found in the docstrings of the applicable classes.
 
-`wordkit` makes heavy use of [ipapy](https://github.com/pettarin/ipapy>), a package which parses unicode IPA characters into their IPA representations.
+`wordkit` makes heavy use of [ipapy](https://github.com/pettarin/ipapy), a package which parses unicode IPA characters into their IPA representations.
 
 
 ## Overview
@@ -33,6 +33,94 @@ This information is then sent to one or more transformers, which are either assi
 If a feature extractor is assigned to a transformer, the feature set of that transformer is extracted automatically.
 
 Finally, a sampler can be used to sample from the resulting items.
+
+## Corpora
+
+`wordkit` currently offers readers for the following corpora.
+
+#### BPAL
+
+[Download](http://www.pc.rhul.ac.uk/staff/c.davis/Utilities/B-Pal.zip)
+
+You have to extract the `nwphono.txt` file from the `.exe` file.
+The corpus is not for download in a more practical fashion.
+
+[Publication](http://www.pc.rhul.ac.uk/staff/c.davis/Articles/Davis_Perea_in_press.pdf)
+
+```
+Fields:     Orthography, Phonology, Frequency
+Languages:  Spanish
+```
+
+#### Celex
+
+Currently not freely available.  
+
+```
+Fields:     Orthography, Phonology, Syllables, Frequency
+Languages:  Dutch, German, English
+```
+
+**WARNING:** the Celex frequency norms are no longer thought to be correct. Please use the `SUBTLEX` frequencies instead.
+You can use the Celex corpus with `SUBTLEX` frequency norms by using a [`CorpusAugmenter`](wordkit/readers#CorpusAugmenter).   
+If you use `CELEX` frequency norms at a psycholinguistic conference, you _will_ get yelled at.
+
+#### CMUDICT
+
+[Download](https://github.com/cmusphinx/cmudict)
+
+We can read the `cmudict.dict` file from the above repository.
+
+```
+Fields:     Orthography, Syllables  
+Languages:  American English
+```
+
+#### Deri
+
+[Download](https://drive.google.com/open?id=0B7R_gATfZJ2aUWsxbF9CSEo1Y00)
+
+Download the `pron_data.tar.gz` file, and unzip it. We use the `gold_data_train` file.
+
+[Publication](http://isi.edu/~aderi/papers/g2p.pdf)
+
+```
+Fields:     Orthography, Phonology  
+Languages:  lots
+```
+
+**WARNING:** we manually checked the Dutch, Spanish and German phonologies in this corpus, and a lot of them seem to be incorrectly transcribed or extracted. Only use this corpus if you don't have another resource for your language.
+
+#### Lexique
+
+[Download](http://lexique.org/telLexique.php)  
+
+Download the zip file, we use the `lexique382.txt` file.
+
+[Publication](https://link.springer.com/content/pdf/10.3758/BF03195598.pdf)
+
+Note that this is the publication for Lexique version 2. Lexique 3 does not seem to have an associated publication in English.
+
+```
+Fields:     Orthography, Phonology, Frequency, Syllables  
+Languages:  French
+```
+
+**NOTE:** the currently implemented reader is for version 3.82 (the most recent version as of May 2018) of Lexique.
+
+#### SUBTLEX
+
+Check the link below for the various SUBTLEX corpora and their associated publications.
+We support all of the formats from the link below.
+
+[Link](http://crr.ugent.be/programs-data/subtitle-frequencies)
+
+```
+Fields:     Orthography, Frequency  
+Languages:  Dutch, American English, Greek
+            British English, Polish, Chinese,
+            Spanish
+```
 
 ## Example
 
