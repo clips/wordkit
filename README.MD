@@ -9,8 +9,6 @@ If you use `wordkit` in your research, please cite the following paper::
 bibtexref
 ```
 
-The subpackages are extensively documented using separate `README.MD` files.
-Feel free to click ahead to find descriptions of the contents of subpackages.
 
 Additionally, if you use any of the corpus readers in `wordkit`, you MUST cite the accompanying corpora.
 All of these references can be found in the docstrings of the applicable classes.
@@ -21,28 +19,20 @@ All of these references can be found in the docstrings of the applicable classes
 ## Overview
 
 `wordkit` is a modular system, and contains 5 broad families of components.
+The subpackages are extensively documented using separate `README.MD` files.
+Feel free to click ahead to find descriptions of the contents of subpackages.
 
-* Readers
-* Feature extractors
-* Feature sets
-* Transformers
-* Samplers
+* [Readers](wordkit/readers)
+* [Feature extractors](wordkit/feature_extraction)
+* [Feature sets](wordkit/features)
+* [Transformers](wordkit/transformers)
+* [Samplers](wordkit/samplers)
 
 In general, a `wordkit` pipeline consists of one or more readers, which extract structured information from corpora.
 This information is then sent to one or more transformers, which are either assigned pre-defined features or a feature extractor.
 If a feature extractor is assigned to a transformer, the feature set of that transformer is extracted automatically.
 
 Finally, a sampler can be used to sample from the resulting items.
-
-## Experiments
-
-The code for replicating the experiments in the `wordkit` paper can be found [here](https://github.com/stephantul/lrec2018)
-
-## Requirements
-
-- sklearn
-- ipapy
-- numpy
 
 ## Example
 
@@ -115,6 +105,16 @@ p.vec_len # 4683
 # Inspect the features of the Wickeltransformer
 p.features
 ```
+
+## Experiments
+
+The code for replicating the experiments in the `wordkit` paper can be found [here](https://github.com/stephantul/lrec2018)
+
+## Requirements
+
+- sklearn
+- ipapy
+- numpy
 
 ## Contributors
 
