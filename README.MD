@@ -59,14 +59,14 @@ fil = lambda x: not set(x['orthography']).intersection({"'", ',', '-', '/', '.'}
 
 # Link to epl.cd
 english = Celex("epl.cd",
-              fields=fields,
-              merge_duplicates=True)
+                fields=fields,
+                merge_duplicates=True)
 
 # Link to dpl.cd
 dutch = Celex("dpl.cd",
-            fields=fields,
-            language='nld',
-            merge_duplicates=True)
+              fields=fields,
+              language='nld',
+              merge_duplicates=True)
 
 words = english.transform(filter_function=fil)
 words.extend(dutch.transform(filter_function=fil))
@@ -78,13 +78,23 @@ words.extend(dutch.transform(filter_function=fil))
 # 'syllables': (('e', 'ɪ'),)}
 
 # You can also query specific words
-wind = corpora.transform(["wind"])
+wind = english.transform(["wind"]) + dutch.transform(["wind"])
 
 # This gives
 # wind =>
-#[{'orthography': 'wind', 'syllables': (('w', 'a', 'ɪ', 'n', 'd'),), 'phonology': ('w', 'a', 'ɪ', 'n', 'd'), 'frequency': 298},
-# {'orthography': 'wind', 'syllables': (('w', 'ɪ', 'n', 'd'),), 'phonology': ('w', 'ɪ', 'n', 'd'), 'frequency': 2170},
-# {'orthography': 'wind', 'syllables': (('w', 'ɪ', 'n', 't'),), 'phonology': ('w', 'ɪ', 'n', 't'), 'frequency': 4702}],
+# [{'frequency': 16.154509673599474,
+#   'orthography': 'wind',
+#   'phonology': ('w', 'a', 'ɪ', 'n', 'd'),
+#   'syllables': (('w', 'a', 'ɪ', 'n', 'd'),)},
+#  {'frequency': 116.57008309321614,
+#   'orthography': 'wind',
+#   'phonology': ('w', 'ɪ', 'n', 'd'),
+#   'syllables': (('w', 'ɪ', 'n', 'd'),)},
+#  {'frequency': 116.49571380983738,
+#   'orthography': 'wind',
+#   'phonology': ('w', 'ɪ', 'n', 't'),
+#   'syllables': (('w', 'ɪ', 'n', 't'),)}]
+# Note that the frequency has been divided scaled to 1M words.
 
 # Now, let's transform into features
 # Orthography is a linear transformer with the fourteen segment feature set.
@@ -96,14 +106,11 @@ featurizer = FeatureUnion([("o", o), ("p", p)])
 
 # Fit and transform the featurizers.
 X = featurizer.fit_transform(words)
-# A (7650, 4795) matrix.
+# A (7650, 4877) matrix.
 
 # Get the feature vector length for each featurizer
 o.vec_len # 112
-p.vec_len # 4683
-
-# Inspect the features of the Wickeltransformer
-p.features
+p.vec_len # 4765
 ```
 
 ## Experiments
