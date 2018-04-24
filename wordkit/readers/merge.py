@@ -5,7 +5,7 @@ from copy import deepcopy
 
 def merge(from_corpus, to_corpus, merge_fields, transfer_fields):
     """
-    Augments a corpus by data from another corpus by transfering fields.
+    Augment a corpus by data from another corpus by transfering fields.
 
     merge joins corpora together by augmenting the information from one corpus,
     the to_corpus, by information from another corpus, the from_corpus.
@@ -20,7 +20,7 @@ def merge(from_corpus, to_corpus, merge_fields, transfer_fields):
 
     Parameters
     ----------
-    from_corpus : instance of a Reader
+    from_corpus : list of dictionaries
         A list of dictionaries. This corpus will be used to augment
         the information in the to_corpus.
 
@@ -37,6 +37,15 @@ def merge(from_corpus, to_corpus, merge_fields, transfer_fields):
 
     transfer_fields : tuple
         The fields to transfer from the from_corpus to the to_corpus.
+
+    Example
+    -------
+    >>> from wordkit.readers import Celex, Subtlex, merge
+    >>> s = Subtlex("path")
+    >>> c = Celex("path")
+    >>> words_s = s.transform()
+    >>> words_c = c.transform()
+    >>> new = merge(words_s, words_c, ("orthography",), ("frequency",))
 
     """
     from_keys = set(from_corpus[0].keys())

@@ -98,7 +98,7 @@ CMU_2IPA = {'AO': 'ɔ',
 
 def cmu_to_ipa(phonemes):
     """Convert CMU phonemes to IPA unicode format."""
-    return "".join([CMU_2IPA[p] for p in phonemes])
+    return tuple([CMU_2IPA[p] for p in phonemes])
 
 
 class CMU(Reader):
@@ -140,7 +140,8 @@ class CMU(Reader):
                          fields,
                          {'orthography': 0,
                           'phonology': 1},
-                         merge_duplicates)
+                         language="eng",
+                         merge_duplicates=merge_duplicates)
 
     def _retrieve(self, iterable, wordlist=None, **kwargs):
         """
@@ -180,7 +181,7 @@ class CMU(Reader):
             word['orthography'] = orthography
             if use_p:
                 syll = cmu_to_ipa(columns[self.field_ids['phonology']])
-                word['phonology'] = "".join(syll)
+                word['phonology'] = syll
             if 'language' in self.fields:
                 word['language'] = self.language
 

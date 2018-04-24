@@ -161,9 +161,9 @@ class BPal(Reader):
 
             if use_syll or use_phon:
                 try:
-                    syll = columns[self.fields['syllables']]
+                    syll = columns[self.field_ids['syllables']]
                 except KeyError:
-                    syll = columns[self.fields['phonology']]
+                    syll = columns[self.field_ids['phonology']]
 
                 syll = syll.split("-")
                 syll = tuple(bpal_to_ipa(syll))

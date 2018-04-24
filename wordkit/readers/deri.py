@@ -425,7 +425,7 @@ class Deri(Reader):
                     syll = "".join([str(x)
                                     for x in IPAString(unicode_string=syll)])
                 except ValueError:
-                    print(syll)
+                    pass
 
                 word['phonology'] = segment_phonology(syll,
                                                       to_keep=self.diacritics)
