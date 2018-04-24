@@ -58,3 +58,46 @@ This feature set assigns each single feature a number between `0` and `1`. It ca
 Like the orthographic features with the same name, it was defined and used by miikkulainen in the context of the DISLEX model.
 
 ### Phoneme sets
+
+Phoneme sets are sets which directly map phoneme characters to features.
+We currently include only two of these because of their limited utility; they usually only apply to a subset of available phonemes, and rarely work for the featurization of an entire corpus.
+
+The phoneme sets are all tuples of dictionaries. The first item of each tuple is a mapping from vowels to features, while the second item is a mapping from consonants to features.
+
+#### plunkett_phonemes
+
+These are taken from Plunkett and Marchman (1992):
+
+```
+@article{plunkett1993rote,
+  title={From rote learning to system building: Acquiring verb morphology in children and connectionist nets},
+  author={Plunkett, Kim and Marchman, Virginia},
+  journal={Cognition},
+  volume={48},
+  number={1},
+  pages={21--69},
+  year={1993},
+  publisher={Elsevier}
+}
+```
+
+#### patpho_binary
+
+Like patpho_real, below, this has been taken from the patpho paper.
+
+```
+@article{li2002patpho,
+  title={PatPho: A phonological pattern generator for neural networks},
+  author={Li, Ping and MacWhinney, Brian},
+  journal={Behavior Research Methods, Instruments, \& Computers},
+  volume={34},
+  number={3},
+  pages={408--415},
+  year={2002},
+  publisher={Springer}
+}
+```
+
+#### patpho_real
+
+Like patpho_binary above, this feature set has been taken from the patpho paper.

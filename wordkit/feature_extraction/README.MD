@@ -1,4 +1,4 @@
-# feature extraction
+# Feature extraction
 
 This subpackage contains all the functions and objects involved in feature extraction.
 In general, feature extraction denotes the process of extracting features from a set of objects.

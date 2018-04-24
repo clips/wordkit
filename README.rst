@@ -8,11 +8,10 @@ If you use `wordkit` in your research, please cite the following paper::
 
   bibtexref
 
-Additionally, if you use any of the corpus readers in `wordkit`, you MUST cite the accompanying corpora. Similarly:
-if you use the CVTransformer, please cite the `patpho` paper.
-if you use the WeightedOpenBigramTransformer, please cite the `SERIOL` paper.
-if you use the OpenNGramTransformer, please cite the `Schoonbaert` paper.
-if you use the WickelTransformer, please cite the `McClelland` paper.
+The subpackages are extensively documented using separate `README.MD` files.
+Feel free to click ahead to find descriptions of the contents of subpackages.
+
+Additionally, if you use any of the corpus readers in `wordkit`, you MUST cite the accompanying corpora.
 
 All of these references can be found in the docstrings of the applicable classes.
 
@@ -26,6 +25,7 @@ Overview
 
 * Readers
 * Feature extractors
+* Feature sets
 * Transformers
 * Samplers
 
@@ -128,4 +128,4 @@ Stéphan Tulkens
 License
 '''''''
 
-MIT
+GPL v3
