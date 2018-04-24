@@ -19,17 +19,22 @@ class Sampler(TransformerMixin):
         The frequencies of your input data. If this is None, the Sampler
         will sample uniformly.
 
-    smoothing : bool
-        Whether to smooth the distribution by adding 1 to frequency counts.
-        If mode is set to 'log', the frequencies are always smoothed to avoid
-        log(0).
-
-    mode : string {'raw', 'log'}, default 'raw'
-        The mode to use for frequency to probability conversion.
-        'raw' uses the raw frequency counts, while 'log' uses log scaling.
-
     replacement : bool
         Whether to sample with or without replacement.
+
+    Example
+    -------
+    >>> import numpy as np
+    >>> np.random.seed(44)
+    >>> from wordkit.samplers import Sampler
+    >>> data = np.random.rand(2, 30)
+    >>> words = ["dog", "cat"]
+    >>> frequencies = [10, 30]
+    >>> s = Sampler(data, words, frequencies)
+    >>> num_to_sample = 6
+    >>> sampled_data, sampled_words = s.sample(num_to_sample)
+    >>> sampled_words
+    ('cat', 'cat', 'cat', 'cat', 'dog', 'cat')
 
     """
 
@@ -37,20 +42,12 @@ class Sampler(TransformerMixin):
                  X,
                  words,
                  frequencies=None,
-                 smoothing=True,
-                 mode='raw',
                  replacement=True):
         """Sample from a distribution over words."""
-        self.smoothing = smoothing
-        self.mode = mode
         if frequencies is None:
             frequencies = np.ones(X.shape[0])
         else:
             frequencies = np.asarray(frequencies)
-            if self.mode == 'log':
-                frequencies = np.log(frequencies + 1)
-            elif self.smoothing:
-                frequencies += 1
 
         self.X = X
         self.words = words
