@@ -1,6 +1,6 @@
 """The BPAL corpus reader."""
 import regex as re
-from .base import Reader, identity, diacritics
+from .base import Reader, diacritics
 from itertools import chain
 
 
@@ -90,24 +90,21 @@ class BPal(Reader):
         The fields to extract using this corpus reader. Any invalid fields
         will cause the reader to throw a ValueError.
 
+    language : str
+        This language field is here for compatibility, but is not used.
+
     merge_duplicates : bool, optional, default False
         Whether to merge duplicates which are indistinguishable according
         to the selected fields.
         If this is False, duplicates may occur in the output.
-
-    filter_function : function
-        The filtering function to use. A filtering function is a function
-        which accepts a dictionary as argument and which returns a boolean
-        value. If the filtering function returns False, the item is not
-        retrieved from the corpus.
 
     """
 
     def __init__(self,
                  path,
                  fields=("orthography", "syllables", "language", "phonology"),
-                 merge_duplicates=True,
-                 filter_function=identity):
+                 language=None,
+                 merge_duplicates=True):
         """Initialize the BPAL reader."""
         super().__init__(path,
                          fields,
@@ -117,7 +114,6 @@ class BPal(Reader):
                           "phonology": 1},
                          "esp",
                          merge_duplicates,
-                         filter_function,
                          diacritics=diacritics)
 
     def _retrieve(self, wordlist, *args, **kwargs):

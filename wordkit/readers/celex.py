@@ -3,7 +3,7 @@ import regex as re
 import logging
 import os
 
-from .base import Reader, identity, segment_phonology
+from .base import Reader, segment_phonology
 from itertools import chain
 from copy import copy
 
@@ -144,23 +144,13 @@ class Celex(Reader):
         to the selected fields.
         If this is False, duplicates may occur in the output.
 
-    filter_function : function
-        The filtering function to use. A filtering function is a function
-        which accepts a dictionary as argument and which returns a boolean
-        value. If the filtering function returns False, the item is not
-        retrieved from the corpus.
-
-        Example of a filtering function could be a function which constrains
-        the frequencies of retrieved words, or the number of syllables.
-
     """
 
     def __init__(self,
                  path,
-                 language=None,
                  fields=("orthography", "syllables", "frequency", "language"),
+                 language=None,
                  merge_duplicates=True,
-                 filter_function=identity,
                  lemmas=None):
         """Extract structured information from CELEX."""
         if not os.path.exists(path):
@@ -192,7 +182,6 @@ class Celex(Reader):
                          p,
                          language,
                          merge_duplicates,
-                         filter_function,
                          frequency_divider=MAX_FREQ[(language, self.lemmas)])
 
         self.replace = re.compile(r"(,|r\*)")

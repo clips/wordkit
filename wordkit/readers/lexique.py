@@ -1,5 +1,5 @@
 """Read the Lexique database."""
-from .base import Reader, identity, segment_phonology
+from .base import Reader, segment_phonology, diacritics
 from itertools import chain
 
 max_freq = 1963616 / 1000000
@@ -68,6 +68,9 @@ class Lexique(Reader):
     fields : tuple
         The fields to retrieve from the corpus.
 
+    language : str
+        The language of the corpus. Currently not used in Lexique.
+
     merge_duplicates : bool, optional, default False
         Whether to merge duplicates which are indistinguishable according
         to the selected fields.
@@ -75,17 +78,14 @@ class Lexique(Reader):
         duplicates. Frequency is instead added together for any duplicates.
         If this is False, duplicates may occur in the output.
 
-    filter_function : filter_function, optional, default identity
-        A custom function you can use to filter the output.
-        An example of this could be a frequency selection function.
-
     """
 
     def __init__(self,
                  path,
-                 fields,
+                 fields=('orthography', 'phonology', 'frequency'),
+                 language=None,
                  merge_duplicates=True,
-                 filter_function=identity):
+                 diacritics=diacritics):
         """Initialize the reader."""
         super().__init__(path,
                          fields,
@@ -96,8 +96,8 @@ class Lexique(Reader):
                           "log_frequency": None},
                          "fra",
                          merge_duplicates,
-                         filter_function,
-                         frequency_divider=max_freq)
+                         frequency_divider=max_freq,
+                         diacritics=diacritics)
 
     def _retrieve(self, wordlist, **kwargs):
         """

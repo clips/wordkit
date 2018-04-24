@@ -1,7 +1,7 @@
 """Tools for working with the multilingual corpora from Deri and Knight."""
 import re
 
-from .base import Reader, identity, segment_phonology, diacritics
+from .base import Reader, segment_phonology, diacritics
 from ipapy.ipastring import IPAString
 
 
@@ -349,15 +349,6 @@ class Deri(Reader):
         to the selected fields.
         If this is False, duplicates may occur in the output.
 
-    filter_function : function
-        The filtering function to use. A filtering function is a function
-        which accepts a dictionary as argument and which returns a boolean
-        value. If the filtering function returns False, the item is not
-        retrieved from the corpus.
-
-        Example of a filtering function could be a function which constrains
-        the frequencies of retrieved words, or the number of syllables.
-
     diacritics : tuple
         The diacritic markers from the IPA alphabet to keep. All diacritics
         which are IPA valid can be correctly parsed by wordkit, but it may
@@ -367,10 +358,9 @@ class Deri(Reader):
 
     def __init__(self,
                  path,
-                 language=None,
                  fields=("orthography", "phonology"),
+                 language=None,
                  merge_duplicates=True,
-                 filter_function=identity,
                  diacritics=diacritics):
         """Extract words from Deri and Knight corpora."""
         super().__init__(path,
@@ -378,7 +368,6 @@ class Deri(Reader):
                          language2field,
                          language,
                          merge_duplicates,
-                         filter_function,
                          diacritics=diacritics)
 
         if language is not None and language not in ALLOWED_LANGUAGES:

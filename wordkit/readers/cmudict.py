@@ -1,8 +1,5 @@
 """Tools for working with CMUDICT."""
-from .base import Reader, identity
-
-language2field = {'eng': {'orthography': 0,
-                          'phonology': 1}}
+from .base import Reader
 
 
 CMU_2IPA = {'AO': 'ɔ',
@@ -131,29 +128,19 @@ class CMU(Reader):
         to the selected fields.
         If this is False, duplicates may occur in the output.
 
-    filter_function : function
-        The filtering function to use. A filtering function is a function
-        which accepts a dictionary as argument and which returns a boolean
-        value. If the filtering function returns False, the item is not
-        retrieved from the corpus.
-
-        Example of a filtering function could be a function which constrains
-        the frequencies of retrieved words, or the number of syllables.
-
     """
 
     def __init__(self,
                  path,
-                 language='eng',
                  fields=("orthography", "phonology"),
-                 merge_duplicates=True,
-                 filter_function=identity):
+                 language=None,
+                 merge_duplicates=True):
         """Extract structured information from CMUDICT."""
         super().__init__(path,
                          fields,
-                         language2field[language],
-                         merge_duplicates,
-                         filter_function)
+                         {'orthography': 0,
+                          'phonology': 1},
+                         merge_duplicates)
 
     def _retrieve(self, wordlist=None, **kwargs):
         """
