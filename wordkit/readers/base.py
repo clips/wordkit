@@ -110,9 +110,6 @@ class Reader(TransformerMixin):
         Note that frequency is not counted as a field for determining
         duplicates. Frequency is instead added together for any duplicates.
         If this is False, duplicates may occur in the output.
-    filter_function : filter_function, optional, default identity
-        A custom function you can use to filter the output.
-        An example of this could be a frequency selection function.
     diacritics : tuple
         The diacritic markers from the IPA alphabet to keep. All diacritics
         which are IPA valid can be correctly parsed by wordkit, but it may
@@ -128,9 +125,8 @@ class Reader(TransformerMixin):
     >>>
     >>> r = Reader("/path/",
     >>>            ("orthography", "frequency"),
-    >>>            "eng",
-    >>>            filter_function=freq_alpha)
-    >>> words = r.transform()
+    >>>            "eng")
+    >>> words = r.transform(filter_function=freq_alpha)
 
     """
 
@@ -140,7 +136,6 @@ class Reader(TransformerMixin):
                  field_ids,
                  language,
                  merge_duplicates,
-                 filter_function,
                  diacritics=diacritics,
                  frequency_divider=1):
         """Init the base class."""
@@ -162,7 +157,6 @@ class Reader(TransformerMixin):
         self.field_ids = field_ids
         self.merge_duplicates = merge_duplicates
         self.language = language
-        self.filter_function = filter_function
         self.diacritics = diacritics
         self.frequency_divider = frequency_divider
 
@@ -173,6 +167,7 @@ class Reader(TransformerMixin):
     def transform(self,
                   X=(),
                   y=None,
+                  filter_function=None,
                   **kwargs):
         """
         Transform a list of words into dictionaries.
@@ -188,6 +183,15 @@ class Reader(TransformerMixin):
             The orthographic form of the input words.
         y: None
             For sklearn compatibility.
+        filter_function : function
+            The filtering function to use. A filtering function is a function
+            which accepts a dictionary as argument and which returns a boolean
+            value. If the filtering function returns False, the item is not
+            retrieved from the corpus.
+
+            Example of a filtering function could be a function which
+            constrains the frequencies of retrieved words, or the number of
+            syllables.
 
         Returns
         -------
@@ -244,7 +248,7 @@ class Reader(TransformerMixin):
                 # before.
                 w['log_frequency'] = np.log10(freq) / max_log_freq
 
-        return list(filter(self.filter_function, words))
+        return list(filter(filter_function, words))
 
     def _retrieve(self,
                   wordlist,
