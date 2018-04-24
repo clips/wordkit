@@ -213,7 +213,7 @@ class ONCTransformer(FeatureTransformer):
                 continue
 
             # Create CVC grid from phoneme representation
-            cvc = "".join(["C" if x in self.consonants else "V" for x in s])
+            cvc = "".join(["C" if p in self.consonants else "V" for p in s])
             try:
                 m = next(self.r.finditer(cvc))
                 # Letter index of the nucleus
@@ -221,27 +221,27 @@ class ONCTransformer(FeatureTransformer):
                 # Letter index of the coda
                 c = len(m.group()) + n
 
-                for lidx, x in enumerate(s[:n]):
+                for lidx, p in enumerate(s[:n]):
                     start = lidx * self.consonant_length
                     end = start + self.consonant_length
-                    syll_vec[start: end] = self.consonants[x]
+                    syll_vec[start: end] = self.consonants[p]
 
-                for lidx, x in enumerate(s[n:c]):
+                for lidx, p in enumerate(s[n:c]):
                     start = (lidx * self.vowel_length) + n_idx
                     end = start + self.vowel_length
-                    syll_vec[start: end] = self.vowels[x]
+                    syll_vec[start: end] = self.vowels[p]
 
-                for lidx, x in enumerate(s[c:]):
+                for lidx, p in enumerate(s[c:]):
                     start = (lidx * self.consonant_length) + c_idx
                     end = start + self.consonant_length
-                    syll_vec[start: end] = self.consonants[x]
+                    syll_vec[start: end] = self.consonants[p]
 
             except StopIteration:
 
-                for lidx, x in enumerate(s[:len(cvc)]):
+                for lidx, p in enumerate(s[:len(cvc)]):
                     start = (lidx * self.consonant_length)
                     end = start + self.consonant_length
-                    syll_vec[start: end] = self.consonants[x]
+                    syll_vec[start: end] = self.consonants[p]
 
             vec.append(syll_vec)
 
