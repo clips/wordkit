@@ -5,6 +5,7 @@ import numpy as np
 
 from collections import defaultdict
 from sklearn.base import TransformerMixin
+from itertools import tee
 
 
 remove_double = re.compile(r"(ː)(\1){1,}")
@@ -153,12 +154,21 @@ class Reader(TransformerMixin):
                                           set(field_ids.keys())))
 
         self.path = path
+        self.language = language
         self.fields = fields
         self.field_ids = field_ids
         self.merge_duplicates = merge_duplicates
-        self.language = language
         self.diacritics = diacritics
         self.frequency_divider = frequency_divider
+        self.file = self._open()
+
+    def _open(self):
+        """
+        Open a file for reading.
+
+        Can be overridden by subclasses if they happen to use xlrd or pandas.
+        """
+        return open(self.path)
 
     def fit(self, X, y=None):
         """Static, no fit."""
@@ -201,7 +211,9 @@ class Reader(TransformerMixin):
             input list, as words can be expressed in multiple ways.
 
         """
-        words = list(self._retrieve(X, kwargs=kwargs))
+        f, self.file = tee(self.file)
+
+        words = list(self._retrieve(f, X, kwargs=kwargs))
 
         # Merging duplicates means that any duplicates are removed
         # and their frequencies are added together.

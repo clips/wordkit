@@ -375,7 +375,7 @@ class Deri(Reader):
                              "of allowed languages for this corpus.")
         self.matcher = re.compile(r"([:/]|rhymes)")
 
-    def _retrieve(self, wordlist=None, **kwargs):
+    def _retrieve(self, iterable, wordlist=None, **kwargs):
         """
         Extract sequences of phonemes for each word from the databases.
 
@@ -398,7 +398,7 @@ class Deri(Reader):
         wordlist = set([x.lower() for x in wordlist])
         words_added = set()
 
-        for line in open(self.path):
+        for line in iterable:
 
             line = line.strip()
             columns = line.split("\t")

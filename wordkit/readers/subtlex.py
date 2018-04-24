@@ -75,14 +75,8 @@ class Subtlex(Reader):
                          diacritics=None,
                          frequency_divider=MAX_FREQ[language])
 
-    def _retrieve(self, wordlist=None, **kwargs):
-        """Retrieve the word-frequency pairs from the Subtlex database."""
-        wordlist = {x.lower() for x in wordlist}
-
-        use_log = "log_frequency" in self.fields
-        use_freq = "frequency" in self.fields
-        use_orth = "orthography" in self.fields
-
+    def _open(self):
+        """Open the file for reading."""
         if os.path.splitext(self.path)[1].startswith(".xls"):
             f = pd.read_excel(self.path)
         else:
@@ -92,7 +86,17 @@ class Subtlex(Reader):
         if self.language == "chi":
             data = data[2:]
 
-        for line in data:
+        return data
+
+    def _retrieve(self, iterable, wordlist=None, **kwargs):
+        """Retrieve the word-frequency pairs from the Subtlex database."""
+        wordlist = {x.lower() for x in wordlist}
+
+        use_log = "log_frequency" in self.fields
+        use_freq = "frequency" in self.fields
+        use_orth = "orthography" in self.fields
+
+        for line in iterable:
 
             word = {}
 

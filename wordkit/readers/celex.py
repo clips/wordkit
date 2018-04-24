@@ -188,7 +188,7 @@ class Celex(Reader):
         self.braces = re.compile(r"[\[\]]+")
         self.double_braces = re.compile(r"(\[[^\]]+?)\[(.+?)\]([^\[])")
 
-    def _retrieve(self, wordlist=None, **kwargs):
+    def _retrieve(self, iterable, wordlist=None, **kwargs):
         """
         Extract word information from the CELEX database.
 
@@ -218,7 +218,7 @@ class Celex(Reader):
         words_added = set()
 
         # path to phonology part of the CELEX database
-        for line in open(self.path):
+        for line in iterable:
 
             line = line.strip()
             columns = line.split('\\')

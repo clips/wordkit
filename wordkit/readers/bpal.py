@@ -116,7 +116,11 @@ class BPal(Reader):
                          merge_duplicates,
                          diacritics=diacritics)
 
-    def _retrieve(self, wordlist, *args, **kwargs):
+    def _open(self):
+        """Open a file for reading."""
+        return open(self.path, encoding="latin-1")
+
+    def _retrieve(self, iterable, wordlist, *args, **kwargs):
         """
         Extract word information from the BPAL database.
 
@@ -140,7 +144,7 @@ class BPal(Reader):
 
         wordlist = set(wordlist)
 
-        for line in open(self.path, encoding='latin-1'):
+        for line in iterable:
 
             columns = line.strip().split("\t")
             if len(columns) == 1:

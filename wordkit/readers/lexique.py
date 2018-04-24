@@ -99,7 +99,7 @@ class Lexique(Reader):
                          frequency_divider=max_freq,
                          diacritics=diacritics)
 
-    def _retrieve(self, wordlist, **kwargs):
+    def _retrieve(self, iterable, wordlist, **kwargs):
         """
         Extract word information for each word from the databases.
 
@@ -117,9 +117,8 @@ class Lexique(Reader):
             input list, as words can be expressed in multiple ways.
 
         """
-        f = open(self.path)
         # skip header
-        next(f)
+        next(iterable)
 
         use_o = 'orthography' in self.fields
         use_p = 'phonology' in self.fields
@@ -132,7 +131,7 @@ class Lexique(Reader):
 
         words_added = set()
 
-        for idx, line in enumerate(f):
+        for idx, line in enumerate(iterable):
             columns = line.strip().split("\t")
             orthography = columns[self.field_ids['orthography']].lower()
 
