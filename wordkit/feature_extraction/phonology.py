@@ -1,10 +1,11 @@
 """Functions for extracting and handling phonological features."""
 import numpy as np
-from functools import reduce
-from .base import BaseExtractor
-from itertools import chain
 
+from .base import BaseExtractor
 from ipapy.ipastring import IPAString
+from functools import reduce
+from collections import defaultdict
+
 
 FORBIDDEN_DESCRIPTORS = {"suprasegmental", "vowel", "consonant", "diacritic"}
 
@@ -111,7 +112,18 @@ class BasePhonemeExtractor(BaseExtractor):
 
 
 class OneHotPhonemeExtractor(BasePhonemeExtractor):
-    """An extractor which assigns each phoneme an orthogonal vector."""
+    """
+    An extractor which assigns each phoneme an orthogonal vector.
+
+    Example
+    -------
+    >>> from wordkit.feature_extraction import OneHotPhonemeExtractor
+    >>> phonemes = [('ə', 'b', 'e', 'ɪ', 's'),
+                    ('k', 'ɔ', 'ŋ', 'ɡ', 'r', 'ɛ', 's')]
+    >>> p = OneHotPhonemeExtractor()
+    >>> vowels, consonants = p.extract(phonemes)
+
+    """
 
     def _process(self, phonemes):
         """
@@ -146,7 +158,26 @@ class OneHotPhonemeExtractor(BasePhonemeExtractor):
 
 
 class PhonemeFeatureExtractor(BasePhonemeExtractor):
-    """An extractor which assigns each feature a binary value."""
+    """
+    An extractor which assigns each feature a binary value.
+
+    This extractor uses the features defined in the IPA, and assigns each of
+    them a dimension in a binary vector. Note that this means that internal
+    coherence of features is not directly modeled, as every feature gets
+    assigned the same importance.
+
+    If you do desire to have internal coherence between feature groups, you
+    can use the PredefinedFeatureExtractor with a group of predefined features.
+
+    Example
+    -------
+    >>> from wordkit.feature_extraction import PhonemeFeatureExtractor
+    >>> phonemes = [('ə', 'b', 'e', 'ɪ', 's'),
+                    ('k', 'ɔ', 'ŋ', 'ɡ', 'r', 'ɛ', 's')]
+    >>> p = PhonemeFeatureExtractor()
+    >>> features = p.extract(phonemes)
+
+    """
 
     def _process(self, phonemes):
         """
@@ -186,6 +217,10 @@ class PredefinedFeatureExtractor(BasePhonemeExtractor):
     """
     An extractor which used predefined features.
 
+    The predefined features are a dictionary mapping features to associated
+    feature vectors. Features, in this case, are names of distinctive features,
+    not their associated groups.
+
     Parameters
     ----------
     phoneme_features : dict
@@ -199,13 +234,27 @@ class PredefinedFeatureExtractor(BasePhonemeExtractor):
     field : str, default None
         The field to operate on.
 
+    Example
+    -------
+    >>> from wordkit.feature_extraction import PredefinedFeatureExtractor
+    >>> from wordkit.features import miikkulainen_features
+    >>> phonemes = [('ə', 'b', 'e', 'ɪ', 's'),
+                    ('k', 'ɔ', 'ŋ', 'ɡ', 'r', 'ɛ', 's')]
+    >>> p = PredefinedFeatureExtractor(miikkulainen_features)
+    >>> vowels, consonants = p.extract(phonemes)
+    >>> # find out which groups were excluded, if any.
+    >>> p.groups_excluded
+
     """
 
-    def __init__(self, phoneme_features, field=None):
+    def __init__(self,
+                 phoneme_features,
+                 field=None):
         """Initialize the extractor."""
         super().__init__(field=field)
         self.phoneme_features = phoneme_features
         self.feature_names = set(self.phoneme_features.keys())
+        self.groups_excluded = []
 
     def _process(self, phonemes):
         """Use phonemes with pre-defined features."""
@@ -217,14 +266,28 @@ class PredefinedFeatureExtractor(BasePhonemeExtractor):
         v_descriptors = self._grouped_phoneme_descriptors(vowels)
         c_descriptors = self._grouped_phoneme_descriptors(consonants)
 
-        all_descriptors = set(chain.from_iterable(v_descriptors))
-        all_descriptors.update(chain.from_iterable(c_descriptors))
+        all_descriptors = defaultdict(set)
+        for d in v_descriptors:
+            for k, v in d.items():
+                all_descriptors[k].add(v)
+        for d in c_descriptors:
+            for k, v in d.items():
+                all_descriptors[k].add(v)
 
-        diff = all_descriptors - self.feature_names
+        groups_to_exclude = set()
+        for k, v in all_descriptors.items():
+            # There are features which are not in the predefined feature space
+            # So we exclude the whole group.
+            if all_descriptors[k] - self.feature_names:
+                groups_to_exclude.add(k)
 
-        if diff:
-            raise ValueError("You extract features which are not in your "
-                             "feature set. {}".format(diff))
+        self.groups_excluded = groups_to_exclude
+
+        v_descriptors = [{k: v for k, v in d.items()
+                         if k not in groups_to_exclude} for d in v_descriptors]
+
+        c_descriptors = [{k: v for k, v in d.items()
+                         if k not in groups_to_exclude} for d in c_descriptors]
 
         vowel_vectors = []
         for descriptors in v_descriptors:
