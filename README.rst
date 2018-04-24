@@ -8,9 +8,32 @@ If you use `wordkit` in your research, please cite the following paper::
 
   bibtexref
 
-Additionally, if you use any of the corpus readers in `wordkit`, you MUST cite the accompanying corpora. Similarly, if you use the CVTransformer, please cite the `patpho` paper.
+Additionally, if you use any of the corpus readers in `wordkit`, you MUST cite the accompanying corpora. Similarly:
+if you use the CVTransformer, please cite the `patpho` paper.
+if you use the WeightedOpenBigramTransformer, please cite the `SERIOL` paper.
+if you use the OpenNGramTransformer, please cite the `Schoonbaert` paper.
+if you use the WickelTransformer, please cite the `McClelland` paper.
+
+All of these references can be found in the docstrings of the applicable classes.
 
 `wordkit` makes heavy use of `ipapy <https://github.com/pettarin/ipapy>`_, a package which parses unicode IPA characters into their IPA representations.
+
+
+Overview
+''''''''
+
+`wordkit` is a modular system, and contains 5 broad families of components.
+
+* Readers
+* Feature extractors
+* Transformers
+* Samplers
+
+In general, a `wordkit` pipeline consists of one or more readers, which extract structured information from corpora.
+This information is then sent to one or more transformers, which are either assigned pre-defined features or a feature extractor.
+If a feature extractor is assigned to a transformer, the feature set of that transformer is extracted automatically.
+
+Finally, a sampler can be used to sample from the resulting items.
 
 Experiments
 '''''''''''
@@ -52,21 +75,16 @@ Example
   # Link to epl.cd
   english = Celex("epl.cd",
                   fields=fields,
-                  filter_function=fil,
                   merge_duplicates=True)
 
   # Link to dpl.cd
   dutch = Celex("dpl.cd",
                 fields=fields,
                 language='nld',
-                filter_function=fil,
                 merge_duplicates=True)
 
-  corpora = FeatureUnion((("eng", english), ("nld", dutch)))
-
-  # Get all words from both the english and dutch celex.
-  # words are returned as dictionaries with the specified fields
-  words = corpora.transform([])
+  words = english.transform(filter_function=fil)
+  words.extend(dutch.transform(filter_function=fil))
 
   # words[0] =>
   # {'frequency': 1267035,
