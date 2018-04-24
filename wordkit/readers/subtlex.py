@@ -1,5 +1,5 @@
 """Corpus readers for Subtlex."""
-from .base import Reader, identity
+from .base import Reader
 import pandas as pd
 import os
 
@@ -53,19 +53,15 @@ class Subtlex(Reader):
     fields : tuple, default ("orthography", "frequency")
         The fields to retrieve from this corpus.
 
-    language : string, default "english"
+    language : string, default "eng-uk"
         The language the corpus is in.
-
-    filter_function : function, default identity
-        The function used to filter the output.
 
     """
 
     def __init__(self,
                  path,
-                 language,
                  fields=("orthography", "frequency", "log_frequency"),
-                 filter_function=identity):
+                 language="eng-uk"):
         """Initialize the subtlex reader."""
         if language not in ALLOWED_LANGUAGES:
             raise ValueError("Your language {}, was not in the set of "
@@ -76,7 +72,6 @@ class Subtlex(Reader):
                          language2field[language],
                          language,
                          merge_duplicates=True,
-                         filter_function=filter_function,
                          diacritics=None,
                          frequency_divider=MAX_FREQ[language])
 
