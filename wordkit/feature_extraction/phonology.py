@@ -237,10 +237,10 @@ class PredefinedFeatureExtractor(BasePhonemeExtractor):
     Example
     -------
     >>> from wordkit.feature_extraction import PredefinedFeatureExtractor
-    >>> from wordkit.features import miikkulainen_features
+    >>> from wordkit.features import dislex_features
     >>> phonemes = [('ə', 'b', 'e', 'ɪ', 's'),
                     ('k', 'ɔ', 'ŋ', 'ɡ', 'r', 'ɛ', 's')]
-    >>> p = PredefinedFeatureExtractor(miikkulainen_features)
+    >>> p = PredefinedFeatureExtractor(dislext_features)
     >>> vowels, consonants = p.extract(phonemes)
     >>> # find out which groups were excluded, if any.
     >>> p.groups_excluded

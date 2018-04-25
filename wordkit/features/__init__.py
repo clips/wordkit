@@ -1,13 +1,13 @@
 """Importable features."""
-from .orthographical import fourteen, sixteen, miikkulainen
+from .orthographical import fourteen, sixteen, dislex
 from .phonological import patpho_bin, binary_features, plunkett_phonemes
-from .phonological import patpho_real, miikkulainen_features
+from .phonological import patpho_real, dislex_features
 
 __all__ = ["fourteen",
            "sixteen",
-           "miikkulainen",
+           "dislex",
            "patpho_bin",
            "binary_features",
            "plunkett_phonemes",
            "patpho_real",
-           "miikkulainen_features"]
+           "dislex_features"]

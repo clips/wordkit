@@ -76,11 +76,11 @@ There is no limit on the type of features which can be passed into this extracto
 
 ```python
 from wordkit.feature_extraction import PredefinedFeatureExtractor
-from wordkit.features import miikkulainen_features
+from wordkit.features import dislex_features
 from wordkit.transformers import CVTransformer
 
 words = [{"orthography": "dog", "phonology": ('d', 'ɔ', 'ɡ')}]
-p = PredefinedFeatureExtractor(miikkulainen_features,
+p = PredefinedFeatureExtractor(dislex_features,
                                field="phonology")
 v_feats, c_feats = p.extract(words)
 ```

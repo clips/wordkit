@@ -10,13 +10,13 @@ In the case of phonology, a feature set is either a tuple of dictionaries, one m
 
 ```python
 from wordkit.feature_extraction import PredefinedFeatureExtractor
-from wordkit.features import fourteen, miikkulainen_features, plunkett_phonemes
+from wordkit.features import fourteen, dislex_features, plunkett_phonemes
 from wordkit.transformers import LinearTransformer, CVTransformer
 
 orth = LinearTransformer(fourteen, field='orthography')
 
 # Use a feature extractor with predefined features.
-phon = CVTransformer(PredefinedFeatureExtractor(miikkulainen_features))
+phon = CVTransformer(PredefinedFeatureExtractor(dislex_features))
 
 # Use a predefined phoneme set.
 phon = CVTransformer(plunkett_phonemes)
@@ -39,7 +39,7 @@ This feature set maps all lower-case, upper-case letters, and a whole bunch of o
 
 Like the fourteen feature set above, these sixteen features encode low-level perceptual similarity between letters, but also includes a number of symbols, which makes it useful for encoding text which includes punctuation.
 
-#### miikkulainen
+#### dislex
 
 This feature sets assigns each character a single number between `0` and `1`, depending on the ratio between black and white pixels in a typical picture of that letter. It was defined by miikkulainen in the context of the DISLEX model, but is also used in other Self-Organizing Map based models.
 
@@ -52,7 +52,7 @@ This feature sets assigns each character a single number between `0` and `1`, de
 This feature set was defined by ourselves, and is an expansion of the `patpho` feature set. It can encode a wide variety of phonemes, but not all of the phonemes in the International Phonetic Alphabet.
 It assigns each of the distinctive features an overlapping binary code, and therefore leads to a more parsimonious representation as the one extracted by the `PhonemeFeatureExtractor`.
 
-##### miikkulainen features
+##### dislex features
 
 This feature set assigns each single feature a number between `0` and `1`. It can not distinguish between all phonemes in the International Phonetic Alphabet.
 Like the orthographic features with the same name, it was defined and used by miikkulainen in the context of the DISLEX model.
