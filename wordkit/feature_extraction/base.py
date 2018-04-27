@@ -27,6 +27,7 @@ class BaseExtractor(object):
         else:
             raise ValueError("Couldn't recognize type of data passed.")
 
+        all_symbols = sorted(all_symbols)
         self.features = self._process(all_symbols)
         return self.features
 
