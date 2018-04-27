@@ -65,6 +65,7 @@ class WickelTransformer(BaseTransformer):
         grams = set()
         for x in words:
             grams.update(list(zip(*self._decompose(x)))[1])
+        grams = sorted(grams)
         self.features = {g: idx for idx, g in enumerate(grams)}
         # The vector length is equal to the number of features.
         self.vec_len = len(self.features)
@@ -117,6 +118,8 @@ class WickelTransformer(BaseTransformer):
 
     def _decompose(self, word):
         """Decompose a string into ngrams."""
-        grams = self._ngrams(word, self.n, self.n-1 if self.use_padding else 0)
+        grams = self._ngrams(word,
+                             self.n,
+                             self.n - 1 if self.use_padding else 0)
         grams = list(grams)
         return list(zip(np.ones(len(grams)), grams))
