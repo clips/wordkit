@@ -25,14 +25,16 @@ The `CorpusAugmenter` is a way to merge two corpora by adding information from o
 It is most commonly used to add frequencies from a corpus of counts to a corpus containing, for example, morphological forms. In this manner, useful corpora with older frequency norms, such as `Celex` can be reused.
 
 ```python
-from wordkit.readers import Celex, Subtlex, CorpusAugmenter
+from wordkit.readers import Celex, Subtlex, merge
 
 # Augment celex with subtlex frequencies.
-c = Celex("path/to/celex/epw.cd")
-s = Subtlex("path/to/subtlex", language="eng-uk")
+c_words = Celex("path/to/celex/epw.cd").transform()
+s_words = Subtlex("path/to/subtlex", language="eng-uk").transform()
 
 # union_fields in the constructor denotes the fields by which the corpora are merged
-augmenter = CorpusAugmenter(from_corpus=s, to_corpus=c, union_fields=("orthography,"))
+augmented = merge(from_corpus=s_words,
+                  to_corpus=c_words,
+                  transfer_fields=("frequency",),
+                  merge_fields=("orthography",))
 
-new_corpus = augmenter.transform()
 ```
