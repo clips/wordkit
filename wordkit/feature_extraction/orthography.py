@@ -21,7 +21,14 @@ class OneHotCharacterExtractor(BaseExtractor):
 
     """
 
+    def __init__(self, field=None, include_space=True):
+        """Initialize the extractor."""
+        super().__init__(field)
+        self.include_space = include_space
+
     def _process(self, symbols):
         """Create one hot encoded features."""
+        if self.include_space and " " not in symbols:
+            symbols = [" "] + list(symbols)
         features = np.eye(len(symbols), dtype=np.int)
         return dict(zip(symbols, features))

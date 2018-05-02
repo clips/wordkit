@@ -125,6 +125,11 @@ class OneHotPhonemeExtractor(BasePhonemeExtractor):
 
     """
 
+    def __init__(self, field=None, include_space=True):
+        """Initialize the extractor."""
+        super().__init__(field)
+        self.include_space = include_space
+
     def _process(self, phonemes):
         """
         Encode phonemes as one-hot vectors.
@@ -150,6 +155,10 @@ class OneHotPhonemeExtractor(BasePhonemeExtractor):
 
         vowels = self._phoneme_set_to_string(vowels)
         consonants = self._phoneme_set_to_string(consonants)
+
+        if self.include_space:
+            vowels.append(" ")
+            consonants.append(" ")
 
         vowel_dict = dict(zip(vowels, np.eye(len(vowels))))
         consonant_dict = dict(zip(consonants, np.eye(len(consonants))))
