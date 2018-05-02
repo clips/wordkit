@@ -1,5 +1,7 @@
 # wordkit
 
+![overview](images/wordkit_overview.png)
+
 This is the repository of the `wordkit` package, a `Python 3.X` package for the featurization of words into orthographic and phonological vectors.
 
 A paper that describes `wordkit` was accepted at LREC 2018.
