@@ -36,7 +36,7 @@ class WickelTransformer(BaseTransformer):
 
     """
 
-    def __init__(self, n, field, use_padding=True):
+    def __init__(self, n, field=None, use_padding=True):
         """Initialize the transformer."""
         super().__init__(field)
         self.n = n

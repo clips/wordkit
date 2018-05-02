@@ -41,7 +41,7 @@ class OpenNGramTransformer(WickelTransformer):
 
     """
 
-    def __init__(self, n, field):
+    def __init__(self, n, field=None):
         """Initialize the transformer."""
         super().__init__(n, field)
 
@@ -95,7 +95,7 @@ class ConstrainedOpenNGramTransformer(WickelTransformer):
 
     """
 
-    def __init__(self, n, window, field, use_padding=False):
+    def __init__(self, n, window, field=None, use_padding=False):
         """Initialize the transformer."""
         super().__init__(n, field)
         self.window = window
@@ -154,7 +154,7 @@ class WeightedOpenBigramTransformer(ConstrainedOpenNGramTransformer):
 
     """
 
-    def __init__(self, field, weights, use_padding=False):
+    def __init__(self, weights, field=None, use_padding=False):
         """Init the object."""
         super().__init__(2, len(weights), field, use_padding)
         self.weights = weights
