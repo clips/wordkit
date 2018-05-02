@@ -2,7 +2,6 @@
 import numpy as np
 
 from .base import FeatureTransformer
-from copy import copy
 
 
 class CVTransformer(FeatureTransformer):
@@ -118,9 +117,9 @@ class CVTransformer(FeatureTransformer):
             vowels[" "] = np.zeros_like(list(vowels.values())[0])
         if " " not in consonants:
             consonants[" "] = np.zeros_like(list(consonants.values())[0])
-        self.phonemes = copy(vowels)
-        self.phonemes.update(consonants)
-        self.feature_names = set(self.phonemes.keys())
+        self.phonemes = set(vowels.keys())
+        self.phonemes.update(consonants.keys())
+        self.feature_names = self.phonemes
         self.vowel_length = len(list(vowels.values())[0])
         self.consonant_length = len(list(consonants.values())[0])
 
@@ -137,11 +136,14 @@ class CVTransformer(FeatureTransformer):
         self._check(X)
 
         # indexes
-        self.idx2consonant = {idx: c for idx, c in enumerate(self.consonants)}
+        self.idx2consonant = {idx: c
+                              for idx, c in enumerate(sorted(self.consonants))}
         self.consonant2idx = {v: k for k, v in self.idx2consonant.items()}
-        self.idx2vowel = {idx: v for idx, v in enumerate(self.vowels)}
+        self.idx2vowel = {idx: v
+                          for idx, v in enumerate(sorted(self.vowels))}
         self.vowel2idx = {v: k for k, v in self.idx2vowel.items()}
-        self.phoneme2idx = {p: idx for idx, p in enumerate(self.phonemes)}
+        self.phoneme2idx = {p: idx
+                            for idx, p in enumerate(sorted(self.phonemes))}
 
         first_v = self.grid_structure.index("V")
         self.grid = self.grid_structure + self.grid_structure[:first_v]
@@ -152,7 +154,7 @@ class CVTransformer(FeatureTransformer):
             try:
                 self._put_on_grid(X[idx])
                 idx += 1
-            except ValueError:
+            except IndexError:
                 self.grid = self.grid[:last_v] + self.grid_structure
                 self.grid += self.grid_structure[:first_v]
 
@@ -205,7 +207,7 @@ class CVTransformer(FeatureTransformer):
         # convert syllabic grid to vector
         phon_vector = np.zeros(self.vec_len)
 
-        for idx, phon in grid.items():
+        for idx, phon in enumerate(grid):
             p = self.phonemes[phon]
             g_idx = self.grid_indexer[idx]
             phon_vector[g_idx: g_idx+len(p)] = p
@@ -217,42 +219,25 @@ class CVTransformer(FeatureTransformer):
         if not self.left:
             x = x[::-1]
 
-        idx = 0
-        indices = {}
+        word_grid = ["C" if p in self.consonants else "V" for p in x]
 
-        for p in x:
+        word_idx = 0
+        grid_idx = 0
 
-            grid = self.grid[idx:]
+        indices = [" "] * len(self.grid)
 
-            if p in self.vowels:
-                try:
-                    nex = grid.index("V")
-                    if nex == 0:
-                        nex = grid[1:].index("V") + 1
-                    idx += nex
-                    indices[idx] = p
-
-                except ValueError:
-                    pr = x if self.left else x[::-1]
-                    raise ValueError('Word is too long: {}'.format(pr))
-
-            elif p in self.consonants:
-                try:
-                    if idx == 0:
-                        indices[0] = p
-                        continue
-                    nex = grid.index("C")
-                    if nex == 0:
-                        nex = grid[1:].index("C") + 1
-                    idx += nex
-                    indices[idx] = p
-                except ValueError:
-                    pr = x if self.left else x[::-1]
-                    raise ValueError('Word is too long: {}'.format(pr))
+        while word_idx < len(word_grid):
+            if word_grid[word_idx] == self.grid[grid_idx]:
+                indices[grid_idx] = x[word_idx]
+                word_idx += 1
+                grid_idx += 1
+            else:
+                grid_idx += 1
+            if grid_idx > len(self.grid):
+                raise IndexError("Too long")
 
         if not self.left:
-            indices = {np.abs(k - (len(self.grid)-1)): v
-                       for k, v in indices.items()}
+            indices = indices[::-1]
 
         return indices
 
@@ -269,10 +254,9 @@ class CVTransformer(FeatureTransformer):
             raise ValueError("{0} contains invalid phonemes: {1}"
                              .format(x, " ".join(overlap)))
 
-        phon2idx = self.consonant2idx
-        phon2idx.update(self.vowel2idx)
         grid = self._put_on_grid(x)
-        grid = [phon2idx[v] + self.phon_indexer[k] for k, v in grid.items()]
+        grid = [self.phoneme2idx[v] + self.phon_indexer[idx]
+                for idx, v in enumerate(grid)]
         return sorted(grid)
 
     def inverse_transform(self, X):

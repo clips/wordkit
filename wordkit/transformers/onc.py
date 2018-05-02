@@ -3,7 +3,6 @@ import numpy as np
 import re
 
 from .base import FeatureTransformer
-from copy import copy
 from itertools import chain
 
 
@@ -40,9 +39,9 @@ class ONCTransformer(FeatureTransformer):
 
     """
 
-    def __init__(self, features):
+    def __init__(self, features, field=None):
         """Encode syllables with Onset Nucleus Coda encoding."""
-        super().__init__(features, "syllables")
+        super().__init__(features, field=field)
 
         self._is_fit = False
 
@@ -127,18 +126,21 @@ class ONCTransformer(FeatureTransformer):
 
         self.vowels = vowels
         self.consonants = consonants
-        self.phonemes = copy(vowels)
-        self.phonemes.update(consonants)
-        self.feature_names = set(self.phonemes.keys())
+        self.phonemes = set(vowels.keys())
+        self.phonemes.update(consonants.keys())
+        self.feature_names = self.phonemes
 
         self.vowel_length = len(next(self.vowels.values().__iter__()))
         self.consonant_length = len(next(self.consonants.values().__iter__()))
 
-        self.idx2consonant = {idx: c for idx, c in enumerate(self.consonants)}
+        self.idx2consonant = {idx: c
+                              for idx, c in enumerate(sorted(self.consonants))}
         self.consonant2idx = {v: k for k, v in self.idx2consonant.items()}
-        self.idx2vowel = {idx: v for idx, v in enumerate(self.vowels)}
+        self.idx2vowel = {idx: v
+                          for idx, v in enumerate(sorted(self.vowels))}
         self.vowel2idx = {v: k for k, v in self.idx2vowel.items()}
-        self.phoneme2idx = {p: idx for idx, p in enumerate(self.phonemes)}
+        self.phoneme2idx = {p: idx
+                            for idx, p in enumerate(sorted(self.phonemes))}
 
         if type(X[0]) == dict:
             X = [x[self.field] for x in X]
