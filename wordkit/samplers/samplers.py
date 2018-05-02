@@ -27,20 +27,18 @@ class Sampler(TransformerMixin):
     >>> import numpy as np
     >>> np.random.seed(44)
     >>> from wordkit.samplers import Sampler
-    >>> data = np.random.rand(2, 30)
     >>> words = ["dog", "cat"]
     >>> frequencies = [10, 30]
-    >>> s = Sampler(data, words, frequencies)
+    >>> s = Sampler(words, frequencies)
     >>> num_to_sample = 6
-    >>> sampled_data, sampled_words = s.sample(num_to_sample)
-    >>> sampled_words
-    ('cat', 'cat', 'cat', 'cat', 'dog', 'cat')
+    >>> sampled_data = s.sample(num_to_sample)
+    >>> sampled_data
+    array(['cat', 'dog', 'cat', 'cat', 'cat', 'cat'], dtype='<U3')
 
     """
 
     def __init__(self,
                  X,
-                 words,
                  frequencies=None,
                  replacement=True):
         """Sample from a distribution over words."""
@@ -50,7 +48,6 @@ class Sampler(TransformerMixin):
             frequencies = np.asarray(frequencies)
 
         self.X = X
-        self.words = words
         self.frequencies = frequencies / np.sum(frequencies)
         self.replacement = replacement
 
@@ -68,9 +65,6 @@ class Sampler(TransformerMixin):
         features : np.array
             A matrix of sampled data.
 
-        words : tuple
-            The sampled words.
-
         """
         if not self.replacement and num_to_sample > len(self.X):
             raise ValueError("Your tried to sample without replacement from "
@@ -83,7 +77,6 @@ class Sampler(TransformerMixin):
                                    p=self.frequencies,
                                    replace=self.replacement)
 
-        data, words = zip(*[(self.X[x], self.words[x]) for x in samples])
-        if isinstance(self.X, np.ndarray):
-            return np.asarray(data), words
-        return data, words
+        # We can't use smart indexing because we don't know whether our
+        # base data is an array.
+        return np.take(self.X, samples, axis=0)
