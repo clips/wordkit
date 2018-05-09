@@ -212,6 +212,9 @@ The code for replicating the experiments in the `wordkit` paper can be found [he
 - sklearn
 - ipapy
 - numpy
+- regex
+- pandas (for some of the corpus readers)
+
 
 ## Contributors
 
