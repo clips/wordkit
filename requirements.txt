@@ -1,4 +1,6 @@
-numpy==1.14.0
-setuptools==36.0.1
+numpy==1.12.1
+pandas==0.20.3
 ipapy==0.0.8.0
+setuptools==39.0.1
+regex==2017.11.9
 scikit_learn==0.19.1
