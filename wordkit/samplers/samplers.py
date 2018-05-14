@@ -43,7 +43,7 @@ class Sampler(TransformerMixin):
                  replacement=True):
         """Sample from a distribution over words."""
         if frequencies is None:
-            frequencies = np.ones(X.shape[0])
+            frequencies = np.ones(len(X))
         else:
             frequencies = np.asarray(frequencies)
 
@@ -67,7 +67,7 @@ class Sampler(TransformerMixin):
 
         """
         if not self.replacement and num_to_sample > len(self.X):
-            raise ValueError("Your tried to sample without replacement from "
+            raise ValueError("You tried to sample without replacement from "
                              "a set which is smaller than your sample size "
                              ": sample size: {} set size: {}"
                              "".format(num_to_sample, len(self.X)))
