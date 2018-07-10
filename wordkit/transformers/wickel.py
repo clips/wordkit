@@ -2,6 +2,9 @@
 import numpy as np
 
 from .base import BaseTransformer
+from random import choices
+from math import ceil
+from itertools import product
 
 
 class WickelTransformer(BaseTransformer):
@@ -42,9 +45,31 @@ class WickelTransformer(BaseTransformer):
         self.n = n
         self.use_padding = use_padding
 
+    def _sub_fit(self, X):
+        """Actual fitting function."""
+        if type(X[0]) == dict:
+            words = [x[self.field] for x in X]
+        else:
+            words = X
+        grams = set()
+        for x in words:
+            g = list(zip(*self._decompose(x)))
+            if not g:
+                raise ValueError("{} did not contain any ngrams."
+                                 "".format(x))
+            grams.update(g[1])
+
+        grams = sorted(grams)
+        self.features = {g: idx for idx, g in enumerate(grams)}
+        # The vector length is equal to the number of features.
+        self.vec_len = len(self.features)
+        self.feature_names = set(self.features.keys())
+
+        return self
+
     def fit(self, X):
         """
-        Fit the orthographizer by setting the vector length and word length.
+        Fit the transformer by finding all grams in the input data.
 
         Parameters
         ----------
@@ -58,21 +83,9 @@ class WickelTransformer(BaseTransformer):
             The transformer itself.
 
         """
-        if type(X[0]) == dict:
-            words = [x[self.field] for x in X]
-        else:
-            words = X
-        grams = set()
-        for x in words:
-            grams.update(list(zip(*self._decompose(x)))[1])
-        grams = sorted(grams)
-        self.features = {g: idx for idx, g in enumerate(grams)}
-        # The vector length is equal to the number of features.
-        self.vec_len = len(self.features)
-        self.feature_names = set(self.features.keys())
+        fit = self._sub_fit(X)
         self._is_fit = True
-
-        return self
+        return fit
 
     def vectorize(self, x):
         """
@@ -92,10 +105,10 @@ class WickelTransformer(BaseTransformer):
 
         """
         z = np.zeros(self.vec_len)
-        weights, indices = zip(*[(w, self.features[g])
-                               for w, g in self._decompose(x)])
+        for w, g in self._decompose(x):
 
-        z[list(indices)] = weights
+            idx = self.features[g]
+            z[idx] = max(z[idx], w)
 
         return z
 
@@ -123,3 +136,76 @@ class WickelTransformer(BaseTransformer):
                              self.n - 1 if self.use_padding else 0)
         grams = list(grams)
         return list(zip(np.ones(len(grams)), grams))
+
+
+class WickelFeatureTransformer(WickelTransformer):
+    """A transformer for WickelFeatures."""
+
+    def __init__(self,
+                 n,
+                 num_units,
+                 field=None,
+                 use_padding=True,
+                 proportion=.38):
+        """Initialize the transformer."""
+        super().__init__(n, field, use_padding)
+        self.num_units = num_units
+        self.proportion = proportion
+
+    def fit(self, X):
+        """
+        Fit the orthographizer by setting the vector length and word length.
+
+        Parameters
+        ----------
+        X : dictionary of with 'orthography' as key or list of strings.
+            This is usually the output of a wordkit reader, but can also
+            simply be a list of strings.
+
+        Returns
+        -------
+        self : WickelTransformer
+            The transformer itself.
+
+        """
+        self._sub_fit(X)
+
+        feature_matrix = np.zeros((len(self.features), self.num_units))
+        feature_values = [list(set(x)) for x in zip(*self.features)]
+        num_values = [ceil(len(x) * self.proportion) for x in feature_values]
+        for col in range(self.num_units):
+            triples = []
+            for num, x in zip(num_values, feature_values):
+                triples.append(choices(x, k=num))
+            all_triples = list(product(*triples))
+            for triple in all_triples:
+                try:
+                    feature_matrix[self.features[triple], col] = 1
+                except KeyError:
+                    pass
+
+        self.features = {k: feature_matrix[v]
+                         for k, v in self.features.items()}
+        self.vec_len = self.num_units
+        self._is_fit = True
+        return self
+
+    def vectorize(self, x):
+        """
+        Convert a single word into a vectorized representation.
+
+        Raises a ValueError if the word is too long.
+
+        Parameters
+        ----------
+        x : string or dictionary
+            The word to convert.
+
+        Returns
+        -------
+        v : numpy array
+            A vectorized representation of the input word.
+
+        """
+        z = np.sum([self.features[g] for w, g in self._decompose(x)], axis=0)
+        return z
