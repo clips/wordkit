@@ -213,3 +213,27 @@ X = w.fit_transform(words)
 w_2 = WickelTransformer(n=3, use_padding=False)
 X_2 = w_2.fit_transform(words)
 ```
+
+### WickelFeatureTransformer
+
+The `WickelFeatureTransformer` is an implementation of the featurization procedure introduced by McClelland and Rumelhart in their 1986 paper.
+It is intended to produce the same behavior as the `WickelTransformer` above, but has a lower space complexity.
+
+Instead of directly one hot encoding and storing all character trigrams directly, the `WickelFeatureTransformer` assigns a number of binary variables to each character trigram, creating a unique code for each trigram.
+
+This is done by randomly assigning a number of characters to each binary variable. Only if all characters in all positions match will the variable be assigned to this trigram.
+This guarantees that trigrams with overlap in characters will be get more similar codes than words without overlap.
+
+The `n` argument behaves as above, and determines the `n`n in character ngrams.
+The `num_units` argument determines the number of binary variables, and consequently your output dimensionality.
+The `proportion` argument determines the proportion of unique items that are randomly assigned to each unit.
+For example, if there are 26 characters in your alphabet, a proportion of .38 will assign 10 characters to each unit for each position.
+
+```python
+from wordkit.transformers import WickelFeatureTransformer
+
+words = ["dog", "fog", "hotdog", "colddog"]
+
+w = WickelFeatureTransformer(n=3, num_units=400, proportion=.38)
+X = w.fit_transform(words)
+```
