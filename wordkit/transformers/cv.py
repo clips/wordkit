@@ -207,11 +207,11 @@ class CVTransformer(FeatureTransformer):
         # convert syllabic grid to vector
         phon_vector = np.zeros(self.vec_len)
 
-        for idx, phon in enumerate(grid):
-            try:
-                p = self.consonants[phon]
-            except KeyError:
-                p = self.vowels[phon]
+        for idx, x in enumerate(self.grid):
+            if x == "C":
+                p = self.consonants[grid[idx]]
+            elif x == "V":
+                p = self.vowels[grid[idx]]
             g_idx = self.grid_indexer[idx]
             phon_vector[g_idx: g_idx+len(p)] = p
 
@@ -277,11 +277,16 @@ class CVTransformer(FeatureTransformer):
             if x == "C":
                 s = consonants
                 s_k = consonant_keys
-            else:
+            elif x == "V":
                 s = vowels
                 s_k = vowel_keys
+            else:
+                raise ValueError("Error in grid: {}".format(x))
             diff = X[:, idx:idx+s.shape[1]][:, None, :] - s[None, :, :]
             indices = np.linalg.norm(diff, axis=-1).argmin(-1)
+            if x == "V":
+                print(diff[0])
+                print(indices)
             words.append([s_k[x] for x in indices])
             idx += s.shape[1]
 
