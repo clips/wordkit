@@ -284,9 +284,6 @@ class CVTransformer(FeatureTransformer):
                 raise ValueError("Error in grid: {}".format(x))
             diff = X[:, idx:idx+s.shape[1]][:, None, :] - s[None, :, :]
             indices = np.linalg.norm(diff, axis=-1).argmin(-1)
-            if x == "V":
-                print(diff[0])
-                print(indices)
             words.append([s_k[x] for x in indices])
             idx += s.shape[1]
 
