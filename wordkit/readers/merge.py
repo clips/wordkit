@@ -14,9 +14,9 @@ def merge(from_corpus, to_corpus, merge_fields, transfer_fields):
     combinations and a corpus of frequency norms, merge can be used
     to add frequency norms to the orthography - phonology combinations.
 
-    A CorpusAugmenter requires that there is overlap between the fields of the
+    Merging requires that there is overlap between the fields of the
     corpora. The parameter merge_fields specifies by which fields the corpora
-    should be merged
+    should be merged.
 
     Parameters
     ----------
