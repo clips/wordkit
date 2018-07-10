@@ -208,7 +208,10 @@ class CVTransformer(FeatureTransformer):
         phon_vector = np.zeros(self.vec_len)
 
         for idx, phon in enumerate(grid):
-            p = self.phonemes[phon]
+            try:
+                p = self.consonants[phon]
+            except KeyError:
+                p = self.vowels[phon]
             g_idx = self.grid_indexer[idx]
             phon_vector[g_idx: g_idx+len(p)] = p
 
