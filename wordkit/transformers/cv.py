@@ -257,10 +257,16 @@ class CVTransformer(FeatureTransformer):
             raise ValueError("{0} contains invalid phonemes: {1}"
                              .format(x, " ".join(overlap)))
 
-        grid = self._put_on_grid(x)
-        grid = [self.phoneme2idx[v] + self.phon_indexer[idx]
-                for idx, v in enumerate(grid)]
-        return sorted(grid)
+        for x in x:
+            grid = self._put_on_grid(x)
+            indices = []
+            for idx, v in enumerate(grid):
+                if self.grid[idx] == "C":
+                    phon = self.consonant2idx
+                else:
+                    phon = self.vowel2idx
+                indices.append(phon[v] + self.phon_indexer[idx])
+            yield sorted(indices)
 
     def inverse_transform(self, X):
         """Transform a set of word representations back to their form."""
