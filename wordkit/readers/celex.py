@@ -237,8 +237,6 @@ class Celex(Reader):
                 except KeyError:
                     syll = columns[self.field_ids['syllables']]
                 if not syll:
-                    logging.info("{} has no associated phonological or "
-                                 "syllable info, skipping".format(orthography))
                     continue
                 phon = syll
                 if use_syll:
