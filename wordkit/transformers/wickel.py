@@ -77,6 +77,7 @@ class WickelTransformer(BaseTransformer):
         # The vector length is equal to the number of features.
         self.vec_len = len(self.features)
         self.feature_names = set(self.features.keys())
+        self._is_fit = True
 
         return self
 
@@ -129,6 +130,38 @@ class WickelTransformer(BaseTransformer):
                              self.n - 1 if self.use_padding else 0)
         grams = list(grams)
         return list(zip(np.ones(len(grams)), grams))
+
+    def inverse_transform(self, X, threshold=.9):
+        """Convert a vector back into its constituent ngrams."""
+        inverted = []
+        inverted_features = {v: k for k, v in
+                             self.features.items()}
+
+        if not self.use_padding:
+            raise ValueError("This function is only supported when use_padding"
+                             " is set to True.")
+
+        for x in X:
+            t = []
+            for idx in np.flatnonzero(x > threshold):
+                t.append(inverted_features[idx])
+
+            cols = list(zip(*t))
+
+            s, e = list(zip(*cols[:-1])), list(zip(*cols[1:]))
+            pad = tuple(["#"] * (self.n-1))
+            f = list(set(s) - (set(e) - {pad}))[0]
+            word = []
+            while len(word) < len(t):
+                idx = s.index(f)
+                word.append(t[idx][0])
+                f = e[idx]
+            else:
+                word.extend(t[idx][1:])
+
+            inverted.append("".join(word).strip("#"))
+
+        return inverted
 
 
 class WickelFeatureTransformer(WickelTransformer):
@@ -233,3 +266,7 @@ class WickelFeatureTransformer(WickelTransformer):
         """
         z = np.max([self.features[g] for w, g in self._decompose(x)], axis=0)
         return z
+
+    def inverse_transform(self, X):
+        """Not implemented."""
+        raise NotImplemented("Not implemented because probably impossible.")

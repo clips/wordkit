@@ -52,6 +52,10 @@ class OpenNGramTransformer(WickelTransformer):
             combs = [word]
         return zip(np.ones(len(combs)), combs)
 
+    def inverse_transform(self, X):
+        """Not implemented."""
+        raise NotImplemented("Not implemented because probably impossible.")
+
 
 class ConstrainedOpenNGramTransformer(WickelTransformer):
     r"""
@@ -110,6 +114,10 @@ class ConstrainedOpenNGramTransformer(WickelTransformer):
         combs = (combinations(x, self.n) for x in grams)
         result = list(reduce(set.union, combs, set()))
         return zip(np.ones(len(result)), result)
+
+    def inverse_transform(self, X):
+        """Not implemented."""
+        raise NotImplemented("Not implemented because probably impossible.")
 
 
 class WeightedOpenBigramTransformer(ConstrainedOpenNGramTransformer):
