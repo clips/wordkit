@@ -111,6 +111,8 @@ class LinearTransformer(FeatureTransformer):
 
     def inverse_transform(self, X):
         """Transform a corpus back to word representations."""
+        if np.ndim(X) == 1:
+            X = X[None, :]
         feature_length = self.vec_len // self.max_word_length
         X_ = X.reshape((-1, self.max_word_length, feature_length))
 
@@ -118,8 +120,11 @@ class LinearTransformer(FeatureTransformer):
         keys = [str(x) for x in keys]
         features = np.array(features)
 
+        inverted = []
+
         for x in X_:
             res = np.linalg.norm(x[:, None, :] - features[None, :, :], axis=-1)
             res = res.argmin(1)
+            inverted.append("".join([keys[idx] for idx in res]).strip())
 
-            yield "".join([keys[idx] for idx in res]).strip()
+        return inverted
