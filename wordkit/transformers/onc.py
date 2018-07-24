@@ -99,7 +99,7 @@ class ONCTransformer(FeatureTransformer):
                 idx += self.vowel_length
                 idx_2 += len(self.vowel2idx)
 
-    def _fit(self, X):
+    def fit(self, X):
         """
         Calculate the best Onset Nucleus Coda grid given X.
 
@@ -118,11 +118,8 @@ class ONCTransformer(FeatureTransformer):
             Return a fitted ONCTransformer
 
         """
+        super().fit(X)
         vowels, consonants = self.features
-        if " " not in vowels:
-            vowels[" "] = np.zeros_like(list(vowels.values())[0])
-        if " " not in consonants:
-            consonants[" "] = np.zeros_like(list(consonants.values())[0])
 
         self.vowels = vowels
         self.consonants = consonants
@@ -142,9 +139,8 @@ class ONCTransformer(FeatureTransformer):
         self.phoneme2idx = {p: idx
                             for idx, p in enumerate(sorted(self.phonemes))}
 
-        if type(X[0]) == dict:
-            X = [x[self.field] for x in X]
-        self._check(chain.from_iterable(X))
+        X = self._unpack(X)
+        self._validate(X)
 
         num_syls = max([len(x) for x in X])
 
@@ -189,7 +185,6 @@ class ONCTransformer(FeatureTransformer):
             The vectorized word.
 
         """
-        self._check(x)
         if not self._is_fit:
             raise ValueError("The vectorizer has not been fit yet.")
         if len(x) > self.num_syls:
@@ -273,7 +268,6 @@ class ONCTransformer(FeatureTransformer):
             idx += s.shape[1]
 
         reshaped = np.array(words).T.reshape(X.shape[0], self.num_syls, -1)
-        for word in reshaped:
-            yield tuple([tuple(x) for x in
-                        [[p for p in x if p != " "]
-                        for x in word] if x])
+        return [tuple([tuple(x) for x in
+                      [[p for p in x if p != " "]
+                      for x in word] if x]) for word in reshaped]

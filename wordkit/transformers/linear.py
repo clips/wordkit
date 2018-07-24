@@ -52,7 +52,7 @@ class LinearTransformer(FeatureTransformer):
         self.max_word_length = 0
         self.left = left
 
-    def _fit(self, X):
+    def fit(self, X):
         """
         Fit the orthographizer by setting the vector length and word length.
 
@@ -67,15 +67,11 @@ class LinearTransformer(FeatureTransformer):
             The fitted LinearTransformer instance.
 
         """
-        if " " not in self.features:
-            self.features[" "] = np.zeros_like(list(self.features.values())[0])
-        if type(X[0]) == dict:
-            words = [x[self.field] for x in X]
-        else:
-            words = X
+        super().fit(X)
         self.feature_names = set(self.features.keys())
-        self._check(words)
-        self.max_word_length = max([len(x) for x in words])
+        X = self._unpack(X)
+        self._validate(X)
+        self.max_word_length = max([len(x) for x in X])
         self.vec_len = self.max_word_length * self.dlen
         self._is_fit = True
         return self

@@ -60,12 +60,10 @@ class WickelTransformer(BaseTransformer):
             The transformer itself.
 
         """
-        if type(X[0]) == dict:
-            words = [x[self.field] for x in X]
-        else:
-            words = X
+        super().fit(X)
+        X = self._unpack(X)
         grams = set()
-        for x in words:
+        for x in X:
             g = list(zip(*self._decompose(x)))
             if not g:
                 raise ValueError("{} did not contain any ngrams."
@@ -77,6 +75,7 @@ class WickelTransformer(BaseTransformer):
         # The vector length is equal to the number of features.
         self.vec_len = len(self.features)
         self.feature_names = set(self.features.keys())
+        self._check(X)
         self._is_fit = True
 
         return self

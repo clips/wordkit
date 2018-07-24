@@ -27,24 +27,38 @@ class BaseTransformer(TransformerMixin):
         self.features = None
         self.field = field
 
-    def _check(self, x):
+    def _validate(self, X):
         """
-        Check whether a feature string contains illegal features.
+        Check whether an input dataset contains illegal features.
 
         Calculate the difference of the keys of the feature dict and x.
         Raises a ValueError if the result is non-empty.
 
         Parameters
         ----------
-        x : string
-            An input string.
+        X : list of strings or list of dicts.
+            An input dataset.
 
         """
-        x = set(chain.from_iterable(x))
-        overlap = x.difference(self.feature_names)
+        if isinstance(X[0], tuple) and isinstance(X[0][0], tuple):
+            X = [list(chain.from_iterable(x)) for x in X]
+
+        feats = set(chain.from_iterable(X))
+        overlap = feats.difference(self.feature_names)
         if overlap:
             raise ValueError("The sequence contained illegal features: {0}"
                              .format(overlap))
+
+    def _unpack(self, X):
+        """Unpack the input data."""
+        if isinstance(X[0], dict):
+            if self.field is None:
+                raise ValueError("Your field was set to None, but you passed a"
+                                 " dict. Please pass an explicit field when "
+                                 "passing a dict.")
+            X = [x[self.field] for x in X]
+
+        return X
 
     def inverse_transform(self, X):
         """Invert the transformation of a transformer."""
@@ -58,13 +72,13 @@ class BaseTransformer(TransformerMixin):
         """Vectorize a word."""
         raise NotImplementedError("Base class method.")
 
-    def transform(self, words):
+    def transform(self, X):
         """
         Transform a list of words.
 
         Parameters
         ----------
-        words : list of string or list of dict
+        X : list of string or list of dict
             A list of words.
 
         Returns
@@ -75,11 +89,12 @@ class BaseTransformer(TransformerMixin):
         """
         if not self._is_fit:
             raise ValueError("The transformer has not been fit yet.")
-        total = np.zeros((len(words), self.vec_len))
+        total = np.zeros((len(X), self.vec_len))
 
-        for idx, word in enumerate(words):
-            if isinstance(word, dict):
-                word = word[self.field]
+        X = self._unpack(X)
+        self._validate(X)
+
+        for idx, word in enumerate(X):
             x = self.vectorize(word)
             # This ensures that transformers which return sequences of
             # differing lengths still return non-jagged arrays.
@@ -145,4 +160,14 @@ class FeatureTransformer(BaseTransformer):
                 self.features = ({k: np.array(v) for k, v in c.items()},
                                  {k: np.array(v) for k, v in v.items()})
 
-        return self._fit(X)
+        if isinstance(self.features, tuple):
+            for x in self.features:
+                if " " not in self.features:
+                    v = next(iter(x.values()))
+                    x[" "] = np.zeros_like(v)
+        else:
+            if " " not in self.features:
+                v = next(iter(self.features.values()))
+                self.features[" "] = np.zeros_like(v)
+
+        return self

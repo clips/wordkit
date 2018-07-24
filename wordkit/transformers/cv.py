@@ -94,7 +94,7 @@ class CVTransformer(FeatureTransformer):
 
         return grid
 
-    def _fit(self, X):
+    def fit(self, X):
         """
         Fit the CVTransformer to find the optimal number of grids required.
 
@@ -109,14 +109,8 @@ class CVTransformer(FeatureTransformer):
             The CVTransformer.
 
         """
-        if type(X[0]) == dict:
-            X = [x[self.field] for x in X]
-
+        super().fit(X)
         vowels, consonants = self.features
-        if " " not in vowels:
-            vowels[" "] = np.zeros_like(list(vowels.values())[0])
-        if " " not in consonants:
-            consonants[" "] = np.zeros_like(list(consonants.values())[0])
         self.phonemes = set(vowels.keys())
         self.phonemes.update(consonants.keys())
         self.feature_names = self.phonemes
@@ -133,7 +127,8 @@ class CVTransformer(FeatureTransformer):
         self.consonants = consonants
         # vowel dictionary
         self.vowels = vowels
-        self._check(X)
+        X = self._unpack(X)
+        self._validate(X)
 
         # indexes
         self.idx2consonant = {idx: c
@@ -252,11 +247,6 @@ class CVTransformer(FeatureTransformer):
         in their consonants and vowels (as opposed to their
         features)
         """
-        overlap = self._check(x)
-        if overlap:
-            raise ValueError("{0} contains invalid phonemes: {1}"
-                             .format(x, " ".join(overlap)))
-
         for x in x:
             grid = self._put_on_grid(x)
             indices = []
