@@ -132,7 +132,35 @@ class WickelTransformer(BaseTransformer):
 
 
 class WickelFeatureTransformer(WickelTransformer):
-    """A transformer for WickelFeatures."""
+    """
+    A transformer for WickelFeatures.
+
+    This transformer behaves more or less the same as the WickelTransformer,
+    above, but has 2 advantages: first, it assigns a higher similarity to
+    ngrams which have more overlap. Second, it usually leads to spaces with
+    smaller dimensionalities.
+
+    Parameters
+    ----------
+    n : int
+        The value of n to use in the character ngrams.
+
+    num_units : int
+        The number of units with which to represent each individual character
+        ngram. This number is also equal to the output dimensionality.
+
+    field : str or None
+        The field on which this transformer operates.
+
+    use_padding : bool
+        Whether to use padded or non-padded ngrams.
+
+    proportion : float
+        This number approximately encodes the number of units each character
+        activates. For example, given a proportion of .38, about 10 of 26
+        letters in the alphabet will be assigned to a single unit.
+
+    """
 
     def __init__(self,
                  n,
@@ -143,11 +171,12 @@ class WickelFeatureTransformer(WickelTransformer):
         """Initialize the transformer."""
         super().__init__(n, field, use_padding)
         self.num_units = num_units
+        assert .0 < proportion < 1.0
         self.proportion = proportion
 
     def fit(self, X):
         """
-        Fit the orthographizer by setting the vector length and word length.
+        Fit the featurizer by setting the vector length and word length.
 
         Parameters
         ----------
@@ -162,8 +191,9 @@ class WickelFeatureTransformer(WickelTransformer):
 
         """
         super().fit(X)
-
-        # Assign each unit
+        self._is_fit = False
+        # Assign each feature an number of units based on the individual
+        # characters this feature consists of.
         feature_matrix = np.zeros((len(self.features), self.num_units))
         feature_values = [list(set(x)) for x in zip(*self.features)]
         num_values = [ceil(len(x) * self.proportion) for x in feature_values]
