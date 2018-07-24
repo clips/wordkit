@@ -46,6 +46,7 @@ class Sampler(TransformerMixin):
             frequencies = np.ones(len(X))
         else:
             frequencies = np.asarray(frequencies)
+        assert(len(frequencies) == len(X))
 
         self.X = X
         self.frequencies = frequencies / np.sum(frequencies)
