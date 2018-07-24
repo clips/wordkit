@@ -1,7 +1,7 @@
 """Functions for extracting and handling phonological features."""
 import numpy as np
 
-from .base import BaseExtractor
+from ..base.feature_extraction import BaseExtractor
 from ipapy.ipastring import IPAString
 from functools import reduce
 from collections import defaultdict

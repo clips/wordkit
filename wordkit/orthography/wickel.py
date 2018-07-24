@@ -1,7 +1,7 @@
 """Wickelcoding."""
 import numpy as np
 
-from .base import BaseTransformer
+from ..base.transformer import BaseTransformer
 from math import ceil
 from itertools import product
 

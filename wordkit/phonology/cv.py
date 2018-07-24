@@ -1,7 +1,7 @@
 """Description."""
 import numpy as np
 
-from .base import FeatureTransformer
+from ..base.transformer import FeatureTransformer
 
 
 class CVTransformer(FeatureTransformer):

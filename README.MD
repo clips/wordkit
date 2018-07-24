@@ -37,11 +37,10 @@ All of these references can be found in the docstrings of the applicable classes
 The subpackages are extensively documented using separate `README.MD` files.
 Feel free to click ahead to find descriptions of the contents of subpackages.
 
-* [Readers](wordkit/readers)
-* [Feature extractors](wordkit/feature_extraction)
-* [Feature sets](wordkit/features)
-* [Transformers](wordkit/transformers)
-* [Samplers](wordkit/samplers)
+* [orthography](wordkit/orthography)
+* [phonology](wordkit/phonology)
+* [corpora](wordkit/corpora)
+* [samplers](wordkit/samplers)
 
 In general, a `wordkit` pipeline consists of one or more readers, which extract structured information from corpora.
 This information is then sent to one or more transformers, which are either assigned pre-defined features or a feature extractor.
@@ -140,9 +139,9 @@ Languages:  Dutch, American English, Greek
 ## Example
 
 ```python
-from wordkit.readers import Celex
-from wordkit.transformers import LinearTransformer, WickelTransformer
-from wordkit.features import fourteen
+from wordkit.corpora import Celex
+from wordkit.orthography import LinearTransformer, WickelTransformer
+from wordkit.orthography.features import fourteen
 from sklearn.pipeline import FeatureUnion
 
 # The fields we want to extract from our corpora.

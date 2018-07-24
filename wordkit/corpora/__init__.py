@@ -1,4 +1,4 @@
-"""Readers for corpora."""
+"""Corpora."""
 from .celex import Celex
 from .cmudict import CMU
 from .deri import Deri

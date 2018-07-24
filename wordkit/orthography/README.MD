@@ -1,41 +1,9 @@
-# Transformers
+# Orthography
 
-This is the transformers module in `wordkit`.
-It is the heart of `wordkit`, in the sense that most other components of `wordkit`
+This package contains all the orthographical parts of wordkit.
+It contains [features](#feature-sets), [feature extractors](#feature-extraction), and [transformers](#transformers).
 
-All transformers in `wordkit` subclass the `sklearn.base.TransformerMixin`, and are therefore outfitted with the expected `fit`, `transform` and `fit_transform` functions.
-Because of this, all transformers can be integrated into `sklearn` `Pipeline` or `FeatureUnion` objects.
-
-All transformers take at least a `field` argument, which denotes which `field` from the reader is used to featurize the words.
-For all transformers, the following holds: if `field` is set to `None`, the transformer takes as input a list of items, e.g. orthographic. On the other hand, if `field` is set to a value, it takes a list of `dict` as input, where each of the `dict`s in the list _must_ contain the `field` in question.
-
-```python
-import numpy as np
-from wordkit.transformers import WickelTransformer
-
-# These are equivalent
-words = [{"orthography": "dog"}, {"orthography": "cat"}]
-words_l = ["dog", "cat"]
-
-# These are equivalent
-w = WickelTransformer(n=3, field="orthography")
-first = w.fit_transform(words)
-
-w = WickelTransformer(n=3, field=None)
-second = w.fit_transform(words_l)
-
-np.all(first == second)
-
-```
-
-## Transformers taking features
-
-Several take as input a set of features during construction.
-These features can either be passed as a `dict` mapping symbols to feature arrays.
-In the case of phonological transformers, we expect a tuple of `dict`s, the first containing vowel features, and the second containing consonant features.
-
-In a lot of cases the feature extraction can be postponed by passing a _feature_ _extractor_ from [wordkit.feature_extraction](../feature_extraction).
-This is usually the easiest method, as it guarantees a parsimonious representation.
+## Transformers
 
 ### LinearTransformer
 
@@ -56,69 +24,13 @@ dist = (l.max_word_length - X[0].dot(X[1])) / l.max_word_length
 dist_2 = (l.max_word_length - X[0].dot(X[2])) / l.max_word_length
 ```
 
-### CVTransformer
-
-The `CVTransformer` is based on `patpho`, and uses a Consonant Vowel grid to align consonant and vowel features. This ensures that words with a different number of vowels and consonants in segments are still aligned.
-
-The words `spat` and `pat`, for example, would not be aligned using a purely linear encoding, but are aligned when using a Consonant Vowel grid.
-
-When using the CVTransformer, please consider citing:
-
-```
-@article{li2002patpho,
-  title={PatPho: A phonological pattern generator for neural networks},
-  author={Li, Ping and MacWhinney, Brian},
-  journal={Behavior Research Methods, Instruments, \& Computers},
-  volume={34},
-  number={3},
-  pages={408--415},
-  year={2002},
-  publisher={Springer}
-}
-```
-
-As it is a phonological transformer, the CVTransformer expects a tuple of features, one for vowels and another for consonants.
-
-```python
-from wordkit.transformers import CVTransformer
-from wordkit.feature_extraction import OneHotPhonemeExtractor
-
-p_words = [('p', 'æ', 't'), ('s', 'p', 'æ', 't')]
-c = CVTransformer(OneHotPhonemeExtractor, field=None)
-X = c.fit_transform(p_words)
-
-c.features
-```
-
-### ONCTransformer
-
-The `ONCTransformer` is similar to the `CVTransformer` above, but uses syllable information to group phonemes into Onsets, Nuclei and Codas.
-This ensures is more data-intensive, because it requires syllable information whereas the `CVTransformer` only requires phonological information, but is also more accurate.
-
-In contrast to the `CVTransformer`, whose grid must be manually specified, the grid of the `ONCTransformer` is completely data-driven, and determined during fitting.
-
-```python
-from wordkit.transformers import ONCTransformer
-from wordkit.feature_extraction import OneHotPhonemeExtractor
-
-# Syllables are represented as tuples of tuples.
-p_words = [(('p', 'æ', 't'),), (('s', 'p', 'æ', 't'),)]
-o = ONCTransformer(OneHotPhonemeExtractor, field=None)
-X = o.fit_transform(p_words)
-
-o.features
-```
-## Transformers without features
-
-This set of transformers generate their own features, and thus do not need predefined features to function.
-
 ### OpenNGramTransformer
 
 The `OpenNGramTransformer` featurizes words using open ngrams, which is the set of ordered combinations of ngrams in a word.
 
 Taking bigrams as an example, the `OpenNGramTransformer` turns the word `"salt"` into `{"sa", "sl", "st", "al", "at", "lt"}`. The extracted features are similar to what is known as "character skipgrams".
 
-The main motivation for using the open ngram features is transposition resilience.
+The main motivation for using the open ngram features is that words with deleted or transposed letters still get represented correctly.
 
 If you use the OpenNGramTransformer, please consider citing the following sources:
 
@@ -237,3 +149,106 @@ words = ["dog", "fog", "hotdog", "colddog"]
 w = WickelFeatureTransformer(n=3, num_units=400, proportion=.38)
 X = w.fit_transform(words)
 ```
+
+# Feature extraction
+
+This subpackage contains all the functions and objects involved in feature extraction.
+In general, feature extraction denotes the process of extracting features from a set of objects.
+Keep in mind that feature extraction is distinct from transformation.
+Feature extraction merely determines the set of features, which are then passed to a transformer for further use.
+
+## Usage
+
+```python
+import numpy as np
+from wordkit.feature_extraction import PhonemeFeatureExtractor, OneHotCharacterExtractor
+
+o_words = ["dog", "cat"]
+o = OneHotCharacterExtractor()
+o_feats = o.extract(o_words)
+
+p_words = [('k', 'æ', 't'), ('d', 'ɔ', 'ɡ')]
+p = PhonemeFeatureExtractor()
+v_feats, c_feats = p.extract(p_words)
+
+# These can then be added to a transformer
+from wordkit.transformers import CVTransformer
+c = CVTransformer((v_feats, c_feats))
+transformed = c.fit_transform(p_words)
+
+# Feature extractors can be directly added to transformers.
+c = CVTransformer(PhonemeFeatureExtractor)
+transformed_2 = c.fit_transform(p_words)
+
+# Both methods are equivalent
+assert np.all(transformed == transformed_2)
+
+# using a dictionary
+words = [{"orthography": "cat", "phonology": ('k', 'æ', 't')},
+         {"orthography": "dog", "phonology": ('d', 'ɔ', 'ɡ')}]
+
+# field must be set because we use a dictionary
+c = CVTransformer(PhonemeFeatureExtractor, field="phonology")
+transformed_3 = c.fit_transform(words)
+```
+
+## Features
+
+To use the `LinearTransformer`, words need to be turned into features.
+This can be done by using a feature extractor, or by using predefined feature sets.
+Both can be directly passed into the transformer.
+
+### Feature extraction
+
+In general, feature extraction denotes the process of extracting features from a set of objects.
+Keep in mind that feature extraction is distinct from transformation.
+Feature extraction merely determines the set of features, which are then passed to a transformer for further use.
+
+```python
+import numpy as np
+from wordkit.orthography import OneHotCharacterExtractor
+from wordkit.orthography import LinearTransformer
+
+o_words = ["dog", "cat"]
+o = OneHotCharacterExtractor()
+o_feats = o.extract(o_words)
+
+# Both of these are the same.
+l = LinearTransformer(o_feats)
+l_2 = LinearTransformer(OneHotCharacterExtractor)
+
+l.fit_transform(o_words) == l_2.fit_transform(o_words)
+
+```
+
+#### OneHotCharacterExtractor
+
+Turns a set of strings into one hot encoded character features.
+This is the simplest method, and assumes zero similarity between individual characters.
+
+### Feature sets
+
+We also offer a number of pre-specified features, which are mainly aimed at replicating already existing papers.
+These can directly be passed in to the `LinearTransformer`.
+
+```python3
+from wordkit.orthography.features import fourteen, sixteen
+
+l = LinearTransformer(fourteen)
+```
+
+#### fourteen
+
+This feature set maps all lower-case letters of the alphabet to a set of fourteen binary features. These binary features roughly correspond to the segments found on a microwave display, and therefore encode low-level perceptual similarity between letters.
+
+It was originally defined and used in the Interactive Activation (IA) model.
+
+#### sixteen
+
+This feature set maps all lower-case, upper-case letters, and a whole bunch of other symbols into a set of sixteen binary features. The sixteen-panel encoding is typically found on newer digital watches.
+
+Like the fourteen feature set above, these sixteen features encode low-level perceptual similarity between letters, but also includes a number of symbols, which makes it useful for encoding text which includes punctuation.
+
+#### dislex
+
+This feature sets assigns each character a single number between `0` and `1`, depending on the ratio between black and white pixels in a typical picture of that letter. It was defined by miikkulainen in the context of the DISLEX model, but is also used in other Self-Organizing Map based models.

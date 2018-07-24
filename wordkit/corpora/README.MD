@@ -1,6 +1,6 @@
-# Readers
+# Corpora
 
-Readers transform corpora containing structured information into a dictionaries containing the structured information.
+Corpus readers transform corpora containing structured information into dictionaries containing the structured information.
 These dictionaries can then be sent to other transformers for use.
 
 All readers conform to the following constructor:
@@ -14,18 +14,18 @@ where:
 * `fields` is a tuple denoting which fields to extract
 * `language` is the language to extract
 
-All corpora readers use different file formats, so please make sure the file format is correct.
+All corpus readers use different file formats, so please make sure the file format is correct.
 
 A list of supported corpora can be found [here](../../)
 
-## CorpusAugmenter
+## merge
 
-The `CorpusAugmenter` is a way to merge two corpora by adding information from one corpus to the other.
+`merge` is a way to merge two corpora by adding information from one corpus to the other.
 
 It is most commonly used to add frequencies from a corpus of counts to a corpus containing, for example, morphological forms. In this manner, useful corpora with older frequency norms, such as `Celex` can be reused.
 
 ```python
-from wordkit.readers import Celex, Subtlex, merge
+from wordkit.corpora import Celex, Subtlex, merge
 
 # Augment celex with subtlex frequencies.
 c_words = Celex("path/to/celex/epw.cd").transform()
