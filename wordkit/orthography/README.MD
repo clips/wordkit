@@ -1,7 +1,7 @@
 # Orthography
 
 This package contains all the orthographical parts of wordkit.
-It contains [features](#Feature-sets), [feature extractors](#Feature-Extraction), and [transformers](#Transformers).
+It contains [features](#feature-sets), [feature extractors](#feature-extraction), and [transformers](#transformers).
 
 ## Transformers
 
