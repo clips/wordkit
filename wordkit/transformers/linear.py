@@ -46,7 +46,7 @@ class LinearTransformer(FeatureTransformer):
 
     """
 
-    def __init__(self, features, field, left=True):
+    def __init__(self, features, field=None, left=True):
         """Convert characters to vectors."""
         super().__init__(features, field)
         self.max_word_length = 0

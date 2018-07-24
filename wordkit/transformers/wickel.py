@@ -2,7 +2,6 @@
 import numpy as np
 
 from .base import BaseTransformer
-from random import choices
 from math import ceil
 from itertools import product
 
@@ -45,8 +44,22 @@ class WickelTransformer(BaseTransformer):
         self.n = n
         self.use_padding = use_padding
 
-    def _sub_fit(self, X):
-        """Actual fitting function."""
+    def fit(self, X):
+        """
+        Fit the transformer by finding all grams in the input data.
+
+        Parameters
+        ----------
+        X : dictionary of with 'orthography' as key or list of strings.
+            This is usually the output of a wordkit reader, but can also
+            simply be a list of strings.
+
+        Returns
+        -------
+        self : WickelTransformer
+            The transformer itself.
+
+        """
         if type(X[0]) == dict:
             words = [x[self.field] for x in X]
         else:
@@ -66,26 +79,6 @@ class WickelTransformer(BaseTransformer):
         self.feature_names = set(self.features.keys())
 
         return self
-
-    def fit(self, X):
-        """
-        Fit the transformer by finding all grams in the input data.
-
-        Parameters
-        ----------
-        X : dictionary of with 'orthography' as key or list of strings.
-            This is usually the output of a wordkit reader, but can also
-            simply be a list of strings.
-
-        Returns
-        -------
-        self : WickelTransformer
-            The transformer itself.
-
-        """
-        fit = self._sub_fit(X)
-        self._is_fit = True
-        return fit
 
     def vectorize(self, x):
         """
@@ -168,15 +161,16 @@ class WickelFeatureTransformer(WickelTransformer):
             The transformer itself.
 
         """
-        self._sub_fit(X)
+        super().fit(X)
 
+        # Assign each unit
         feature_matrix = np.zeros((len(self.features), self.num_units))
         feature_values = [list(set(x)) for x in zip(*self.features)]
         num_values = [ceil(len(x) * self.proportion) for x in feature_values]
         for col in range(self.num_units):
             triples = []
             for num, x in zip(num_values, feature_values):
-                triples.append(choices(x, k=num))
+                triples.append(np.random.choice(x, size=num, replace=False))
             all_triples = list(product(*triples))
             for triple in all_triples:
                 try:
@@ -207,5 +201,5 @@ class WickelFeatureTransformer(WickelTransformer):
             A vectorized representation of the input word.
 
         """
-        z = np.sum([self.features[g] for w, g in self._decompose(x)], axis=0)
+        z = np.max([self.features[g] for w, g in self._decompose(x)], axis=0)
         return z

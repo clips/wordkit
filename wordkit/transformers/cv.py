@@ -65,7 +65,7 @@ class CVTransformer(FeatureTransformer):
                  features,
                  grid_structure="CCCVV",
                  left=True,
-                 field='phonology'):
+                 field=None):
         """Put phonemes on a consonant vowel grid."""
         super().__init__(features, field)
         self.grid_structure = grid_structure
