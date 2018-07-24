@@ -3,8 +3,7 @@ import numpy as np
 
 from itertools import chain
 from sklearn.base import TransformerMixin
-from ..feature_extraction.base import BaseExtractor
-from ..feature_extraction.phonology import BasePhonemeExtractor
+from .feature_extraction import BaseExtractor
 
 
 class BaseTransformer(TransformerMixin):
@@ -152,13 +151,13 @@ class FeatureTransformer(BaseTransformer):
         """Fit the transformer."""
         if self.extractor:
             features = self.extractor.extract(X)
-            if not isinstance(self.extractor, BasePhonemeExtractor):
-                self.dlen = max([len(x) for x in features.values()])
-                self.features = {k: np.array(v) for k, v in features.items()}
-            else:
+            if not isinstance(features, dict):
                 c, v = features
                 self.features = ({k: np.array(v) for k, v in c.items()},
                                  {k: np.array(v) for k, v in v.items()})
+            else:
+                self.dlen = max([len(x) for x in features.values()])
+                self.features = {k: np.array(v) for k, v in features.items()}
 
         if isinstance(self.features, tuple):
             for x in self.features:

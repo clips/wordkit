@@ -2,7 +2,7 @@
 import numpy as np
 import re
 
-from .base import FeatureTransformer
+from ..base.transformer import FeatureTransformer
 from itertools import chain
 
 

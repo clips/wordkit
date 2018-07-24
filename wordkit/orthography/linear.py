@@ -1,7 +1,7 @@
 """Transform orthography."""
 import numpy as np
 
-from .base import FeatureTransformer
+from ..base.transformer import FeatureTransformer
 
 
 class LinearTransformer(FeatureTransformer):

@@ -1,4 +1,4 @@
-"""Base class for readers."""
+"""Base class for corpus readers."""
 import os
 import regex as re
 import numpy as np
@@ -85,7 +85,7 @@ def segment_phonology(phonemes, items=diacritics, to_keep=diacritics):
 
 class Reader(TransformerMixin):
     """
-    Base class for corpus readers.
+    Base class for corpora readers.
 
     In Wordkit, a corpus reader is intended for reading structured corpora,
     e.g. Celex, which contain extra information associated with words.
