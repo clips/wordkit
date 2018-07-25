@@ -7,7 +7,7 @@ from itertools import chain
 from collections import Counter
 
 
-class OneHotSemantics(BaseTransformer):
+class OneHotSemanticsTransformer(BaseTransformer):
     """
     Code each semantic node as a separate symbol.
 
@@ -71,7 +71,7 @@ class OneHotSemantics(BaseTransformer):
         return s
 
 
-class HypernymSemantics(BaseTransformer):
+class HypernymSemanticsTransformer(BaseTransformer):
     """
     Create semantic vectors by one-hot encoding meronym relations.
 
