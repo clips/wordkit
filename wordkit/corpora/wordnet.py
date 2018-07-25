@@ -16,15 +16,12 @@ class WordNet(Reader):
     If you use any of these, make sure to cite the appropriate source, as well
     as the official WordNet reference:
 
-    @article{miller1995wordnet,
-      title={WordNet: a lexical database for English},
-      author={Miller, George A},
-      journal={Communications of the ACM},
-      volume={38},
-      number={11},
-      pages={39--41},
-      year={1995},
-      publisher={ACM}
+    @book{_Fellbaum:1998,
+      booktitle =	 "{WordNet}: An Electronic Lexical Database",
+      address =	 "Cambridge, MA",
+      editor =	 "Fellbaum, Christiane",
+      publisher =	 "MIT Press",
+      year =	 1998,
     }
 
     Parameters
