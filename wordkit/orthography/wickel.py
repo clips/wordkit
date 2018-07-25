@@ -3,7 +3,7 @@ import numpy as np
 
 from ..base.transformer import BaseTransformer
 from math import ceil
-from itertools import product
+from itertools import product, chain
 
 
 class WickelTransformer(BaseTransformer):
@@ -62,6 +62,7 @@ class WickelTransformer(BaseTransformer):
         """
         super().fit(X)
         X = self._unpack(X)
+        self.feature_names = set(chain.from_iterable(X))
         grams = set()
         for x in X:
             g = list(zip(*self._decompose(x)))
@@ -74,8 +75,6 @@ class WickelTransformer(BaseTransformer):
         self.features = {g: idx for idx, g in enumerate(grams)}
         # The vector length is equal to the number of features.
         self.vec_len = len(self.features)
-        self.feature_names = set(self.features.keys())
-        self._check(X)
         self._is_fit = True
 
         return self
@@ -99,8 +98,12 @@ class WickelTransformer(BaseTransformer):
         """
         z = np.zeros(self.vec_len)
         for w, g in self._decompose(x):
-
-            idx = self.features[g]
+            try:
+                idx = self.features[g]
+            except KeyError:
+                raise ValueError("You passed a word containing an ngram which"
+                                 " was not in the training data: {}"
+                                 "".format(g))
             z[idx] = max(z[idx], w)
 
         return z
