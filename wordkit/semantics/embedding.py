@@ -52,7 +52,7 @@ class EmbeddingTransformer(BaseTransformer):
         """
         super().fit(X)
         X = self._unpack(X)
-        mtr, words = Reach._load(self.path, X, None, None)
+        mtr, words = Reach._load(self.path, X)
         self.features = {k: v for k, v in zip(words, mtr)}
         self.vec_len = mtr.shape[1]
         self.feature_names = set(self.features.keys())

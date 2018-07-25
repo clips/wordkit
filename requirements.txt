@@ -1,8 +1,8 @@
 ipapy==0.0.8.0
-nltk==3.2.4
 numpy==1.12.1
-setuptools==39.0.1
 pandas==0.20.3
+nltk==3.2.4
 regex==2017.11.9
-reach==2.2.0
+setuptools==39.0.1
+reach==2.3.0
 scikit_learn==0.19.2
