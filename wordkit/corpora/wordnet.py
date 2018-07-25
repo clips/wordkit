@@ -1,5 +1,6 @@
 """Read semantic information from multilingual wordnets."""
 from .base import Reader
+from collections import defaultdict
 
 
 FIELD_IDS = {"semantics": 0, "orthography": 2, "language": -1}
@@ -14,15 +15,21 @@ class WordNet(Reader):
 
     """
 
-    def __init__(self, path, language, fields=("orthography",
-                                               "semantics",
-                                               "language")):
+    def __init__(self,
+                 path,
+                 language,
+                 restrict_pos=None,
+                 fields=("orthography",
+                         "semantics",
+                         "language")):
         """Get semantic information."""
         super().__init__(path,
                          fields=fields,
                          field_ids=FIELD_IDS,
                          language=language,
                          merge_duplicates=True)
+
+        self.restrict_pos = restrict_pos
 
     def _retrieve(self, iterable, wordlist=None, **kwargs):
         """
@@ -42,7 +49,6 @@ class WordNet(Reader):
             input list, as words can be expressed in multiple ways.
 
         """
-        use_o = 'orthography' in self.fields
         use_s = 'semantics' in self.fields
 
         if wordlist:
@@ -50,21 +56,29 @@ class WordNet(Reader):
 
         words_added = set()
 
+        words = defaultdict(list)
+
         # path to phonology part of the CELEX database
         for line in iterable:
+
+            if line.startswith("#"):
+                continue
 
             line = line.strip()
             columns = line.split('\t')
             orthography = columns[self.field_ids['orthography']].lower()
 
-            word = {}
-
             if wordlist and orthography not in wordlist:
                 continue
             words_added.add(orthography)
-            if use_o:
-                word['orthography'] = orthography
             if use_s:
-                word['semantics'] = columns[self.field_ids['semantics']]
+                offset, pos = columns[self.field_ids['semantics']].split("-")
+                offset = int(offset)
+                if self.restrict_pos is not None:
+                    if pos in self.restrict_pos:
+                        words[orthography].append((offset, pos))
+                else:
+                    words[orthography].append((offset, pos))
 
-            yield word
+        for k, v in words.items():
+            yield {'orthography': k, 'semantics': tuple(v)}
