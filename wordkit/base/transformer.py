@@ -39,9 +39,6 @@ class BaseTransformer(TransformerMixin):
             An input dataset.
 
         """
-        if isinstance(X[0], tuple) and isinstance(X[0][0], tuple):
-            X = [list(chain.from_iterable(x)) for x in X]
-
         feats = set(chain.from_iterable(X))
         overlap = feats.difference(self.feature_names)
         if overlap:
@@ -88,16 +85,16 @@ class BaseTransformer(TransformerMixin):
         """
         if not self._is_fit:
             raise ValueError("The transformer has not been fit yet.")
-        total = np.zeros((len(X), self.vec_len))
-
         X = self._unpack(X)
         self._validate(X)
+
+        total = []
 
         for idx, word in enumerate(X):
             x = self.vectorize(word)
             # This ensures that transformers which return sequences of
             # differing lengths still return non-jagged arrays.
-            total[idx, :len(x)] = x
+            total.append(x)
 
         return np.array(total)
 
