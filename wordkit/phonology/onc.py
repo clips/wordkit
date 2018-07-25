@@ -99,6 +99,26 @@ class ONCTransformer(FeatureTransformer):
                 idx += self.vowel_length
                 idx_2 += len(self.vowel2idx)
 
+    def _validate(self, X):
+        """
+        Check whether an input dataset contains illegal features.
+
+        Calculate the difference of the keys of the feature dict and x.
+        Raises a ValueError if the result is non-empty.
+
+        Parameters
+        ----------
+        X : list of strings or list of dicts.
+            An input dataset.
+
+        """
+        # Weird transform because of the nesting in syllables.
+        feats = set(chain.from_iterable([chain.from_iterable(x) for x in X]))
+        overlap = feats.difference(self.feature_names)
+        if overlap:
+            raise ValueError("The sequence contained illegal features: {0}"
+                             .format(overlap))
+
     def fit(self, X):
         """
         Calculate the best Onset Nucleus Coda grid given X.
