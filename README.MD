@@ -39,6 +39,7 @@ Feel free to click ahead to find descriptions of the contents of subpackages.
 
 * [orthography](wordkit/orthography)
 * [phonology](wordkit/phonology)
+* [semantics](wordkit/semantics)
 * [corpora](wordkit/corpora)
 * [samplers](wordkit/samplers)
 
@@ -136,6 +137,18 @@ Languages:  Dutch, American English, Greek
             Spanish
 ```
 
+#### Wordnet
+
+We support all the tab-separated formats of the open multilingual WordNet.
+If you use any of these WordNets, please cite the appropriate source, as well as the official WordNet reference.
+
+[Link](http://compling.hss.ntu.edu.sg/omw/)
+
+```
+Fields: Orthography, Semantics
+Languages: lots
+```
+
 ## Example
 
 ```python
@@ -226,6 +239,8 @@ The code for replicating the experiments in the `wordkit` paper can be found [he
 - numpy
 - regex
 - pandas (for some of the corpus readers)
+- reach (for the semantics)
+- nltk (for wordnet-related semantics)
 
 
 ## Contributors

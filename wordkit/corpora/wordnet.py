@@ -13,6 +13,38 @@ class WordNet(Reader):
     This reader can handle the TAB-files format from the following link:
     http://compling.hss.ntu.edu.sg/omw/
 
+    If you use any of these, make sure to cite the appropriate source, as well
+    as the official WordNet reference:
+
+    @article{miller1995wordnet,
+      title={WordNet: a lexical database for English},
+      author={Miller, George A},
+      journal={Communications of the ACM},
+      volume={38},
+      number={11},
+      pages={39--41},
+      year={1995},
+      publisher={ACM}
+    }
+
+    Parameters
+    ----------
+    path : str
+        The path to the corpus.
+
+    language : str
+        The language of the corpus. This is not checked, so make sure that you
+        put the appropriate language here.
+
+    restrict_pos : list or None, default None
+        If this is set to None, synsets of all Parts of Speech are accepted.
+        If the list is non-empty, only synsets with parts of speech in the list
+        are retrieved.
+        The possible parts of speech in wordnet are {'n', 'a', 'v', 's'}.
+
+    fields : tuple
+        The fields to retrieve.
+
     """
 
     def __init__(self,

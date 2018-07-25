@@ -11,7 +11,10 @@ class OneHotSemantics(BaseTransformer):
     """
     Code each semantic node as a separate symbol.
 
-    The simplest semantic representation, assumes no overlap between semantics.
+    The simplest semantic representation, assumes no overlap between different
+    semantic nodes.
+    Nevertheless, lemmas can get quite sensible representations because of
+    varying amounts of overlap between their linked synsets.
 
     Parameters
     ----------
@@ -22,6 +25,7 @@ class OneHotSemantics(BaseTransformer):
         If this is set to True, semantic nodes which occur only once will be
         removed. This will also skip the validation step, and may lead to
         errors if any synsets are added.
+
     """
 
     def __init__(self, field=None, prune=True):
@@ -73,6 +77,11 @@ class HypernymSemantics(BaseTransformer):
 
     This is an implementation of the semantics approach from the
     Triangle model.
+    For each word, it starts at the synset to which this word belongs, and
+    moves up in the wordnet hierarchy, adding the parent nodes to the
+    representation of that word at each step.
+    The representation can also include meronyms, which possibly makes it more
+    general.
 
     If you use it, please cite:
     @techreport{harm2002building,
@@ -83,7 +92,20 @@ class HypernymSemantics(BaseTransformer):
       institution={Technical Report PDP-CNS-02-1, Carnegie Mellon University}
     }
 
+    Note that this transformer differs from the other transformers because it
+    is only able to represent exactly the data on which it is fit. Trying to
+    transform new words leads to errors.
 
+    Parameters
+    ----------
+    field : str or None
+        The field to retrieve.
+
+    use_meronyms : bool
+        Whether to also retrieve meronyms. Retrieving meronyms causes words to
+        have more links to each other, as words which are not hypernyms can
+        still share meronyms. This does have the effect of blowing up the
+        dimensionality of the space.
 
     """
 
