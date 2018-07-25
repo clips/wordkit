@@ -3,7 +3,7 @@
 This module contains the semantics parts of the wordkit package.
 It currently contains several transformers for use with semantic data.
 
-Note that we currently only supply semantic data in the form of WordNet data (through the [WordNet Reader](../../#wordnet)).
+Note that we currently only supply semantic data in the form of WordNet data (through the Wordnet Reader).
 We also support word embeddings through [reach](www.github.com/stephantul/reach)
 
 ## Transformers
