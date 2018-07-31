@@ -1,5 +1,6 @@
 """Tools for working with CMUDICT."""
 from .base import Reader
+import pandas as pd
 
 
 CMU_2IPA = {'AO': 'ɔ',
@@ -141,48 +142,23 @@ class CMU(Reader):
                          {'orthography': 0,
                           'phonology': 1},
                          language="eng",
-                         merge_duplicates=merge_duplicates)
+                         merge_duplicates=merge_duplicates,
+                         scale_frequencies=False)
+        self.data = self._open()
 
-    def _retrieve(self, iterable, wordlist=None, **kwargs):
-        """
-        Extract sequences of phonemes for each word from the CMUDICT database.
+    def _open(self, **kwargs):
+        """Open a file for reading."""
+        fields, indices = zip(*self.fields.items())
 
-        Parameters
-        ----------
-        wordlist : list of strings or None.
-            The list of words to be extracted from the corpus.
-            If this is None, all words are extracted.
+        df = []
+        for line in open(self.path):
+            line = line.split("#")[0]
+            word, *rest = line.strip().split()
+            df.append({"orthography": word, "phonology": rest})
+        df = pd.DataFrame(df)
+        return self._preprocess(df)
 
-        Returns
-        -------
-        words : list of dictionaries
-            Each entry in the dictionary represents the structured information
-            associated with each word. This list need not be the length of the
-            input list, as words can be expressed in multiple ways.
-
-        """
-        use_p = 'phonology' in self.fields
-
-        wordlist = set([x.lower() for x in wordlist])
-        words_added = set()
-
-        for line in iterable:
-
-            line = line.strip()
-            columns = line.split()
-            columns = columns[0], columns[1:]
-            orthography = columns[self.field_ids['orthography']].lower()
-
-            word = {}
-
-            if wordlist and orthography not in wordlist:
-                continue
-            words_added.add(orthography)
-            word['orthography'] = orthography
-            if use_p:
-                syll = cmu_to_ipa(columns[self.field_ids['phonology']])
-                word['phonology'] = syll
-            if 'language' in self.fields:
-                word['language'] = self.language
-
-            yield word
+    def _process_phonology(self, string):
+        """Process phonology."""
+        syll = cmu_to_ipa(string)
+        return syll

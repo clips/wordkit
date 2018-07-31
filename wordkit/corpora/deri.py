@@ -305,8 +305,6 @@ ALLOWED_LANGUAGES = {'fas',
                      'tpw',
                      'ara'}
 
-language2field = {'orthography': 2, 'phonology': 3, 'language': 0}
-
 
 class Deri(Reader):
     r"""
@@ -361,75 +359,31 @@ class Deri(Reader):
                  fields=("orthography", "phonology"),
                  language=None,
                  merge_duplicates=True,
-                 diacritics=diacritics):
+                 diacritics=diacritics,
+                 scale_frequencies=True):
         """Extract words from Deri and Knight corpora."""
         super().__init__(path,
                          fields,
-                         language2field,
+                         {'orthography': 2,
+                          'phonology': 3,
+                          'language': 0},
                          language,
                          merge_duplicates,
-                         diacritics=diacritics)
+                         diacritics=diacritics,
+                         scale_frequencies=scale_frequencies)
 
         if language is not None and language not in ALLOWED_LANGUAGES:
             raise ValueError("The language you supplied is not in the list "
                              "of allowed languages for this corpus.")
         self.matcher = re.compile(r"([:/]|rhymes)")
+        self.data = self._open(header=None, sep="\t")
 
-    def _retrieve(self, iterable, wordlist=None, **kwargs):
-        """
-        Extract sequences of phonemes for each word from the databases.
-
-        Parameters
-        ----------
-        wordlist : list of strings or None.
-            The list of words to be extracted from the corpus.
-            If this is None, all words are extracted.
-
-        Returns
-        -------
-        words : list of dictionaries
-            Each entry in the dictionary represents the structured information
-            associated with each word. This list need not be the length of the
-            input list, as words can be expressed in multiple ways.
-
-        """
-        use_p = 'phonology' in self.fields
-
-        wordlist = set([x.lower() for x in wordlist])
-        words_added = set()
-
-        for line in iterable:
-
-            line = line.strip()
-            columns = line.split("\t")
-            if self.language is not None and columns[0] not in self.language:
-                continue
-            orthography = columns[self.field_ids['orthography']].lower()
-
-            word = {}
-
-            if wordlist and orthography not in wordlist:
-                continue
-            m = self.matcher.finditer(orthography)
-            try:
-                next(m)
-                continue
-            except StopIteration:
-                pass
-            words_added.add(orthography)
-            word['orthography'] = "_".join(orthography.split())
-            if use_p:
-                syll = columns[self.field_ids['phonology']].split()
-                syll = "".join(syll)
-                try:
-                    syll = "".join([str(x)
-                                    for x in IPAString(unicode_string=syll)])
-                except ValueError:
-                    pass
-
-                word['phonology'] = segment_phonology(syll,
-                                                      to_keep=self.diacritics)
-            if 'language' in self.fields:
-                word['language'] = columns[self.field_ids['language']]
-
-            yield word
+    def _process_phonology(self, string):
+        """Process phonology."""
+        syll = "".join(string.split())
+        try:
+            syll = "".join([str(x)
+                            for x in IPAString(unicode_string=syll)])
+            return segment_phonology(syll, to_keep=self.diacritics)
+        except ValueError:
+            return None

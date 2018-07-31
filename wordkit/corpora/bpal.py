@@ -102,75 +102,36 @@ class BPal(Reader):
 
     def __init__(self,
                  path,
-                 fields=("orthography", "syllables", "language", "phonology"),
-                 language=None,
-                 merge_duplicates=True):
+                 fields=("orthography", "syllables", "phonology"),
+                 merge_duplicates=True,
+                 scale_frequencies=True):
         """Initialize the BPAL reader."""
+        allowed_fields = {"orthography": 0,
+                          "syllables": 1,
+                          "phonology": 1}
+
         super().__init__(path,
                          fields,
-                         {"orthography": 0,
-                          "syllables": 1,
-                          "language": None,
-                          "phonology": 1},
-                         "esp",
-                         merge_duplicates,
-                         diacritics=diacritics)
+                         allowed_fields,
+                         language="esp",
+                         merge_duplicates=merge_duplicates,
+                         diacritics=diacritics,
+                         scale_frequencies=scale_frequencies)
+        self.data = self._open(sep="\t",
+                               encoding="latin-1",
+                               quote=0,
+                               header=None)
 
-    def _open(self):
-        """Open a file for reading."""
-        return open(self.path, encoding="latin-1")
+    def _process_syllable(self, string):
+        """Process a CELEX syllable string."""
+        string = string.split("-")
+        string = tuple(bpal_to_ipa(string))
 
-    def _retrieve(self, iterable, wordlist, *args, **kwargs):
-        """
-        Extract word information from the BPAL database.
+        return tuple(string)
 
-        Parameters
-        ----------
-        wordlist : list of strings or None.
-            The list of words to be extracted from the corpus.
-            If this is None, all words are extracted.
+    def _process_phonology(self, string):
+        """Process a CELEX phonology string."""
+        string = string.split("-")
+        string = tuple(bpal_to_ipa(string))
 
-        Returns
-        -------
-        words : list of dictionaries
-            Each entry in the dictionary represents the structured information
-            associated with each word. This list need not be the length of the
-            input list, as words can be expressed in multiple ways.
-
-        """
-        use_syll = "syllables" in self.fields
-        use_phon = "phonology" in self.fields
-        use_ortho = "orthography" in self.fields
-
-        wordlist = set(wordlist)
-
-        for line in iterable:
-
-            columns = line.strip().split("\t")
-            if len(columns) == 1:
-                continue
-
-            word = {}
-            w = columns[self.field_ids['orthography']]
-
-            if wordlist and w not in wordlist:
-                continue
-
-            if use_ortho:
-                word['orthography'] = w
-
-            if use_syll or use_phon:
-                try:
-                    syll = columns[self.field_ids['syllables']]
-                except KeyError:
-                    syll = columns[self.field_ids['phonology']]
-
-                syll = syll.split("-")
-                syll = tuple(bpal_to_ipa(syll))
-
-                if use_syll:
-                    word['syllables'] = tuple(syll)
-                if use_phon:
-                    word['phonology'] = tuple(chain.from_iterable(syll))
-
-            yield word
+        return tuple(chain.from_iterable(string))

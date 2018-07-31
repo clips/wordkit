@@ -6,6 +6,7 @@ import os
 from .base import Reader, segment_phonology
 from itertools import chain
 from copy import copy
+from csv import QUOTE_NONE
 
 remove_double = re.compile(r"ː+")
 
@@ -19,37 +20,21 @@ AUTO_LANGUAGE = {"epl.cd": "eng",
                  "dpw.cd": "nld",
                  "gpw.cd": "deu"}
 
-# MAX_FREQ has different content depending on whether we are using lemmas
-# or words, so we index the MAX_FREQ dictionary using both the language
-# and whether we are using lemmas.
-MAX_FREQ = {('eng', True): 18632568,
-            ('eng', False): 18740716,
-            ('nld', True): 40370584,
-            ('nld', False): 40181484,
-            ('deu', True): 5054170,
-            ('deu', False): 1000000}
-
-# MAX_FREQ is scaled to 1M, which scales the corpus to 1M words.
-MAX_FREQ = {k: v / 1000000 for k, v in MAX_FREQ.items()}
-
 language2field = {'eng': {'orthography': 1,
                           'phonology': 7,
                           'frequency': 2,
                           'syllables': 7,
-                          'language': None,
-                          'log_frequency': None},
+                          'log_frequency': 2},
                   'nld': {'orthography': 1,
                           'phonology': 5,
                           'frequency': 2,
                           'syllables': 5,
-                          'language': None,
-                          'log_frequency': None},
+                          'log_frequency': 2},
                   'deu': {'orthography': 1,
                           'phonology': 4,
                           'frequency': 2,
                           'syllables': 4,
-                          'language': None,
-                          'log_frequency': None}}
+                          'log_frequency': 2}}
 
 CELEX_2IPA = {"O~": "ɒ̃",
               "A~": "ɒ",
@@ -151,6 +136,7 @@ class Celex(Reader):
                  fields=("orthography", "syllables", "frequency", "language"),
                  language=None,
                  merge_duplicates=True,
+                 scale_frequencies=True,
                  lemmas=None):
         """Extract structured information from CELEX."""
         if not os.path.exists(path):
@@ -161,6 +147,14 @@ class Celex(Reader):
             except KeyError:
                 raise ValueError("You passed None to language, but we failed "
                                  "to determine the language automatically.")
+        else:
+            try:
+                if AUTO_LANGUAGE[os.path.split(path)[1]] != language:
+                    raise ValueError("Your language is {}, but your filename "
+                                     "belongs to another language."
+                                     "".format(language))
+            except KeyError:
+                pass
 
         if lemmas is None:
             if path.endswith("l.cd"):
@@ -176,83 +170,32 @@ class Celex(Reader):
         if not self.lemmas:
             p['phonology'] += 1
             p['syllables'] += 1
-
-        super().__init__(path,
-                         fields,
-                         p,
-                         language,
-                         merge_duplicates,
-                         frequency_divider=MAX_FREQ[(language, self.lemmas)])
+        fields = {k: v for k, v in p.items() if k in fields}
 
         self.replace = re.compile(r"(,|r\*)")
         self.braces = re.compile(r"[\[\]]+")
         self.double_braces = re.compile(r"(\[[^\]]+?)\[(.+?)\]([^\[])")
 
-    def _retrieve(self, iterable, wordlist=None, **kwargs):
-        """
-        Extract word information from the CELEX database.
+        super().__init__(path,
+                         fields,
+                         language2field[language],
+                         language,
+                         merge_duplicates,
+                         scale_frequencies)
+        self.data = self._open(sep="\\", quote=QUOTE_NONE, header=None)
 
-        Parameters
-        ----------
-        wordlist : list of strings or None.
-            The list of words to be extracted from the corpus.
-            If this is None, all words are extracted.
+    def _process_syllable(self, string):
+        """Process a CELEX syllable string."""
+        syll = self.double_braces.sub("\g<1>\g<2>][\g<2>\g<3>",
+                                      string)
+        syll = [self.replace.sub("", x)
+                for x in self.braces.split(syll) if x]
+        syll = [segment_phonology(x) for x in celex_to_ipa(syll)]
+        return tuple(syll)
 
-        Returns
-        -------
-        words : list of dictionaries
-            Each entry in the dictionary represents the structured information
-            associated with each word. This list need not be the length of the
-            input list, as words can be expressed in multiple ways.
-
-        """
-        use_o = 'orthography' in self.fields
-        use_p = 'phonology' in self.fields
-        use_syll = 'syllables' in self.fields
-        use_freq = 'frequency' in self.fields
-        use_log_freq = 'log_frequency' in self.fields
-
-        if wordlist:
-            wordlist = set([x.lower() for x in wordlist])
-
-        words_added = set()
-
-        # path to phonology part of the CELEX database
-        for line in iterable:
-
-            line = line.strip()
-            columns = line.split('\\')
-            orthography = columns[self.field_ids['orthography']].lower()
-
-            word = {}
-
-            if wordlist and orthography not in wordlist:
-                continue
-            words_added.add(orthography)
-            if use_o:
-                word['orthography'] = orthography
-            if use_p or use_syll:
-                try:
-                    syll = columns[self.field_ids['phonology']]
-                except KeyError:
-                    syll = columns[self.field_ids['syllables']]
-                if not syll:
-                    continue
-                phon = syll
-                if use_syll:
-                    syll = self.double_braces.sub("\g<1>\g<2>][\g<2>\g<3>",
-                                                  syll)
-                    syll = [self.replace.sub("", x)
-                            for x in self.braces.split(syll) if x]
-                    syll = [segment_phonology(x) for x in celex_to_ipa(syll)]
-                    word['syllables'] = tuple(syll)
-                if use_p:
-                    phon = [self.replace.sub("", x)
-                            for x in self.braces.split(phon) if x]
-                    phon = [segment_phonology(x) for x in celex_to_ipa(phon)]
-                    word['phonology'] = tuple(chain.from_iterable(phon))
-            if use_freq or use_log_freq:
-                word['frequency'] = int(columns[self.field_ids['frequency']])
-                word['frequency'] += 1
-
-            yield word
+    def _process_phonology(self, string):
+        """Process a CELEX phonology string."""
+        phon = [self.replace.sub("", x)
+                for x in self.braces.split(string) if x]
+        phon = [segment_phonology(x) for x in celex_to_ipa(phon)]
+        return tuple(chain.from_iterable(phon))
