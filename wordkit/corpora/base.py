@@ -6,6 +6,7 @@ import pandas as pd
 
 from sklearn.base import TransformerMixin
 from collections import defaultdict
+from itertools import chain
 
 
 remove_double = re.compile(r"(ː)(\1){1,}")
@@ -161,7 +162,7 @@ class Reader(TransformerMixin):
         comment = kwargs.get('comment', None)
 
         extension = os.path.splitext(self.path)[-1]
-        if extension in {"xls", "xlsx"}:
+        if extension in {".xls", ".xlsx"}:
             df = pd.read_excel(self.path)
         else:
             fields, indices = zip(*self.fields.items())
@@ -186,11 +187,13 @@ class Reader(TransformerMixin):
         inverted = {k: v for k, v in inverted.items() if len(v) > 1}
 
         df = df.rename(columns=dict(zip(indices, fields)))
+
         for v in inverted.values():
             in_df = v & set(df.columns)
             in_df_name = list(in_df)[0]
             for field in v - in_df:
                 df = df.assign(**{field: df[in_df_name]})
+        df = df.loc[:, fields]
 
         if 'language' in self.fields and self.language:
             df = df[df['language'] == self.language].copy()
@@ -198,6 +201,7 @@ class Reader(TransformerMixin):
             df['language'] = self.language
 
         if 'orthography' in self.fields:
+            df['orthography'] = df['orthography'].astype(str)
             df['orthography'] = df.apply(lambda x: x['orthography'].lower(),
                                          axis=1)
         if 'phonology' in self.fields:
@@ -212,15 +216,19 @@ class Reader(TransformerMixin):
             df['semantics'] = df.apply(lambda x:
                                        self._process_semantics(x['semantics']),
                                        axis=1)
-
-            g = df.groupby('orthography')['semantics']
-            df['semantics'] = g.transform('sum')
+            # This might return NaNs
+            df = df.dropna()
+            other_fields = tuple(set(df.columns) - {'semantics'})
+            g = df.groupby(other_fields)
+            df['semantics'] = g['semantics'].transform("sum")
             df = df.drop_duplicates().copy()
 
         use_log = 'log_frequency' in self.fields
         use_freq = 'frequency' in self.fields
 
         df = df.dropna()
+        if df.empty:
+            raise ValueError("All your rows contained at least one NaN.")
 
         if self.merge_duplicates and any([use_log, use_freq]):
             ungroupable = {'frequency', 'log_frequency'}
@@ -230,15 +238,18 @@ class Reader(TransformerMixin):
                 df.loc[:, ('frequency',)] = g.transform('sum')
             if use_log:
                 g = df.groupby(cols_to_group)['log_frequency']
-                df.loc[:, ('log_frequency',)] = np.log10(g.transform('sum')+1)
+                df.loc[:, ('log_frequency',)] = g.transform('sum')
             df = df.drop_duplicates().copy()
 
-        if use_freq:
+        if use_freq and self.scale_frequencies:
             total_freq = np.sum(df.frequency) / 1000000
             df.loc[:, ('frequency',)] /= total_freq
+
         if use_log:
-            total_log_freq = np.sum(df.log_frequency) / 6
-            df.loc[:, ('log_frequency',)] /= total_log_freq
+            df.loc[:, ('log_frequency',)] = np.log10(df['log_frequency'] + 1)
+            if self.scale_frequencies:
+                total_log_freq = np.sum(df.log_frequency) / 1000
+                df.loc[:, ('log_frequency',)] /= total_log_freq
 
         return df
 

@@ -65,4 +65,4 @@ class WordNet(Reader):
         if self.restrict_pos and pos not in self.restrict_pos:
             return None
         else:
-            return (offset, pos)
+            return ((offset, pos),)
