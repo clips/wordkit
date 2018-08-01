@@ -1,11 +1,15 @@
 """Corpus readers for Subtlex."""
 from .base import Reader
 
-field_ids = {"orthography": 0, "frequency": 1, "log_frequency": None}
+field_ids = {"orthography": 0, "frequency": 1, "log_frequency": 1}
 # Currently redundant, but useful for future-proofing.
 language2field = {"eng-uk": field_ids,
-                  "eng-us": field_ids,
-                  "nld": field_ids,
+                  "eng-us": {"orthography": "Word",
+                             "frequency": "FREQcount",
+                             "log_frequency": "FREQcount"},
+                  "nld": {"orthography": "Word",
+                          "frequency": "FREQcount",
+                          "log_frequency": "FREQcount"},
                   "esp": field_ids,
                   "deu": field_ids,
                   "chi": field_ids}
@@ -50,7 +54,8 @@ class Subtlex(Reader):
                  path,
                  fields=("orthography", "frequency", "log_frequency"),
                  language="eng-uk",
-                 merge_duplicates=True):
+                 merge_duplicates=True,
+                 scale_frequencies=True):
         """Initialize the subtlex reader."""
         if language not in ALLOWED_LANGUAGES:
             raise ValueError("Your language {}, was not in the set of "
@@ -62,4 +67,6 @@ class Subtlex(Reader):
                          language2field[language],
                          language,
                          merge_duplicates=merge_duplicates,
-                         diacritics=None)
+                         diacritics=None,
+                         scale_frequencies=scale_frequencies)
+        self.data = self._open(sep="\t")
