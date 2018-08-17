@@ -3,7 +3,9 @@ from .base import Reader
 
 field_ids = {"orthography": 0, "frequency": 1, "log_frequency": 1}
 # Currently redundant, but useful for future-proofing.
-language2field = {"eng-uk": field_ids,
+language2field = {"eng-uk": {"orthography": "Spelling",
+                             "frequency": "FreqCount",
+                             "log_frequency": "FreqCount"},
                   "eng-us": {"orthography": "Word",
                              "frequency": "FREQcount",
                              "log_frequency": "FREQcount"},
