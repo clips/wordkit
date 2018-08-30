@@ -178,7 +178,7 @@ class Celex(Reader):
 
         super().__init__(path,
                          fields,
-                         language2field[language],
+                         p,
                          language,
                          merge_duplicates,
                          scale_frequencies)
