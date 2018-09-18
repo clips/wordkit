@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Setup file."""
-
 from setuptools import setup
 from setuptools import find_packages
 
