@@ -9,7 +9,7 @@ If you use `wordkit` in your research, please cite the following paper:
 
 ```
 @InProceedings{TULKENS18.249,
-  author = {Stephan Tulkens ,Dominiek Sandra and Walter Daelemans},
+  author = {Tulkens, Stéphan and Sandra, Dominiek and Daelemans, Walter},
   title = {WordKit: a Python Package for Orthographic and Phonological Featurization},
   booktitle = {Proceedings of the Eleventh International Conference on Language Resources and Evaluation (LREC 2018)},
   year = {2018},

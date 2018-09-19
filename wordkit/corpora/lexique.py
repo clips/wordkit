@@ -2,8 +2,6 @@
 from .base import Reader, segment_phonology, diacritics
 from itertools import chain
 
-max_freq = 1963616 / 1000000
-
 
 LEXIQUE_2IPA = {'°': 'ə',
                 'a': 'a',
@@ -85,83 +83,32 @@ class Lexique(Reader):
                  fields=('orthography', 'phonology', 'frequency'),
                  language=None,
                  merge_duplicates=True,
-                 diacritics=diacritics):
+                 diacritics=diacritics,
+                 scale_frequencies=True):
         """Initialize the reader."""
         super().__init__(path,
                          fields,
-                         {"orthography": 0,
-                          "phonology": 22,
-                          "frequency": [8, 9],
-                          "syllables": 22,
-                          "log_frequency": None},
+                         {"orthography": "1_ortho",
+                          "phonology": "23_syll",
+                          "frequency": "10_freqlivres",
+                          "syllables": "23_syll",
+                          "log_frequency": "10_freqlivres"},
                          "fra",
                          merge_duplicates,
-                         frequency_divider=max_freq,
-                         diacritics=diacritics)
+                         diacritics=diacritics,
+                         scale_frequencies=scale_frequencies)
+        self.data = self._open(sep="\t")
 
-    def _retrieve(self, iterable, wordlist, **kwargs):
-        """
-        Extract word information for each word from the databases.
+    def _process_phonology(self, string):
+        """Process phonology."""
+        string = string.split("-")
+        string = tuple(lexique_to_ipa(string))
+        string = [segment_phonology(x) for x in string]
+        return tuple(chain.from_iterable(string))
 
-        Parameters
-        ----------
-        wordlist : list of strings or None.
-            The list of words to be extracted from the corpus.
-            If this is None, all words are extracted.
-
-        Returns
-        -------
-        words : list of dictionaries
-            Each entry in the dictionary represents the structured information
-            associated with each word. This list need not be the length of the
-            input list, as words can be expressed in multiple ways.
-
-        """
-        # skip header
-        next(iterable)
-
-        use_o = 'orthography' in self.fields
-        use_p = 'phonology' in self.fields
-        use_syll = 'syllables' in self.fields
-        use_freq = 'frequency' in self.fields
-        use_log_freq = 'log_frequency' in self.fields
-
-        if wordlist:
-            wordlist = set([x.lower() for x in wordlist])
-
-        words_added = set()
-
-        for idx, line in enumerate(iterable):
-            columns = line.strip().split("\t")
-            orthography = columns[self.field_ids['orthography']].lower()
-
-            word = {}
-
-            if wordlist and orthography not in wordlist:
-                continue
-            words_added.add(orthography)
-            if use_o:
-                word['orthography'] = orthography
-            if use_p or use_syll:
-                try:
-                    syll = columns[self.field_ids['phonology']]
-                except KeyError:
-                    try:
-                        syll = columns[self.field_ids['syllables']]
-                    except IndexError:
-                        print(columns, len(columns), idx)
-
-                if use_syll or use_p:
-                    syll = syll.split("-")
-                    syll = tuple(lexique_to_ipa(syll))
-                    syll = [segment_phonology(x) for x in syll]
-                    if use_p:
-                        word['phonology'] = tuple(chain.from_iterable(syll))
-                    if use_syll:
-                        word['syllables'] = tuple(syll)
-            if use_freq or use_log_freq:
-                freq = sum([float(columns[x])
-                            for x in self.field_ids["frequency"]])
-                word['frequency'] = freq
-
-            yield word
+    def _process_syllable(self, string):
+        """Process syllables."""
+        string = string.split("-")
+        string = tuple(lexique_to_ipa(string))
+        string = [segment_phonology(x) for x in string]
+        return tuple(string)
