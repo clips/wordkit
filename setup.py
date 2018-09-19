@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 """Setup file."""
-
 from setuptools import setup
 from setuptools import find_packages
 
 
 setup(name='wordkit',
-      version='2.0.0',
+      version='2.0.1',
       description='Word featurization',
       author='Stéphan Tulkens',
       author_email='stephan.tulkens@uantwerpen.be',

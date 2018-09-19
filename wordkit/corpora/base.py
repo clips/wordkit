@@ -6,7 +6,6 @@ import pandas as pd
 
 from sklearn.base import TransformerMixin
 from collections import defaultdict
-from itertools import chain
 
 
 remove_double = re.compile(r"(ː)(\1){1,}")
@@ -220,7 +219,8 @@ class Reader(TransformerMixin):
             df = df.dropna()
             other_fields = tuple(set(df.columns) - {'semantics'})
             g = df.groupby(other_fields)
-            df['semantics'] = g['semantics'].transform("sum")
+
+            df['semantics'] = g['semantics'].transform(np.sum)
             df = df.drop_duplicates().copy()
 
         use_log = 'log_frequency' in self.fields
@@ -235,10 +235,10 @@ class Reader(TransformerMixin):
             cols_to_group = list(set(df.columns) - ungroupable)
             if use_freq:
                 g = df.groupby(cols_to_group)['frequency']
-                df.loc[:, ('frequency',)] = g.transform('sum')
+                df.loc[:, ('frequency',)] = g.transform(np.sum)
             if use_log:
                 g = df.groupby(cols_to_group)['log_frequency']
-                df.loc[:, ('log_frequency',)] = g.transform('sum')
+                df.loc[:, ('log_frequency',)] = g.transform(np.sum)
             df = df.drop_duplicates().copy()
 
         if use_freq and self.scale_frequencies:
