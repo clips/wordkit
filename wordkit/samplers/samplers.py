@@ -12,9 +12,6 @@ class Sampler(TransformerMixin):
     X : numpy array
         Your vectorized data.
 
-    words : list of strings.
-        The identities of the words.
-
     frequencies : numpy array or list of integers, default None.
         The frequencies of your input data. If this is None, the Sampler
         will sample uniformly.
