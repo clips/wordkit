@@ -360,7 +360,7 @@ class Deri(Reader):
                  language=None,
                  merge_duplicates=True,
                  diacritics=diacritics,
-                 scale_frequencies=True):
+                 scale_frequencies=False):
         """Extract words from Deri and Knight corpora."""
         super().__init__(path,
                          fields,

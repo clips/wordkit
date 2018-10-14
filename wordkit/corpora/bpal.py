@@ -104,7 +104,7 @@ class BPal(Reader):
                  path,
                  fields=("orthography", "syllables", "phonology"),
                  merge_duplicates=True,
-                 scale_frequencies=True):
+                 scale_frequencies=False):
         """Initialize the BPAL reader."""
         allowed_fields = {"orthography": 0,
                           "syllables": 1,

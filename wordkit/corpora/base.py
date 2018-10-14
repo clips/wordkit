@@ -137,7 +137,7 @@ class Reader(TransformerMixin):
                  field_ids,
                  language,
                  merge_duplicates,
-                 scale_frequencies=True,
+                 scale_frequencies=False,
                  diacritics=diacritics):
         """Init the base class."""
         if not os.path.exists(path):

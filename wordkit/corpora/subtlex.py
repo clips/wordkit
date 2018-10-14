@@ -57,7 +57,7 @@ class Subtlex(Reader):
                  fields=("orthography", "frequency", "log_frequency"),
                  language="eng-uk",
                  merge_duplicates=True,
-                 scale_frequencies=True):
+                 scale_frequencies=False):
         """Initialize the subtlex reader."""
         if language not in ALLOWED_LANGUAGES:
             raise ValueError("Your language {}, was not in the set of "
