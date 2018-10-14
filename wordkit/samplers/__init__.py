@@ -1,4 +1,4 @@
 """Samplers."""
-from .samplers import Sampler
+from .samplers import Sampler, BinnedSampler
 
-__all__ = ["Sampler"]
+__all__ = ["Sampler", "BinnedSampler"]
