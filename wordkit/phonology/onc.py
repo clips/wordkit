@@ -26,8 +26,8 @@ class ONCTransformer(FeatureTransformer):
     ----------
     features : tuple of dicts, or FeatureExtractor instance.
         features can either be
-            a tuple of a dictionary of features, for vowels and consonants.
-            an initialized FeatureExtractor instance.
+            - a tuple of a dictionary of features, for vowels and consonants.
+            - an initialized FeatureExtractor instance.
 
         In the first case, the features you input to the Transformer are
         used. In the final case, the FeatureExtractor is used to extract

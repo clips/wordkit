@@ -62,13 +62,10 @@ class Lexique(Reader):
     ----------
     path : str
         The path to the Lexique corpus file.
-
     fields : tuple
         The fields to retrieve from the corpus.
-
     language : str
         The language of the corpus. Currently not used in Lexique.
-
     merge_duplicates : bool, optional, default False
         Whether to merge duplicates which are indistinguishable according
         to the selected fields.

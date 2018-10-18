@@ -29,10 +29,8 @@ class WickelTransformer(BaseTransformer):
     ----------
     n : int
         The value of n to use in the character ngrams.
-
     field : str
         The field to which to apply this featurizer.
-
     use_padding : bool, default True
         Whether to include "#" characters as padding characters.
 
@@ -179,17 +177,13 @@ class WickelFeatureTransformer(WickelTransformer):
     ----------
     n : int
         The value of n to use in the character ngrams.
-
     num_units : int
         The number of units with which to represent each individual character
         ngram. This number is also equal to the output dimensionality.
-
     field : str or None
         The field on which this transformer operates.
-
     use_padding : bool
         Whether to use padded or non-padded ngrams.
-
     proportion : float
         This number approximately encodes the number of units each character
         activates. For example, given a proportion of .38, about 10 of 26

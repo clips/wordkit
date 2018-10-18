@@ -107,9 +107,9 @@ class FeatureTransformer(BaseTransformer):
     ----------
     features : dict, tuple of dicts, or FeatureExtractor instance.
         features can either be
-            a dictionary of features, for characters.
-            a tuple of a dictionary of features, for vowels and consonants.
-            an initialized FeatureExtractor instance.
+            - a dictionary of features, for characters.
+            - a tuple of a dictionary of features, for vowels and consonants.
+            - an initialized FeatureExtractor instance.
 
         In the first two cases, the features you input to the Transformer are
         used. In the final case, the FeatureExtractor is used to extract
@@ -118,7 +118,6 @@ class FeatureTransformer(BaseTransformer):
         The choice between pre-defined featues and an is purely a matter of
         convenience. First extracting features using the FeatureExtractor
         leads to the same result as using the FeatureExtractor directly.
-
     field : str
         The field to retrieve for featurization from incoming records.
 

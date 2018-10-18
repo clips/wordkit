@@ -26,8 +26,8 @@ class LinearTransformer(FeatureTransformer):
     ----------
     features : dict, or FeatureExtractor instance.
         features can either be
-            a dictionary of features, for characters.
-            an initialized FeatureExtractor instance.
+            - a dictionary of features, for characters.
+            - an initialized FeatureExtractor instance.
 
         In the first case, the features you input to the Transformer are
         used. In the final case, the FeatureExtractor is used to extract
@@ -36,10 +36,8 @@ class LinearTransformer(FeatureTransformer):
         The choice between pre-defined featues and an is purely a matter of
         convenience. First extracting features using the FeatureExtractor
         leads to the same result as using the FeatureExtractor directly.
-
     field : str
         The field to retrieve from the incoming dictionaries.
-
     left : bool, default True
         If this is set to True, all strings will be left-justified. If this
         is set to False, they will be right-justified.
@@ -107,8 +105,13 @@ class LinearTransformer(FeatureTransformer):
 
     def inverse_transform(self, X):
         """Transform a corpus back to word representations."""
+        X = np.asarray(X)
         if np.ndim(X) == 1:
             X = X[None, :]
+        if X.shape[1] != self.vec_len:
+            raise ValueError("Your matrix was not the correct shape. "
+                             "We expect a (N, {}) matrix, but we got a "
+                             "{} shaped one".format(self.vec_len, X.shape))
         feature_length = self.vec_len // self.max_word_length
         X_ = X.reshape((-1, self.max_word_length, feature_length))
 

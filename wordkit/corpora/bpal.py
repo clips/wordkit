@@ -85,14 +85,11 @@ class BPal(Reader):
     ----------
     path : str
         The path to the nwphono.txt file.
-
     fields : tuple
         The fields to extract using this corpus reader. Any invalid fields
         will cause the reader to throw a ValueError.
-
     language : str
         This language field is here for compatibility, but is not used.
-
     merge_duplicates : bool, optional, default False
         Whether to merge duplicates which are indistinguishable according
         to the selected fields.

@@ -24,17 +24,14 @@ class WordNet(Reader):
     ----------
     path : str
         The path to the corpus.
-
     language : str
         The language of the corpus. This is not checked, so make sure that you
         put the appropriate language here.
-
     restrict_pos : list or None, default None
         If this is set to None, synsets of all Parts of Speech are accepted.
         If the list is non-empty, only synsets with parts of speech in the list
         are retrieved.
         The possible parts of speech in wordnet are {'n', 'a', 'v', 's'}.
-
     fields : tuple
         The fields to retrieve.
 

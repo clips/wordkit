@@ -35,8 +35,8 @@ class CVTransformer(FeatureTransformer):
     ----------
     features : tuple of dicts, or FeatureExtractor instance.
         features can either be
-            a tuple of a dictionary of features, for vowels and consonants.
-            an initialized FeatureExtractor instance.
+            - a tuple of a dictionary of features, for vowels and consonants.
+            - an initialized FeatureExtractor instance.
 
         In the first case, the features you input to the Transformer are
         used. In the final case, the FeatureExtractor is used to extract
@@ -45,17 +45,14 @@ class CVTransformer(FeatureTransformer):
         The choice between pre-defined featues and an is purely a matter of
         convenience. First extracting features using the FeatureExtractor
         leads to the same result as using the FeatureExtractor directly.
-
     grid_structure : string, default="CCCVV"
         A list describing the Consonant Vowel structure of the
         CVTransformer. During fitting, the CVTransformer determines how
         many of these grid clusters are necessary to fit the entire
         dataset.
-
     left : bool
         Whether to use right- or left-justified encoding when placing
         phonemes on the grid.
-
     field : str, default 'phonology'
         The field to use.
 

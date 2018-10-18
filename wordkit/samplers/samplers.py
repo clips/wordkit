@@ -12,11 +12,9 @@ class Sampler(TransformerMixin):
     ----------
     X : numpy array or list of items
         Your vectorized data.
-
     frequencies : numpy array or list of floats, default None.
         The frequencies of your input data. If this is None, the Sampler
         will sample uniformly.
-
     replacement : bool
         Whether to sample with or without replacement.
 
@@ -104,13 +102,10 @@ class BinnedSampler(object):
     ----------
     X : numpy array
         Your vectorized data.
-
     frequencies : numpy array or list of floats
         The frequencies of your data. This can not be None.
-
     bin_width : float
         The bin width
-
     replacement : bool
         Whether the same item can occur more than once in a single sample.
 

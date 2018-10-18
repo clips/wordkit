@@ -20,7 +20,6 @@ class OneHotSemanticsTransformer(BaseTransformer):
     ----------
     field : str or None
         The field to use.
-
     prune : bool
         If this is set to True, semantic nodes which occur only once will be
         removed. This will also skip the validation step, and may lead to
@@ -100,7 +99,6 @@ class HypernymSemanticsTransformer(BaseTransformer):
     ----------
     field : str or None
         The field to retrieve.
-
     use_meronyms : bool
         Whether to also retrieve meronyms. Retrieving meronyms causes words to
         have more links to each other, as words which are not hypernyms can

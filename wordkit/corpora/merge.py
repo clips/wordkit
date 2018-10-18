@@ -23,18 +23,15 @@ def merge(from_corpus, to_corpus, merge_fields, transfer_fields):
     from_corpus : list of dictionaries
         A list of dictionaries. This corpus will be used to augment
         the information in the to_corpus.
-
     to_corpus : list of dictionaries
         A list of dictionaries. This corpus will be augmented with the
         information from the from_corpus.
-
     merge_fields : tuple
         The fields to use in determining equivalence between two words in the
         corpora. For example, if union_fields = ("orthography",), only the
         orthography field is used to compare words. If union_fields =
         ("orthography", "phonology"), both the information in "orthography" and
         "phonology" needs to be equivalent.
-
     transfer_fields : tuple
         The fields to transfer from the from_corpus to the to_corpus.
 

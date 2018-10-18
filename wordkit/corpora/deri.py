@@ -333,20 +333,16 @@ class Deri(Reader):
     ----------
     path : string
         The path to the corpus this reader has to read.
-
     language : string, default ("eng")
         The language of the corpus. If this is set to None, all languages
         will be retrieved from the corpus.
-
     fields : iterable, default ("orthography", "phonology")
         An iterable of strings containing the fields this reader has
         to read from the corpus.
-
     merge_duplicates : bool, default False
         Whether to merge duplicates which are indistinguishable according
         to the selected fields.
         If this is False, duplicates may occur in the output.
-
     diacritics : tuple
         The diacritic markers from the IPA alphabet to keep. All diacritics
         which are IPA valid can be correctly parsed by wordkit, but it may

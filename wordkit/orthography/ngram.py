@@ -35,7 +35,6 @@ class OpenNGramTransformer(WickelTransformer):
     ----------
     n : int
         The value of n to use for the n-combations.
-
     field : string
         The field to which to apply this transformer.
 
@@ -87,13 +86,10 @@ class ConstrainedOpenNGramTransformer(WickelTransformer):
     ----------
     n : int
         The value of n to use for the n-combations.
-
     window : int
         The maximum distance between two letters.
-
     field : string
         The field to which to apply this transformer.
-
     use_padding : bool
         Whether to pad the words with a single "#" character.
 
@@ -151,12 +147,10 @@ class WeightedOpenBigramTransformer(ConstrainedOpenNGramTransformer):
     ----------
     field : string
         The field to apply this transformer to.
-
     weights : tuple
         The weights to apply at each distance. The first weight is applied at
         distance one, the second at distance two etc. Any letters which are
         have a distance greater than (len(weights) + 1) are given a weight of 0
-
     use_padding : bool, default False
         Whether to use padding.
 

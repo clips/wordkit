@@ -21,7 +21,6 @@ class EmbeddingTransformer(BaseTransformer):
         The path to the embeddings file. The file has to be a space-separated
         file. The header is optional, so this transformer supports either
         Glove or word2vec style headers.
-
     field : str or None
         The field to use.
 

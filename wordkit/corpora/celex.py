@@ -106,7 +106,7 @@ class Celex(Reader):
     If you use the CELEX corpus, you _must_ cite the following paper:
 
     @article{baayen1993celex,
-      title={The $\{$CELEX$\}$ lexical data base on $\{$CD-ROM$\}$},
+      title={The {CELEX} lexical data base on {CD-ROM}},
       author={Baayen, R Harald and Piepenbrock, Richard and van H, Rijn},
       year={1993},
       publisher={Linguistic Data Consortium}
@@ -119,11 +119,9 @@ class Celex(Reader):
 
     language : string, default ("eng")
         The language of the corpus.
-
     fields : iterable, default ("orthography", "syllables", "frequency")
         An iterable of strings containing the fields this reader has
         to read from the corpus.
-
     merge_duplicates : bool, default False
         Whether to merge duplicates which are indistinguishable according
         to the selected fields.
