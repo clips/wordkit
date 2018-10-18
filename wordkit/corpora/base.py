@@ -7,6 +7,20 @@ import pandas as pd
 from sklearn.base import TransformerMixin
 from collections import defaultdict
 
+nans = {'',
+        '#N/A',
+        '#N/A N/A',
+        '#NA',
+        '-1.#IND',
+        '-1.#QNAN',
+        '-NaN',
+        '-nan',
+        '1.#IND',
+        '1.#QNAN',
+        'N/A',
+        'NA',
+        'NULL',
+        'NaN'}
 
 remove_double = re.compile(r"(ː)(\1){1,}")
 
@@ -100,17 +114,28 @@ class Reader(TransformerMixin):
     ----------
     path : string
         The path to the corpus this reader has to read.
+
     fields : iterable
         An iterable of strings containing the fields this reader has
         to read from the corpus.
+
+    field_ids : dict
+        A mapping which maps the field names from your data to the internal
+        names used by wordkit.
+
     language : string
         The language of the corpus.
+
     merge_duplicates : bool, optional, default False
         Whether to merge duplicates which are indistinguishable according
         to the selected fields.
         Note that frequency is not counted as a field for determining
         duplicates. Frequency is instead added together for any duplicates.
         If this is False, duplicates may occur in the output.
+
+    scale_frequencies : bool, default False
+        Whether to scale the frequencies by a pre-defined amount.
+
     diacritics : tuple
         The diacritic markers from the IPA alphabet to keep. All diacritics
         which are IPA valid can be correctly parsed by wordkit, but it may
@@ -146,7 +171,7 @@ class Reader(TransformerMixin):
 
         self.path = path
         self.language = language
-        self.fields = {k: field_ids[k] for k in fields}
+        self.fields = {k: field_ids.get(k, k) for k in fields}
         self.merge_duplicates = merge_duplicates
         self.diacritics = diacritics
         self.scale_frequencies = scale_frequencies
@@ -172,12 +197,13 @@ class Reader(TransformerMixin):
                              header=header,
                              encoding=encoding,
                              keep_default_na=False,
-                             comment=comment)
+                             comment=comment,
+                             na_values=nans)
 
         return self._preprocess(df)
 
     def _preprocess(self, df):
-        """Preprocess the file. In this case, preprocessing is identity."""
+        """Preprocess the file."""
         fields, indices = zip(*self.fields.items())
 
         inverted = defaultdict(set)

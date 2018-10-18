@@ -7,6 +7,7 @@ from .subtlex import Subtlex
 from .lexique import Lexique
 from .bpal import BPal
 from .wordnet import WordNet
+from .lexiconproject import LexiconProject
 
 __all__ = ["Celex",
            "CMU",
@@ -15,4 +16,5 @@ __all__ = ["Celex",
            "Subtlex",
            "BPal",
            "Lexique",
-           "WordNet"]
+           "WordNet",
+           "LexiconProject"]

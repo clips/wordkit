@@ -52,6 +52,9 @@ Finally, a sampler can be used to sample from the resulting items.
 ## Corpora
 
 `wordkit` currently offers readers for the following corpora.
+Note that, while we offer predefined fields for all these corpora, any fields present in these data can be retrieved by wordkit in addition to the fields we define.
+The Lexicon Projects, for example, also contain lexicality information, accuracy information, and so on.
+These can be retrieved by passing the appropriate fields as argument to `fields`.
 
 #### BPAL
 
@@ -147,6 +150,18 @@ If you use any of these WordNets, please cite the appropriate source, as well as
 ```
 Fields: Orthography, Semantics
 Languages: lots
+```
+
+#### Lexicon projects
+
+We support all lexicon projects.
+These contain RT data with which you can validate models.
+
+[Link](http://crr.ugent.be/programs-data/lexicon-projects)
+
+```
+Fields: Orthography, rt
+Languages: Dutch, British English, American English, French
 ```
 
 ## Example
