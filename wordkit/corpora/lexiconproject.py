@@ -3,7 +3,7 @@ from .base import Reader
 
 
 ALLOWED_LANGUAGES = ("eng-uk", "eng-us", "fra", "nld")
-LANG_SEP = {"eng-uk": "\t", "nld": "\t", "fra": None, "eng-us": "\t"}
+LANG_SEP = {"eng-uk": "\t", "nld": "\t", "fra": None, "eng-us": ","}
 language2field = {"nld": {"orthography": "spelling"},
                   "eng-uk": {"orthography": "spelling"},
                   "eng-us": {"orthography": "Word", "rt": "I_Mean_RT"},
