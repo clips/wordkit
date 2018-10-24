@@ -80,7 +80,7 @@ Languages:  Dutch, German, English
 ```
 
 **WARNING:** the Celex frequency norms are no longer thought to be correct. Please use the `SUBTLEX` frequencies instead.
-You can use the Celex corpus with `SUBTLEX` frequency norms by using a [`CorpusAugmenter`](wordkit/readers#CorpusAugmenter).   
+You can use the Celex corpus with `SUBTLEX` frequency norms by using a [`merge`](wordkit/corpora#merge).   
 If you use `CELEX` frequency norms at a psycholinguistic conference, you _will_ get yelled at.
 
 #### CMUDICT

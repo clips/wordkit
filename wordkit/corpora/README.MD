@@ -31,7 +31,8 @@ from wordkit.corpora import Celex, Subtlex, merge
 c_words = Celex("path/to/celex/epw.cd").transform()
 s_words = Subtlex("path/to/subtlex", language="eng-uk").transform()
 
-# union_fields in the constructor denotes the fields by which the corpora are merged
+# merge_fields in the constructor denotes the fields
+# by which the corpora are merged
 augmented = merge(from_corpus=s_words,
                   to_corpus=c_words,
                   transfer_fields=("frequency",),
