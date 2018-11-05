@@ -46,8 +46,8 @@ class LexiconProject(Reader):
     """
     def __init__(self,
                  path,
-                 fields,
-                 language):
+                 fields=("orthography", "rt"),
+                 language='eng-uk'):
         """Initialize the reader."""
         if language not in ALLOWED_LANGUAGES:
             raise ValueError("Your language {}, was not in the set of "
