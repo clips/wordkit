@@ -13,18 +13,18 @@ remove_double = re.compile(r"ː+")
 
 logger = logging.getLogger(__name__)
 
-AUTO_LANGUAGE = {"epl.cd": "eng",
+AUTO_LANGUAGE = {"epl.cd": "eng-uk",
                  "dpl.cd": "nld",
                  "gpl.cd": "deu",
-                 "epw.cd": "eng",
+                 "epw.cd": "eng-uk",
                  "dpw.cd": "nld",
                  "gpw.cd": "deu"}
 
-language2field = {'eng': {'orthography': 1,
-                          'phonology': 7,
-                          'frequency': 2,
-                          'syllables': 7,
-                          'log_frequency': 2},
+language2field = {'eng-uk': {'orthography': 1,
+                             'phonology': 7,
+                             'frequency': 2,
+                             'syllables': 7,
+                             'log_frequency': 2},
                   'nld': {'orthography': 1,
                           'phonology': 5,
                           'frequency': 2,
