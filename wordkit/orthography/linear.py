@@ -41,14 +41,21 @@ class LinearTransformer(FeatureTransformer):
     left : bool, default True
         If this is set to True, all strings will be left-justified. If this
         is set to False, they will be right-justified.
+    variable_length : bool, default False
+        If this is set to True, the returned sequences will not be padded, and
+        are therefore not guaranteed to have the same length.
 
     """
 
-    def __init__(self, features, field=None, left=True):
+    def __init__(self, features, field=None, left=True, variable_length=False):
         """Convert characters to vectors."""
         super().__init__(features, field)
         self.max_word_length = 0
         self.left = left
+        self.variable_length = variable_length
+        if not self.left and variable_length:
+            raise ValueError("You set left to False and variable_length to "
+                             "True. These settings are incompatible.")
 
     def fit(self, X):
         """
@@ -93,11 +100,14 @@ class LinearTransformer(FeatureTransformer):
         """
         if len(x) > self.max_word_length:
             raise ValueError("Your word is too long")
-        v = np.zeros((self.max_word_length, self.dlen))
-        if self.left:
-            x = x.ljust(self.max_word_length)
+        if self.variable_length:
+            v = np.zeros((len(x), self.dlen))
         else:
-            x = x.rjust(self.max_word_length)
+            v = np.zeros((self.max_word_length, self.dlen))
+            if self.left:
+                x = x.ljust(self.max_word_length)
+            else:
+                x = x.rjust(self.max_word_length)
         for idx, c in enumerate(x):
             v[idx] += self.features[c]
 
@@ -106,14 +116,22 @@ class LinearTransformer(FeatureTransformer):
     def inverse_transform(self, X):
         """Transform a corpus back to word representations."""
         X = np.asarray(X)
-        if np.ndim(X) == 1:
-            X = X[None, :]
-        if X.shape[1] != self.vec_len:
-            raise ValueError("Your matrix was not the correct shape. "
-                             "We expect a (N, {}) matrix, but we got a "
-                             "{} shaped one".format(self.vec_len, X.shape))
-        feature_length = self.vec_len // self.max_word_length
-        X_ = X.reshape((-1, self.max_word_length, feature_length))
+        inverted = []
+
+        if self.variable_length:
+            if np.ndim(X) == 1 and np.ndim(X[0]) == 0:
+                X = X[None, :]
+            feature_length = self.vec_len // self.max_word_length
+            X_ = np.array([x.reshape(-1, feature_length) for x in X])
+        else:
+            if np.ndim(X) == 1:
+                X = X[None, :]
+            if X.shape[1] != self.vec_len:
+                raise ValueError("Your matrix was not the correct shape. "
+                                 "We expect a (N, {}) matrix, but we got a "
+                                 "{} shaped one".format(self.vec_len, X.shape))
+            feature_length = self.vec_len // self.max_word_length
+            X_ = X.reshape((-1, self.max_word_length, feature_length))
 
         keys, features = zip(*self.features.items())
         keys = [str(x) for x in keys]
