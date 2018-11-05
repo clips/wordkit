@@ -3,7 +3,11 @@ from collections import defaultdict
 from copy import deepcopy
 
 
-def merge(from_corpus, to_corpus, merge_fields, transfer_fields):
+def merge(from_corpus,
+          to_corpus,
+          merge_fields,
+          transfer_fields,
+          discard=False):
     """
     Augment a corpus by data from another corpus by transfering fields.
 
@@ -34,6 +38,9 @@ def merge(from_corpus, to_corpus, merge_fields, transfer_fields):
         "phonology" needs to be equivalent.
     transfer_fields : tuple
         The fields to transfer from the from_corpus to the to_corpus.
+    discard : bool
+        If this is set to True, words that are not in both corpora are
+        discarded.
 
     Example
     -------
@@ -63,18 +70,23 @@ def merge(from_corpus, to_corpus, merge_fields, transfer_fields):
     words_set_from = {k: v for k, v in words_set_from.items() if k in keys}
     words_set_to = {k: v for k, v in words_set_to.items() if k in keys}
 
-    joined_words = []
+    joined_words = deepcopy(to_corpus)
+    updated = set()
 
     for k, indices in words_set_from.items():
         try:
             for idx in words_set_to[k]:
                 for from_idx in indices:
-                    word = deepcopy(to_corpus[idx])
+                    word = joined_words[idx]
                     information_to_add = from_corpus[from_idx]
                     word.update(information_to_add)
-                    joined_words.append(word)
+                updated.add(idx)
         except KeyError:
             pass
+
+    if discard:
+        joined_words = [x for idx, x in enumerate(joined_words)
+                        if idx in updated]
 
     return joined_words
 
