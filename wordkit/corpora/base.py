@@ -7,6 +7,8 @@ import pandas as pd
 from sklearn.base import TransformerMixin
 from collections import defaultdict
 
+# special collection of nans because words like nan and null do occur in our
+# corpora. These do not.
 nans = {'',
         '#N/A',
         '#N/A N/A',
@@ -168,7 +170,7 @@ class Reader(TransformerMixin):
         self.merge_duplicates = merge_duplicates
         self.diacritics = diacritics
         self.scale_frequencies = scale_frequencies
-        # File pointer
+        self.data = None
 
     def _open(self, **kwargs):
         """Open a file for reading."""
@@ -293,9 +295,9 @@ class Reader(TransformerMixin):
         ----------
         X : list of strings.
             The orthographic form of the input words.
-        y: None
+        y : None
             For sklearn compatibility.
-        filter_function : function
+        filter_function : function or None, default None
             The filtering function to use. A filtering function is a function
             which accepts a dictionary as argument and which returns a boolean
             value. If the filtering function returns False, the item is not
@@ -318,3 +320,49 @@ class Reader(TransformerMixin):
             wordlist = set(X)
             words = [x for x in words if x['orthography'] in wordlist]
         return list(filter(filter_function, words))
+
+    def get_sampler(self,
+                    num_to_sample,
+                    filter_function=None,
+                    replacement=False,
+                    max_iter=10000):
+        """
+        Returns a Sampler that samples from the corpus.
+
+        If you want to sample using the frequencies of the words, please use
+        the Sampler classes from wordkit.sampler.
+
+        Parameters
+        ----------
+        num_to_sample : int
+            The number of words to sample.
+        filter_function : function
+            The filtering function to use. A filtering function is a function
+            which accepts a dictionary as argument and which returns a boolean
+            value. If the filtering function returns False, the item is not
+            retrieved from the corpus.
+
+            Example of a filtering function could be a function which
+            constrains the frequencies of retrieved words, or the number of
+            syllables.
+        max_iter : int
+            The maximum number of iterations this generator is useable.
+            This is just a safeguard because we don't want computers to crash
+            just because someone coerces this generator to a list.
+
+        Returns
+        -------
+        sampler : generator
+            An infinite generator that returns words.
+
+        """
+        words = self.transform(filter_function=filter_function)
+        if len(words) <= num_to_sample:
+            raise ValueError("num_to_sample is equal or larger than the "
+                             "number of words in your corpus. {} > {}"
+                             "".format(num_to_sample, len(words)))
+
+        return ([words[idx] for idx in np.random.choice(len(words),
+                                                        size=num_to_sample,
+                                                        replace=False)]
+                for x in range(max_iter))
