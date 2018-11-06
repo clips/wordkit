@@ -120,14 +120,14 @@ class BPal(Reader):
                                header=None)
 
     def _process_syllable(self, string):
-        """Process a CELEX syllable string."""
+        """Process a BPAL syllable string."""
         string = string.split("-")
         string = tuple(bpal_to_ipa(string))
 
         return tuple(string)
 
     def _process_phonology(self, string):
-        """Process a CELEX phonology string."""
+        """Process a BPAL phonology string."""
         string = string.split("-")
         string = tuple(bpal_to_ipa(string))
 

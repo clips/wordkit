@@ -1,20 +1,18 @@
 """Corpus readers for Subtlex."""
 from .base import Reader
 
-field_ids = {"orthography": 0, "frequency": 1, "log_frequency": 1}
+field_ids = {"orthography": 0, "frequency": 1}
 # Currently redundant, but useful for future-proofing.
 language2field = {"eng-uk": {"orthography": "Spelling",
-                             "frequency": "FreqCount",
-                             "log_frequency": "FreqCount"},
+                             "frequency": "FreqCount"},
                   "eng-us": {"orthography": "Word",
-                             "frequency": "FREQcount",
-                             "log_frequency": "FREQcount"},
+                             "frequency": "FREQcount"},
                   "nld": {"orthography": "Word",
-                          "frequency": "FREQcount",
-                          "log_frequency": "FREQcount"},
+                          "frequency": "FREQcount"},
                   "esp": field_ids,
                   "deu": field_ids,
-                  "chi": field_ids}
+                  "chi": {"orthography": "Word",
+                          "frequency": "WCount"}}
 
 ALLOWED_LANGUAGES = set(language2field.keys())
 
@@ -52,7 +50,7 @@ class Subtlex(Reader):
 
     def __init__(self,
                  path,
-                 fields=("orthography", "frequency", "log_frequency"),
+                 fields=("orthography", "frequency"),
                  language="eng-uk",
                  merge_duplicates=True,
                  scale_frequencies=False):
@@ -69,4 +67,8 @@ class Subtlex(Reader):
                          merge_duplicates=merge_duplicates,
                          diacritics=None,
                          scale_frequencies=scale_frequencies)
-        self.data = self._open(sep="\t")
+        if language == "chi":
+            skiprows = 2
+        else:
+            skiprows = 0
+        self.data = self._open(sep="\t", skiprows=skiprows)
