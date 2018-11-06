@@ -2,12 +2,13 @@
 from .base import Reader
 
 
-ALLOWED_LANGUAGES = ("eng-uk", "eng-us", "fra", "nld")
-LANG_SEP = {"eng-uk": "\t", "nld": "\t", "fra": None, "eng-us": ","}
+ALLOWED_LANGUAGES = ("eng-uk", "eng-us", "fra", "nld", "chi")
+LANG_SEP = {"eng-uk": "\t", "nld": "\t", "eng-us": ","}
 language2field = {"nld": {"orthography": "spelling"},
                   "eng-uk": {"orthography": "spelling"},
                   "eng-us": {"orthography": "Word", "rt": "I_Mean_RT"},
-                  "fra": {"orthography": "item"}}
+                  "fra": {"orthography": "item"},
+                  "chi": {"orthography": "Character", "rt": "RT"}}
 
 
 class LexiconProject(Reader):
@@ -49,13 +50,14 @@ class LexiconProject(Reader):
                  fields=("orthography", "rt"),
                  language='eng-uk'):
         """Initialize the reader."""
-        if language not in ALLOWED_LANGUAGES:
+        if language not in language2field:
+            langs = set(language2field.keys())
             raise ValueError("Your language {}, was not in the set of "
                              "allowed languages: {}".format(language,
-                                                            ALLOWED_LANGUAGES))
+                                                            langs))
         super().__init__(path,
                          fields,
                          language2field[language],
                          language,
                          merge_duplicates=False)
-        self.data = self._open(sep=LANG_SEP[language])
+        self.data = self._open(sep=LANG_SEP.get(language, None))
