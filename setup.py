@@ -5,7 +5,7 @@ from setuptools import find_packages
 
 
 setup(name='wordkit',
-      version='2.1.1',
+      version='2.2.0',
       description='Word featurization',
       author='Stéphan Tulkens',
       author_email='stephan.tulkens@uantwerpen.be',
