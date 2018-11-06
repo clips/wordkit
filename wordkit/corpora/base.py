@@ -179,10 +179,11 @@ class Reader(TransformerMixin):
         quoting = kwargs.get('quote', 0)
         encoding = kwargs.get('encoding', 'utf-8')
         comment = kwargs.get('comment', None)
+        skiprows = kwargs.get('skiprows', None)
 
         extension = os.path.splitext(self.path)[-1]
         if extension in {".xls", ".xlsx"}:
-            df = pd.read_excel(self.path)
+            df = pd.read_excel(self.path, skiprows=skiprows)
         else:
             fields, indices = zip(*self.fields.items())
             df = pd.read_csv(self.path,
@@ -244,33 +245,25 @@ class Reader(TransformerMixin):
             df['semantics'] = g['semantics'].transform(np.sum)
             df = df.drop_duplicates().copy()
 
-        use_log = 'log_frequency' in self.fields
         use_freq = 'frequency' in self.fields
 
         df = df.dropna()
         if df.empty:
             raise ValueError("All your rows contained at least one NaN.")
 
-        if self.merge_duplicates and any([use_log, use_freq]):
-            ungroupable = {'frequency', 'log_frequency'}
+        if self.merge_duplicates and use_freq:
+            ungroupable = {'frequency'}
             cols_to_group = list(set(df.columns) - ungroupable)
             if use_freq:
                 g = df.groupby(cols_to_group)['frequency']
                 df.loc[:, ('frequency',)] = g.transform(np.sum)
-            if use_log:
-                g = df.groupby(cols_to_group)['log_frequency']
-                df.loc[:, ('log_frequency',)] = g.transform(np.sum)
             df = df.drop_duplicates().copy()
 
         if use_freq and self.scale_frequencies:
-            total_freq = np.sum(df.frequency) / 1000000
-            df.loc[:, ('frequency',)] /= total_freq
-
-        if use_log:
-            df.loc[:, ('log_frequency',)] = np.log10(df['log_frequency'] + 1)
-            if self.scale_frequencies:
-                total_log_freq = np.sum(df.log_frequency) / 1000
-                df.loc[:, ('log_frequency',)] /= total_log_freq
+            total = np.sum(df.frequency) / 1e6
+            df['frequency_per_million'] = df['frequency'] / total
+            df['log_frequency'] = np.log10(df['frequency'] + 1)
+            df['zipf_score'] = np.log10(df['frequency_per_million']) + 3
 
         return df
 
