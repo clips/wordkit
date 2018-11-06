@@ -1,7 +1,6 @@
 """Corpus readers for Subtlex."""
 from .base import Reader
 
-field_ids = {"orthography": 0, "frequency": 1}
 # Currently redundant, but useful for future-proofing.
 language2field = {"eng-uk": {"orthography": "Spelling",
                              "frequency": "FreqCount"},
@@ -9,8 +8,8 @@ language2field = {"eng-uk": {"orthography": "Spelling",
                              "frequency": "FREQcount"},
                   "nld": {"orthography": "Word",
                           "frequency": "FREQcount"},
-                  "esp": field_ids,
-                  "deu": field_ids,
+                  "deu": {"orthography": "Word",
+                          "frequency": "WFfreqCount"},
                   "chi": {"orthography": "Word",
                           "frequency": "WCount"}}
 
