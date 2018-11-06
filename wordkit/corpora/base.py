@@ -251,7 +251,7 @@ class Reader(TransformerMixin):
         if df.empty:
             raise ValueError("All your rows contained at least one NaN.")
 
-        if self.merge_duplicates and use_freq:
+        if self.merge_duplicates:
             ungroupable = {'frequency'}
             cols_to_group = list(set(df.columns) - ungroupable)
             if use_freq:
