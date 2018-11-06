@@ -5,6 +5,7 @@ from .ngram import OpenNGramTransformer
 from .ngram import ConstrainedOpenNGramTransformer
 from .ngram import WeightedOpenBigramTransformer
 from .wickel import WickelTransformer, WickelFeatureTransformer
+from .features import fourteen, sixteen, dislex
 
 __all__ = ["OneHotCharacterExtractor",
            "LinearTransformer",
@@ -12,4 +13,7 @@ __all__ = ["OneHotCharacterExtractor",
            "ConstrainedOpenNGramTransformer",
            "WeightedOpenBigramTransformer",
            "WickelTransformer",
-           "WickelFeatureTransformer"]
+           "WickelFeatureTransformer",
+           "fourteen",
+           "sixteen",
+           "dislex"]
