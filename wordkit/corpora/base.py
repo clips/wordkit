@@ -260,10 +260,13 @@ class Reader(TransformerMixin):
             df = df.drop_duplicates().copy()
 
         if use_freq and self.scale_frequencies:
+            summ = np.sum(df.frequency)
             total = np.sum(df.frequency) / 1e6
+            smoothed_total = (summ + len(df.frequency)) / 1e6
             df['frequency_per_million'] = df['frequency'] / total
             df['log_frequency'] = np.log10(df['frequency'] + 1)
-            df['zipf_score'] = np.log10(df['frequency_per_million']) + 3
+            df['zipf_score'] = np.log10((df['frequency'] + 1) / smoothed_total)
+            df['zipf_score'] += 3
 
         return df
 
