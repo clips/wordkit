@@ -6,6 +6,7 @@ import pandas as pd
 
 from sklearn.base import TransformerMixin
 from collections import defaultdict
+from functools import partial
 
 # special collection of nans because words like nan and null do occur in our
 # corpora. These do not.
@@ -302,6 +303,14 @@ class Reader(TransformerMixin):
             Example of a filtering function could be a function which
             constrains the frequencies of retrieved words, or the number of
             syllables.
+        kwargs : lambda function
+            This function also takes general keyword arguments that take
+            keys as keys and functions as values. This offers a more flexible
+            alternative to the filter_function option above.
+
+            e.g. if "frequency" is a field, you can use
+                frequency=lambda x: x > 10
+            as a keyword argument to only retrieve items with a frequency > 10.
 
         Returns
         -------
@@ -312,6 +321,28 @@ class Reader(TransformerMixin):
 
         """
         words = self.data.to_dict('records')
+        # Kwargs contains functions
+        # compose a new function on the fly using _filter
+
+        def _filter(functions, x):
+            """Generate new filter_function"""
+            for k, v in functions.items():
+                if k == '__general__':
+                    t = v[x]
+                else:
+                    t = v(x[k])
+                if not t:
+                    return False
+            return True
+
+        functions = {}
+        print(kwargs)
+        for k, v in kwargs.items():
+            functions[k] = v
+        if filter_function:
+            functions['__general__'] = filter_function
+
+        filter_function = partial(_filter, functions)
         if X:
             wordlist = set(X)
             words = [x for x in words if x['orthography'] in wordlist]
@@ -321,7 +352,8 @@ class Reader(TransformerMixin):
                     num_to_sample,
                     filter_function=None,
                     replacement=False,
-                    max_iter=10000):
+                    max_iter=10000,
+                    **kwargs):
         """
         Returns a Sampler that samples from the corpus.
 
@@ -352,7 +384,7 @@ class Reader(TransformerMixin):
             An infinite generator that returns words.
 
         """
-        words = self.transform(filter_function=filter_function)
+        words = self.transform(filter_function=filter_function, **kwargs)
         if len(words) <= num_to_sample:
             raise ValueError("num_to_sample is equal or larger than the "
                              "number of words in your corpus. {} > {}"
