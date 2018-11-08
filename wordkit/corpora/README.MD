@@ -18,6 +18,35 @@ All corpus readers use different file formats, so please make sure the file form
 
 A list of supported corpora can be found [here](../../)
 
+## Filtering
+
+Corpora can be filtered during the transform function by using kwargs or a
+filter function.
+
+```
+from wordkit.corpora import Subtlex
+s = Subtlex("path", language="eng", fields=("frequency", "orthography"))
+
+# Get words with frequency > 10
+w = s.transform(frequency=lambda x: x > 10)
+# Get words starting with 'f'
+w = s.transform(orthography=lambda x: x[0] == 'f')
+# Get words starting with 'f', shorter than three letters, and
+# with frequency 10
+w = s.transform(orthography=lambda x: x[0] == 'f' and len(x) < 3,
+                frequency=lambda x: x > 10)
+
+# Using a filter function
+def filterer(x):
+    """Filter your words."""
+    a = x['orthography'][0] == 'f'
+    b = x['frequency'] > 10
+    return a and b
+
+w = s.transform(filter_function=filterer)
+
+```
+
 ## merge
 
 `merge` is a way to merge two corpora by adding information from one corpus to the other.
