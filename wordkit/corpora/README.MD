@@ -25,7 +25,7 @@ filter function.
 
 ```
 from wordkit.corpora import Subtlex
-s = Subtlex("path", language="eng", fields=("frequency", "orthography"))
+s = Subtlex("path", language="eng-uk", fields=("frequency", "orthography"))
 
 # Get words with frequency > 10
 w = s.transform(frequency=lambda x: x > 10)
