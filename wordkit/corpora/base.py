@@ -325,24 +325,37 @@ class Reader(TransformerMixin):
         # compose a new function on the fly using _filter
 
         def _filter(functions, x):
-            """Generate new filter_function"""
+            """
+            Generate new filter_function
+
+            This is a composition of boolean functions which are chained
+            with AND statements. Hence, if any of the functions evaluates to
+            False we can return False without evaluating all of them.
+
+            This is better than using any([v(x) for v in functions]) because
+            there we evaluate all functions before calling any([]).
+
+            """
+
+            if not functions:
+                return True
             for k, v in functions.items():
                 if k == '__general__':
-                    t = v[x]
+                    t = v(x)
                 else:
                     t = v(x[k])
                 if not t:
                     return False
             return True
 
-        functions = {}
-        print(kwargs)
-        for k, v in kwargs.items():
-            functions[k] = v
-        if filter_function:
-            functions['__general__'] = filter_function
-
-        filter_function = partial(_filter, functions)
+        # Check which kwargs pertain to the data.
+        functions = {k: v for k, v in kwargs.items() if k in self.fields}
+        # Only if we actually have functions should we do something.
+        if functions:
+            # If we also have a filter function, we should compose it
+            if filter_function:
+                functions['__general__'] = filter_function
+            filter_function = partial(_filter, functions)
         if X:
             wordlist = set(X)
             words = [x for x in words if x['orthography'] in wordlist]
