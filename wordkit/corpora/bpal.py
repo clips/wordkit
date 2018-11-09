@@ -113,11 +113,11 @@ class BPal(Reader):
                          language="esp",
                          merge_duplicates=merge_duplicates,
                          diacritics=diacritics,
-                         scale_frequencies=scale_frequencies)
-        self.data = self._open(sep="\t",
-                               encoding="latin-1",
-                               quote=0,
-                               header=None)
+                         scale_frequencies=scale_frequencies,
+                         sep="\t",
+                         encoding="latin-1",
+                         quote=0,
+                         header=None)
 
     def _process_syllable(self, string):
         """Process a BPAL syllable string."""

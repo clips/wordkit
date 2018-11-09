@@ -176,8 +176,10 @@ class Celex(Reader):
                          p,
                          language,
                          merge_duplicates,
-                         scale_frequencies)
-        self.data = self._open(sep="\\", quote=QUOTE_NONE, header=None)
+                         scale_frequencies,
+                         sep="\\",
+                         quote=QUOTE_NONE,
+                         header=None)
 
     def _process_syllable(self, string):
         """Process a CELEX syllable string."""

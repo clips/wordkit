@@ -58,16 +58,16 @@ class Subtlex(Reader):
             raise ValueError("Your language {}, was not in the set of "
                              "allowed languages: {}".format(language,
                                                             ALLOWED_LANGUAGES))
-
+        if language == "chi":
+            skiprows = 2
+        else:
+            skiprows = 0
         super().__init__(path,
                          fields,
                          language2field[language],
                          language,
                          merge_duplicates=merge_duplicates,
                          diacritics=None,
-                         scale_frequencies=scale_frequencies)
-        if language == "chi":
-            skiprows = 2
-        else:
-            skiprows = 0
-        self.data = self._open(sep="\t", skiprows=skiprows)
+                         scale_frequencies=scale_frequencies,
+                         sep="\t",
+                         skiprows=skiprows)

@@ -44,17 +44,16 @@ class WordNet(Reader):
                  fields=("orthography",
                          "semantics")):
         """Get semantic information."""
+        self.restrict_pos = restrict_pos
         super().__init__(path,
                          fields=fields,
                          field_ids={"semantics": 0,
                                     "orthography": 2},
                          language=language,
-                         merge_duplicates=True)
-
-        self.restrict_pos = restrict_pos
-        self.data = self._open(comment="#",
-                               sep="\t",
-                               header=None)
+                         merge_duplicates=True,
+                         comment="#",
+                         sep="\t",
+                         header=None)
 
     def _process_semantics(self, string):
         """Process semantics."""

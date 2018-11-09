@@ -141,7 +141,6 @@ class CMU(Reader):
                          language="eng",
                          merge_duplicates=merge_duplicates,
                          scale_frequencies=False)
-        self.data = self._open()
 
     def _open(self, **kwargs):
         """Open a file for reading."""

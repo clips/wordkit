@@ -59,5 +59,5 @@ class LexiconProject(Reader):
                          fields,
                          language2field[language],
                          language,
-                         merge_duplicates=False)
-        self.data = self._open(sep=LANG_SEP.get(language, None))
+                         merge_duplicates=False,
+                         sep=LANG_SEP.get(language, None))

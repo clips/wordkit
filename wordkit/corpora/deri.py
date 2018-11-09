@@ -358,6 +358,10 @@ class Deri(Reader):
                  diacritics=diacritics,
                  scale_frequencies=False):
         """Extract words from Deri and Knight corpora."""
+        if language is not None and language not in ALLOWED_LANGUAGES:
+            raise ValueError("The language you supplied is not in the list "
+                             "of allowed languages for this corpus.")
+        self.matcher = re.compile(r"([:/]|rhymes)")
         super().__init__(path,
                          fields,
                          {'orthography': 2,
@@ -366,13 +370,9 @@ class Deri(Reader):
                          language,
                          merge_duplicates,
                          diacritics=diacritics,
-                         scale_frequencies=scale_frequencies)
-
-        if language is not None and language not in ALLOWED_LANGUAGES:
-            raise ValueError("The language you supplied is not in the list "
-                             "of allowed languages for this corpus.")
-        self.matcher = re.compile(r"([:/]|rhymes)")
-        self.data = self._open(header=None, sep="\t")
+                         scale_frequencies=scale_frequencies,
+                         header=None,
+                         sep="\t")
 
     def _process_phonology(self, string):
         """Process phonology."""

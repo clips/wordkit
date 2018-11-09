@@ -159,7 +159,8 @@ class Reader(TransformerMixin):
                  language,
                  merge_duplicates,
                  scale_frequencies=False,
-                 diacritics=diacritics):
+                 diacritics=diacritics,
+                 **kwargs):
         """Init the base class."""
         if not os.path.exists(path):
             raise FileNotFoundError("The file you specified does not "
@@ -171,7 +172,7 @@ class Reader(TransformerMixin):
         self.merge_duplicates = merge_duplicates
         self.diacritics = diacritics
         self.scale_frequencies = scale_frequencies
-        self.data = None
+        self.data = self._open(**kwargs)
 
     def _open(self, **kwargs):
         """Open a file for reading."""
@@ -184,18 +185,30 @@ class Reader(TransformerMixin):
 
         extension = os.path.splitext(self.path)[-1]
         if extension in {".xls", ".xlsx"}:
-            df = pd.read_excel(self.path, skiprows=skiprows)
+            df = pd.read_excel(self.path,
+                               skiprows=skiprows,
+                               na_values=nans,
+                               keep_default_na=False)
         else:
             fields, indices = zip(*self.fields.items())
-            df = pd.read_csv(self.path,
-                             sep=sep,
-                             usecols=indices,
-                             quoting=quoting,
-                             header=header,
-                             encoding=encoding,
-                             keep_default_na=False,
-                             comment=comment,
-                             na_values=nans)
+            try:
+                df = pd.read_csv(self.path,
+                                 sep=sep,
+                                 usecols=indices,
+                                 quoting=quoting,
+                                 header=header,
+                                 encoding=encoding,
+                                 keep_default_na=False,
+                                 comment=comment,
+                                 na_values=nans)
+            except ValueError as e:
+                raise ValueError("Something went wrong during reading of "
+                                 "your data. Things that could be wrong: \n"
+                                 "- column names: you supplied {}\n"
+                                 "- separator: you supplied {}\n"
+                                 "- encoding: you supplied {}\n"
+                                 "The original error was:\n"
+                                 "'{}'".format(indices, sep, encoding, e))
 
         return self._preprocess(df)
 
@@ -207,9 +220,7 @@ class Reader(TransformerMixin):
         for k, v in self.fields.items():
             inverted[v].add(k)
         inverted = {k: v for k, v in inverted.items() if len(v) > 1}
-
         df = df.rename(columns=dict(zip(indices, fields)))
-
         for v in inverted.values():
             in_df = v & set(df.columns)
             in_df_name = list(in_df)[0]
@@ -407,3 +418,15 @@ class Reader(TransformerMixin):
                                                         size=num_to_sample,
                                                         replace=False)]
                 for x in range(max_iter))
+
+    def _process_syllable(self, x):
+        """identity function."""
+        return x
+
+    def _process_phonology(self, x):
+        """identity function."""
+        return x
+
+    def _process_semantics(self, x):
+        """identity function."""
+        return x

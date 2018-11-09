@@ -92,8 +92,8 @@ class Lexique(Reader):
                          "fra",
                          merge_duplicates,
                          diacritics=diacritics,
-                         scale_frequencies=scale_frequencies)
-        self.data = self._open(sep="\t")
+                         scale_frequencies=scale_frequencies,
+                         sep="\t")
 
     def _process_phonology(self, string):
         """Process phonology."""
