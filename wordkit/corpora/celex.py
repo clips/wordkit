@@ -160,6 +160,8 @@ class Celex(Reader):
                 raise ValueError("You passed None to lemmas, but we failed "
                                  "to determine wether your files contained "
                                  "lemmas automatically.")
+        else:
+            self.lemmas = lemmas
 
         p = copy(language2field[language])
         if not self.lemmas:
