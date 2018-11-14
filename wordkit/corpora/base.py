@@ -228,6 +228,8 @@ class Reader(TransformerMixin):
                 df = df.assign(**{field: df[in_df_name]})
         df = df.loc[:, fields]
 
+        df = df.dropna()
+
         if 'language' in self.fields and self.language:
             df = df[df['language'] == self.language].copy()
         elif self.language:
