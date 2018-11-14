@@ -228,25 +228,32 @@ class Reader(TransformerMixin):
                 df = df.assign(**{field: df[in_df_name]})
         df = df.loc[:, fields]
 
+        # Drop nans before further processing.
         df = df.dropna()
 
+        # Assign language, but we need to see whether this is a user-assigned
+        # property or not.
         if 'language' in self.fields and self.language:
             df = df[df['language'] == self.language].copy()
         elif self.language:
             df['language'] = self.language
 
+        # Lower-case orthography and conver to string.
         if 'orthography' in self.fields:
             df['orthography'] = df['orthography'].astype(str)
             df['orthography'] = df.apply(lambda x: x['orthography'].lower(),
                                          axis=1)
+        # Process phonology
         if 'phonology' in self.fields:
             df['phonology'] = df.apply(lambda x:
                                        self._process_phonology(x['phonology']),
                                        axis=1)
+        # Process syllabic phonology
         if 'syllables' in self.fields:
             df['syllables'] = df.apply(lambda x:
                                        self._process_syllable(x['syllables']),
                                        axis=1)
+        # Process semantics
         if 'semantics' in self.fields:
             df['semantics'] = df.apply(lambda x:
                                        self._process_semantics(x['semantics']),
@@ -256,7 +263,9 @@ class Reader(TransformerMixin):
             other_fields = tuple(set(df.columns) - {'semantics'})
             g = df.groupby(other_fields)
 
+            # Slow, but only way this works.
             df['semantics'] = g['semantics'].transform(np.sum)
+            # Drop duplicate entries
             df = df.drop_duplicates().copy()
 
         use_freq = 'frequency' in self.fields
@@ -265,6 +274,8 @@ class Reader(TransformerMixin):
         if df.empty:
             raise ValueError("All your rows contained at least one NaN.")
 
+        # We want to merge duplicates, but we don't want to merge on the
+        # basis of frequency. Instead, we sum the frequency.
         if self.merge_duplicates:
             ungroupable = {'frequency'}
             cols_to_group = list(set(df.columns) - ungroupable)
@@ -273,12 +284,14 @@ class Reader(TransformerMixin):
                 df.loc[:, ('frequency',)] = g.transform(np.sum)
             df = df.drop_duplicates().copy()
 
+        # Scale the frequencies.
         if use_freq and self.scale_frequencies:
             summ = np.sum(df.frequency)
             total = np.sum(df.frequency) / 1e6
             smoothed_total = (summ + len(df.frequency)) / 1e6
             df['frequency_per_million'] = df['frequency'] / total
             df['log_frequency'] = np.log10(df['frequency'] + 1)
+            # Should reference publication.
             df['zipf_score'] = np.log10((df['frequency'] + 1) / smoothed_total)
             df['zipf_score'] += 3
 
