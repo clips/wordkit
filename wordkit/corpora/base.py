@@ -207,8 +207,13 @@ class Reader(TransformerMixin):
                                  "- column names: you supplied {}\n"
                                  "- separator: you supplied {}\n"
                                  "- encoding: you supplied {}\n"
+                                 "- language: you supplied {}\n"
                                  "The original error was:\n"
-                                 "'{}'".format(indices, sep, encoding, e))
+                                 "'{}'".format(indices,
+                                               sep,
+                                               encoding,
+                                               self.language,
+                                               e))
 
         return self._preprocess(df)
 
