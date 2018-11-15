@@ -2,10 +2,19 @@
 """Setup file."""
 from setuptools import setup
 from setuptools import find_packages
+import re
 
+VERSIONFILE = "wordkit/_version.py"
+verstrline = open(VERSIONFILE, "rt").read()
+mo = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", verstrline, re.M)
+
+if mo:
+    version_string = mo.group(1)
+else:
+    raise RuntimeError("Unable to find version string in %s." % (VERSIONFILE,))
 
 setup(name='wordkit',
-      version='2.2.0',
+      version=version_string,
       description='Word featurization',
       author='Stéphan Tulkens',
       author_email='stephan.tulkens@uantwerpen.be',
