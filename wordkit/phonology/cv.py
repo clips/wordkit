@@ -144,7 +144,7 @@ class CVTransformer(FeatureTransformer):
 
         while idx < len(X):
             try:
-                self._put_on_grid(X[idx])
+                self.put_on_grid(X[idx])
                 idx += 1
             except IndexError:
                 self.grid = self.grid[:last_v] + self.grid_structure
@@ -194,7 +194,7 @@ class CVTransformer(FeatureTransformer):
             A vectorized version of the phoneme sequence.
 
         """
-        grid = self._put_on_grid(x)
+        grid = self.put_on_grid(x)
 
         # convert syllabic grid to vector
         phon_vector = np.zeros(self.vec_len)
@@ -209,7 +209,7 @@ class CVTransformer(FeatureTransformer):
 
         return np.array(phon_vector)
 
-    def _put_on_grid(self, x):
+    def put_on_grid(self, x):
         """Put phonemes on a grid."""
         if not self.left:
             x = x[::-1]
@@ -245,7 +245,7 @@ class CVTransformer(FeatureTransformer):
         features)
         """
         for x in x:
-            grid = self._put_on_grid(x)
+            grid = self.put_on_grid(x)
             indices = []
             for idx, v in enumerate(grid):
                 if self.grid[idx] == "C":
