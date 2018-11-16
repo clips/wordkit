@@ -46,6 +46,10 @@ class OpenNGramTransformer(WickelTransformer):
 
     def _decompose(self, word):
         """Get all unordered n-combinations of characters in a word."""
+        if len(word) < self.n:
+            raise ValueError("You tried to featurize words shorter than "
+                             "{} characters, please remove these before "
+                             "featurization".format(self.n))
         combs = set(combinations(word, self.n))
         if not combs:
             combs = [word]
