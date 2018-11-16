@@ -138,7 +138,7 @@ class Celex(Reader):
             raise FileNotFoundError("{} not found.".format(path))
         if language is None:
             try:
-                language = AUTO_LANGUAGE[os.path.split(path)[1]]
+                language = AUTO_LANGUAGE[os.path.split(path)[1].lower()]
             except KeyError:
                 raise ValueError("You passed None to language, but we failed "
                                  "to determine the language automatically.")

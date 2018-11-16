@@ -1,4 +1,5 @@
 """Readers for lexicon project corpora."""
+import os
 from .base import Reader
 
 
@@ -9,6 +10,11 @@ language2field = {"nld": {"orthography": "spelling"},
                   "eng-us": {"orthography": "Word", "rt": "I_Mean_RT"},
                   "fra": {"orthography": "item"},
                   "chi": {"orthography": "Character", "rt": "RT"}}
+AUTO_LANGUAGE = {"french lexicon project words.xls": "fra",
+                 "blp-items.txt": "eng-uk",
+                 "dlp_items.txt": "nld",
+                 "elp-items.csv": "eng-us",
+                 "Chinese Lexicon Project Sze et al.xlsx": "chi"}
 
 
 class LexiconProject(Reader):
@@ -48,8 +54,22 @@ class LexiconProject(Reader):
     def __init__(self,
                  path,
                  fields=("orthography", "rt"),
-                 language='eng-uk'):
+                 language=None):
         """Initialize the reader."""
+        if language is None:
+            try:
+                language = AUTO_LANGUAGE[os.path.split(path)[1].lower()]
+            except KeyError:
+                raise ValueError("You passed None to language, but we failed "
+                                 "to determine the language automatically.")
+        else:
+            try:
+                if AUTO_LANGUAGE[os.path.split(path)[1]] != language:
+                    raise ValueError("Your language is {}, but your filename "
+                                     "belongs to another language."
+                                     "".format(language))
+            except KeyError:
+                pass
         if language not in language2field:
             langs = set(language2field.keys())
             raise ValueError("Your language {}, was not in the set of "

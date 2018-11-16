@@ -1,4 +1,5 @@
 """Corpus readers for Subtlex."""
+import os
 from .base import Reader
 
 # Currently redundant, but useful for future-proofing.
@@ -14,6 +15,11 @@ language2field = {"eng-uk": {"orthography": "Spelling",
                           "frequency": "WCount"}}
 
 ALLOWED_LANGUAGES = set(language2field.keys())
+AUTO_LANGUAGE = {'subtlex-ch-wf.xlsx': 'chi',
+                 'subtlex-de cleaned with google00 frequencies.xlsx': 'deu',
+                 'subtlex-nl.cd-above2.txt': 'nld',
+                 'subtlex-uk.xlsx': 'eng-uk',
+                 'subtlexusfrequencyabove1.xls': 'eng-us'}
 
 
 class Subtlex(Reader):
@@ -50,10 +56,24 @@ class Subtlex(Reader):
     def __init__(self,
                  path,
                  fields=("orthography", "frequency"),
-                 language="eng-uk",
+                 language=None,
                  merge_duplicates=True,
                  scale_frequencies=False):
         """Initialize the subtlex reader."""
+        if language is None:
+            try:
+                language = AUTO_LANGUAGE[os.path.split(path)[1].lower()]
+            except KeyError:
+                raise ValueError("You passed None to language, but we failed "
+                                 "to determine the language automatically.")
+        else:
+            try:
+                if AUTO_LANGUAGE[os.path.split(path)[1]] != language:
+                    raise ValueError("Your language is {}, but your filename "
+                                     "belongs to another language."
+                                     "".format(language))
+            except KeyError:
+                pass
         if language not in ALLOWED_LANGUAGES:
             raise ValueError("Your language {}, was not in the set of "
                              "allowed languages: {}".format(language,
