@@ -132,7 +132,11 @@ class WickelTransformer(BaseTransformer):
         return list(zip(np.ones(len(grams)), grams))
 
     def inverse_transform(self, X, threshold=.9):
-        """Convert a vector back into its constituent ngrams."""
+        """
+        Convert a vector back into its constituent ngrams.
+
+        WARNING: this currently does not work.
+        """
         inverted = []
         inverted_features = {v: k for k, v in
                              self.features.items()}
@@ -140,6 +144,9 @@ class WickelTransformer(BaseTransformer):
         if not self.use_padding:
             raise ValueError("This function is only supported when use_padding"
                              " is set to True.")
+
+        if np.ndim(X) == 1:
+            X = X[None, :]
 
         for x in X:
             t = []
@@ -162,6 +169,16 @@ class WickelTransformer(BaseTransformer):
             inverted.append("".join(word).strip("#"))
 
         return inverted
+
+    def list_features(self, X):
+        """Lists the features for each item."""
+        inverted_features = {v: k for k, v in
+                             self.features.items()}
+
+        if np.ndim(X) == 1:
+            X = X[None, :]
+        for x in X:
+            yield [inverted_features[x] for x in np.flatnonzero(x)]
 
 
 class WickelFeatureTransformer(WickelTransformer):
