@@ -10,6 +10,7 @@ from .feature_extraction import OneHotPhonemeExtractor
 from .feature_extraction import PhonemeFeatureExtractor
 from .features import dislex_features, binary_features
 from .features import patpho_bin, patpho_real, plunkett_phonemes
+from .grid import put_on_grid
 
 
 __all__ = ["CVTransformer",
@@ -26,4 +27,5 @@ __all__ = ["CVTransformer",
            "binary_features",
            "patpho_bin",
            "patpho_real",
-           "plunkett_phonemes"]
+           "plunkett_phonemes",
+           "put_on_grid"]
