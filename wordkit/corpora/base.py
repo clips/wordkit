@@ -100,211 +100,23 @@ def segment_phonology(phonemes, items=diacritics, to_keep=diacritics):
     return tuple(["".join(x) for x in phonemes if x])
 
 
-class Reader(TransformerMixin):
+class BaseReader(TransformerMixin):
     """
-    Base class for corpora readers.
-
-    In Wordkit, a corpus reader is intended for reading structured corpora,
-    e.g. Celex, which contain extra information associated with words.
-
-    Typically, this information is the phonology, frequency or syllable
-    structure associated with a word. Each source of information is
-    specified as a string called a "field". Fields serve 2 purposes: they
-    delineate which information can be found in a corpus, and they serve as
-    an index to the information in a corpus.
-
-    Parameters
-    ----------
-    path : string
-        The path to the corpus this reader has to read.
-    fields : iterable
-        An iterable of strings containing the fields this reader has
-        to read from the corpus.
-    field_ids : dict
-        A mapping which maps the field names from your data to the internal
-        names used by wordkit.
-    language : string
-        The language of the corpus.
-    merge_duplicates : bool, optional, default False
-        Whether to merge duplicates which are indistinguishable according
-        to the selected fields.
-        Note that frequency is not counted as a field for determining
-        duplicates. Frequency is instead added together for any duplicates.
-        If this is False, duplicates may occur in the output.
-    scale_frequencies : bool, default False
-        Whether to scale the frequencies by a pre-defined amount.
-    diacritics : tuple
-        The diacritic markers from the IPA alphabet to keep. All diacritics
-        which are IPA valid can be correctly parsed by wordkit, but it may
-        not be desirable to actually have them in the dataset.
-    Example
-    -------
-    >>> from string import ascii_lowercase
-    >>> def freq_alpha(x):
-    >>>     a = set(x['orthography']) - set(ascii_lowercase)
-    >>>     b = x['frequency'] > 10
-    >>>     return (not a) and b
-    >>>
-    >>> r = Reader("/path/",
-    >>>            ("orthography", "frequency"),
-    >>>            "eng")
-    >>> words = r.transform(filter_function=freq_alpha)
-
+    A reader that takes as input a dataframe instead of a file.
     """
 
-    def __init__(self,
-                 path,
-                 fields,
-                 field_ids,
-                 language,
-                 merge_duplicates,
-                 scale_frequencies=False,
-                 diacritics=diacritics,
-                 **kwargs):
-        """Init the base class."""
-        if not os.path.exists(path):
-            raise FileNotFoundError("The file you specified does not "
-                                    "exist: {}".format(path))
+    def __init__(self, data):
+        """
+        A reader that just takes data.
 
-        self.path = path
-        self.language = language
-        self.fields = {k: field_ids.get(k, k) for k in fields}
-        self.merge_duplicates = merge_duplicates
-        self.diacritics = diacritics
-        self.scale_frequencies = scale_frequencies
-        self.data = self._open(**kwargs)
+        Parameters
+        ----------
+        data : pandas.DataFrame
+            A dataframe containing the data this is supposed to process.
 
-    def _open(self, **kwargs):
-        """Open a file for reading."""
-        header = kwargs.get('header', "infer")
-        sep = kwargs.get('sep', ",")
-        quoting = kwargs.get('quote', 0)
-        encoding = kwargs.get('encoding', 'utf-8')
-        comment = kwargs.get('comment', None)
-        skiprows = kwargs.get('skiprows', None)
-
-        extension = os.path.splitext(self.path)[-1]
-        if extension in {".xls", ".xlsx"}:
-            df = pd.read_excel(self.path,
-                               skiprows=skiprows,
-                               na_values=nans,
-                               keep_default_na=False)
-        else:
-            fields, indices = zip(*self.fields.items())
-            try:
-                df = pd.read_csv(self.path,
-                                 sep=sep,
-                                 usecols=indices,
-                                 quoting=quoting,
-                                 header=header,
-                                 encoding=encoding,
-                                 keep_default_na=False,
-                                 comment=comment,
-                                 na_values=nans)
-            except ValueError as e:
-                raise ValueError("Something went wrong during reading of "
-                                 "your data. Things that could be wrong: \n"
-                                 "- column names: you supplied {}\n"
-                                 "- separator: you supplied {}\n"
-                                 "- encoding: you supplied {}\n"
-                                 "- language: you supplied {}\n"
-                                 "The original error was:\n"
-                                 "'{}'".format(indices,
-                                               sep,
-                                               encoding,
-                                               self.language,
-                                               e))
-
-        return self._preprocess(df)
-
-    def _preprocess(self, df):
-        """Preprocess the file."""
-        fields, indices = zip(*self.fields.items())
-
-        inverted = defaultdict(set)
-        for k, v in self.fields.items():
-            inverted[v].add(k)
-        inverted = {k: v for k, v in inverted.items() if len(v) > 1}
-        df = df.rename(columns=dict(zip(indices, fields)))
-        for v in inverted.values():
-            in_df = v & set(df.columns)
-            in_df_name = list(in_df)[0]
-            for field in v - in_df:
-                df = df.assign(**{field: df[in_df_name]})
-        df = df.loc[:, fields]
-
-        # Drop nans before further processing.
-        df = df.dropna()
-
-        # Assign language, but we need to see whether this is a user-assigned
-        # property or not.
-        if 'language' in self.fields and self.language:
-            df = df[df['language'] == self.language].copy()
-        elif self.language:
-            df['language'] = self.language
-
-        # Lower-case orthography and conver to string.
-        if 'orthography' in self.fields:
-            df['orthography'] = df['orthography'].astype(str)
-            df['orthography'] = df.apply(lambda x: x['orthography'].lower(),
-                                         axis=1)
-        # Process phonology
-        if 'phonology' in self.fields:
-            df['phonology'] = df.apply(lambda x:
-                                       self._process_phonology(x['phonology']),
-                                       axis=1)
-        # Process syllabic phonology
-        if 'syllables' in self.fields:
-            df['syllables'] = df.apply(lambda x:
-                                       self._process_syllable(x['syllables']),
-                                       axis=1)
-        # Process semantics
-        if 'semantics' in self.fields:
-            df['semantics'] = df.apply(lambda x:
-                                       self._process_semantics(x['semantics']),
-                                       axis=1)
-            # This might return NaNs
-            df = df.dropna()
-            other_fields = tuple(set(df.columns) - {'semantics'})
-            g = df.groupby(other_fields)
-
-            # Slow, but only way this works.
-            df['semantics'] = g['semantics'].transform(np.sum)
-            # Drop duplicate entries
-            df = df.drop_duplicates().copy()
-
-        use_freq = 'frequency' in self.fields
-
-        df = df.dropna()
-        if df.empty:
-            raise ValueError("All your rows contained at least one NaN.")
-
-        # We want to merge duplicates, but we don't want to merge on the
-        # basis of frequency. Instead, we sum the frequency.
-        if self.merge_duplicates:
-            ungroupable = {'frequency'}
-            cols_to_group = list(set(df.columns) - ungroupable)
-            if use_freq:
-                g = df.groupby(cols_to_group)['frequency']
-                df.loc[:, ('frequency',)] = g.transform(np.sum)
-            df = df.drop_duplicates().copy()
-
-        # Scale the frequencies.
-        if use_freq and self.scale_frequencies:
-            summ = np.sum(df.frequency)
-            total = np.sum(df.frequency) / 1e6
-            smoothed_total = (summ + len(df.frequency)) / 1e6
-            df['frequency_per_million'] = df['frequency'] / total
-            df['log_frequency'] = np.log10(df['frequency'] + 1)
-            # Should reference publication.
-            df['zipf_score'] = np.log10((df['frequency'] + 1) / smoothed_total)
-            df['zipf_score'] += 3
-
-        return df
-
-    def fit(self, X, y=None):
-        """Static, no fit."""
-        return self
+        """
+        self.data = data
+        self.fields = list(self.data.columns)
 
     def transform(self,
                   X=(),
@@ -438,6 +250,214 @@ class Reader(TransformerMixin):
                                                         size=num_to_sample,
                                                         replace=False)]
                 for x in range(max_iter))
+
+
+class Reader(BaseReader):
+    """
+    Base class for corpora readers.
+
+    In Wordkit, a corpus reader is intended for reading structured corpora,
+    e.g. Celex, which contain extra information associated with words.
+
+    Typically, this information is the phonology, frequency or syllable
+    structure associated with a word. Each source of information is
+    specified as a string called a "field". Fields serve 2 purposes: they
+    delineate which information can be found in a corpus, and they serve as
+    an index to the information in a corpus.
+
+    Parameters
+    ----------
+    path : string
+        The path to the corpus this reader has to read.
+    fields : iterable
+        An iterable of strings containing the fields this reader has
+        to read from the corpus.
+    field_ids : dict
+        A mapping which maps the field names from your data to the internal
+        names used by wordkit.
+    language : string
+        The language of the corpus.
+    merge_duplicates : bool, optional, default False
+        Whether to merge duplicates which are indistinguishable according
+        to the selected fields.
+        Note that frequency is not counted as a field for determining
+        duplicates. Frequency is instead added together for any duplicates.
+        If this is False, duplicates may occur in the output.
+    scale_frequencies : bool, default False
+        Whether to scale the frequencies by a pre-defined amount.
+    diacritics : tuple
+        The diacritic markers from the IPA alphabet to keep. All diacritics
+        which are IPA valid can be correctly parsed by wordkit, but it may
+        not be desirable to actually have them in the dataset.
+    Example
+    -------
+    >>> from string import ascii_lowercase
+    >>> def freq_alpha(x):
+    >>>     a = set(x['orthography']) - set(ascii_lowercase)
+    >>>     b = x['frequency'] > 10
+    >>>     return (not a) and b
+    >>>
+    >>> r = Reader("/path/",
+    >>>            ("orthography", "frequency"),
+    >>>            "eng")
+    >>> words = r.transform(filter_function=freq_alpha)
+
+    """
+
+    def __init__(self,
+                 path,
+                 fields,
+                 field_ids,
+                 language,
+                 merge_duplicates,
+                 scale_frequencies=False,
+                 diacritics=diacritics,
+                 **kwargs):
+        """Init the base class."""
+        if not os.path.exists(path):
+            raise FileNotFoundError("The file you specified does not "
+                                    "exist: {}".format(path))
+
+        self.path = path
+        self.language = language
+        fields = {k: field_ids.get(k, k) for k in fields}
+        self.merge_duplicates = merge_duplicates
+        self.diacritics = diacritics
+        self.scale_frequencies = scale_frequencies
+        data = self._open(fields, **kwargs)
+        super().__init__(data)
+
+    def _open(self, fields, **kwargs):
+        """Open a file for reading."""
+        header = kwargs.get('header', "infer")
+        sep = kwargs.get('sep', ",")
+        quoting = kwargs.get('quote', 0)
+        encoding = kwargs.get('encoding', 'utf-8')
+        comment = kwargs.get('comment', None)
+        skiprows = kwargs.get('skiprows', None)
+
+        extension = os.path.splitext(self.path)[-1]
+        if extension in {".xls", ".xlsx"}:
+            df = pd.read_excel(self.path,
+                               skiprows=skiprows,
+                               na_values=nans,
+                               keep_default_na=False)
+        else:
+            _, indices = zip(*fields.items())
+            try:
+                df = pd.read_csv(self.path,
+                                 sep=sep,
+                                 usecols=indices,
+                                 quoting=quoting,
+                                 header=header,
+                                 encoding=encoding,
+                                 keep_default_na=False,
+                                 comment=comment,
+                                 na_values=nans)
+            except ValueError as e:
+                raise ValueError("Something went wrong during reading of "
+                                 "your data. Things that could be wrong: \n"
+                                 "- column names: you supplied {}\n"
+                                 "- separator: you supplied {}\n"
+                                 "- encoding: you supplied {}\n"
+                                 "- language: you supplied {}\n"
+                                 "The original error was:\n"
+                                 "'{}'".format(indices,
+                                               sep,
+                                               encoding,
+                                               self.language,
+                                               e))
+
+        return self._preprocess(df, fields)
+
+    def _preprocess(self, df, fields):
+        """Preprocess the file."""
+        keys, indices = zip(*fields.items())
+
+        inverted = defaultdict(set)
+        for k, v in fields.items():
+            inverted[v].add(k)
+        inverted = {k: v for k, v in inverted.items() if len(v) > 1}
+        df = df.rename(columns=dict(zip(indices, keys)))
+        for v in inverted.values():
+            in_df = v & set(df.columns)
+            in_df_name = list(in_df)[0]
+            for field in v - in_df:
+                df = df.assign(**{field: df[in_df_name]})
+        df = df.loc[:, keys]
+
+        # Drop nans before further processing.
+        df = df.dropna()
+
+        # Assign language, but we need to see whether this is a user-assigned
+        # property or not.
+        if 'language' in fields and self.language:
+            df = df[df['language'] == self.language].copy()
+        elif self.language:
+            df['language'] = self.language
+
+        # Lower-case orthography and conver to string.
+        if 'orthography' in fields:
+            df['orthography'] = df['orthography'].astype(str)
+            df['orthography'] = df.apply(lambda x: x['orthography'].lower(),
+                                         axis=1)
+        # Process phonology
+        if 'phonology' in fields:
+            df['phonology'] = df.apply(lambda x:
+                                       self._process_phonology(x['phonology']),
+                                       axis=1)
+        # Process syllabic phonology
+        if 'syllables' in fields:
+            df['syllables'] = df.apply(lambda x:
+                                       self._process_syllable(x['syllables']),
+                                       axis=1)
+        # Process semantics
+        if 'semantics' in fields:
+            df['semantics'] = df.apply(lambda x:
+                                       self._process_semantics(x['semantics']),
+                                       axis=1)
+            # This might return NaNs
+            df = df.dropna()
+            other_fields = tuple(set(df.columns) - {'semantics'})
+            g = df.groupby(other_fields)
+
+            # Slow, but only way this works.
+            df['semantics'] = g['semantics'].transform(np.sum)
+            # Drop duplicate entries
+            df = df.drop_duplicates().copy()
+
+        use_freq = 'frequency' in fields
+
+        df = df.dropna()
+        if df.empty:
+            raise ValueError("All your rows contained at least one NaN.")
+
+        # We want to merge duplicates, but we don't want to merge on the
+        # basis of frequency. Instead, we sum the frequency.
+        if self.merge_duplicates:
+            ungroupable = {'frequency'}
+            cols_to_group = list(set(df.columns) - ungroupable)
+            if use_freq:
+                g = df.groupby(cols_to_group)['frequency']
+                df.loc[:, ('frequency',)] = g.transform(np.sum)
+            df = df.drop_duplicates().copy()
+
+        # Scale the frequencies.
+        if use_freq and self.scale_frequencies:
+            summ = np.sum(df.frequency)
+            total = np.sum(df.frequency) / 1e6
+            smoothed_total = (summ + len(df.frequency)) / 1e6
+            df['frequency_per_million'] = df['frequency'] / total
+            df['log_frequency'] = np.log10(df['frequency'] + 1)
+            # Should reference publication.
+            df['zipf_score'] = np.log10((df['frequency'] + 1) / smoothed_total)
+            df['zipf_score'] += 3
+
+        return df
+
+    def fit(self, X, y=None):
+        """Static, no fit."""
+        return self
 
     def _process_syllable(self, x):
         """identity function."""

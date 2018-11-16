@@ -142,9 +142,9 @@ class CMU(Reader):
                          merge_duplicates=merge_duplicates,
                          scale_frequencies=False)
 
-    def _open(self, **kwargs):
+    def _open(self, fields, **kwargs):
         """Open a file for reading."""
-        fields, indices = zip(*self.fields.items())
+        fields, indices = zip(*fields.items())
 
         df = []
         for line in open(self.path):
@@ -152,7 +152,7 @@ class CMU(Reader):
             word, *rest = line.strip().split()
             df.append({"orthography": word, "phonology": rest})
         df = pd.DataFrame(df)
-        return self._preprocess(df)
+        return self._preprocess(df, fields)
 
     def _process_phonology(self, string):
         """Process phonology."""
