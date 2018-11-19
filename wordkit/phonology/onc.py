@@ -45,9 +45,6 @@ class ONCTransformer(FeatureTransformer):
 
         self._is_fit = False
 
-        self.phon_indexer = []
-        self.grid_indexer = []
-
         self.num_syls = 0
         self.o = 0
         self.n = 0
@@ -82,22 +79,6 @@ class ONCTransformer(FeatureTransformer):
         grid = ["C" * self.o, "V" * self.n, "C" * self.c]
         self.grid = "".join(chain.from_iterable(grid * self.num_syls))
         self.syllable_grid = grid
-
-        self.phon_indexer = []
-        self.grid_indexer = []
-        idx = 0
-        idx_2 = 0
-        for i in grid:
-            if i == "C":
-                self.grid_indexer.append(idx)
-                self.phon_indexer.append(idx_2)
-                idx += self.consonant_length
-                idx_2 += len(self.consonant2idx)
-            elif i == "V":
-                self.grid_indexer.append(idx)
-                self.phon_indexer.append(idx_2)
-                idx += self.vowel_length
-                idx_2 += len(self.vowel2idx)
 
     def _validate(self, X):
         """
@@ -150,15 +131,6 @@ class ONCTransformer(FeatureTransformer):
         self.vowel_length = len(next(self.vowels.values().__iter__()))
         self.consonant_length = len(next(self.consonants.values().__iter__()))
 
-        self.idx2consonant = {idx: c
-                              for idx, c in enumerate(sorted(self.consonants))}
-        self.consonant2idx = {v: k for k, v in self.idx2consonant.items()}
-        self.idx2vowel = {idx: v
-                          for idx, v in enumerate(sorted(self.vowels))}
-        self.vowel2idx = {v: k for k, v in self.idx2vowel.items()}
-        self.phoneme2idx = {p: idx
-                            for idx, p in enumerate(sorted(self.phonemes))}
-
         X = self._unpack(X)
         self._validate(X)
 
@@ -186,6 +158,38 @@ class ONCTransformer(FeatureTransformer):
 
         return self
 
+    def put_on_grid(self, x):
+        """Put phonemes on a syllabic grid."""
+        grid = []
+
+        m = next(self.r.finditer(self.grid))
+        # Start index of the nucleus
+        grid_n = m.start()
+        # Letter index of coda.
+        grid_c = len(m.group()) + grid_n
+        for s in x:
+            syll = [" " for x in "".join(self.syllable_grid)]
+            # s is a syllable.
+            cvc = "".join(["C" if p in self.consonants else "V" for p in s])
+            try:
+                m = next(self.r.finditer(cvc))
+                # Letter index of the nucleus
+                n = m.start()
+                # Letter index of the coda
+                c = len(m.group()) + n
+                for idx in range(n):
+                    syll[idx] = s[idx]
+                for idx in range(c-n):
+                    syll[grid_n + idx] = s[n+idx]
+                for idx in range(0, len(cvc) - c):
+                    syll[grid_c + idx] = s[c+idx]
+            except StopIteration:
+                syll[-len(cvc):] = s
+            grid.extend(syll)
+        empty_grid = [" " for x in "".join(self.syllable_grid)]
+        grid.extend((self.num_syls - len(x)) * empty_grid)
+        return grid
+
     def vectorize(self, x):
         """
         Vectorize a single word.
@@ -210,57 +214,13 @@ class ONCTransformer(FeatureTransformer):
         if len(x) > self.num_syls:
             raise ValueError("{0} is too long".format(x))
 
+        grid_form = self.put_on_grid(x)
         vec = []
-
-        for idx in range(self.num_syls):
-
-            # Define a syllable zero vector
-            syll_vec = np.zeros(self.syl_len,)
-            # The vector index at which the nucleus starts
-            n_idx = self.o * self.consonant_length
-            # The vector index at which the coda starts
-            c_idx = (self.n * self.vowel_length) + n_idx
-
-            try:
-                s = x[idx]
-            except IndexError:
-                # If the current word does not have syllable here,
-                # append the zero vector.
-                vec.append(syll_vec)
-                continue
-
-            # Create CVC grid from phoneme representation
-            cvc = "".join(["C" if p in self.consonants else "V" for p in s])
-            try:
-                m = next(self.r.finditer(cvc))
-                # Letter index of the nucleus
-                n = m.start()
-                # Letter index of the coda
-                c = len(m.group()) + n
-
-                for lidx, p in enumerate(s[:n]):
-                    start = lidx * self.consonant_length
-                    end = start + self.consonant_length
-                    syll_vec[start: end] = self.consonants[p]
-
-                for lidx, p in enumerate(s[n:c]):
-                    start = (lidx * self.vowel_length) + n_idx
-                    end = start + self.vowel_length
-                    syll_vec[start: end] = self.vowels[p]
-
-                for lidx, p in enumerate(s[c:]):
-                    start = (lidx * self.consonant_length) + c_idx
-                    end = start + self.consonant_length
-                    syll_vec[start: end] = self.consonants[p]
-
-            except StopIteration:
-
-                for lidx, p in enumerate(s[:len(cvc)]):
-                    start = (lidx * self.consonant_length)
-                    end = start + self.consonant_length
-                    syll_vec[start: end] = self.consonants[p]
-
-            vec.append(syll_vec)
+        for x, cv in zip(grid_form, self.grid):
+            if cv == "C":
+                vec.append(self.consonants[x])
+            else:
+                vec.append(self.vowels[x])
 
         return np.concatenate(vec).ravel()
 
