@@ -282,3 +282,11 @@ class CVTransformer(FeatureTransformer):
 
         reshaped = np.array(words).T
         return tuple([tuple([z for z in x if z != " "]) for x in reshaped])
+
+    def list_features(self, words):
+        """List the features."""
+        if not self._is_fit:
+            raise ValueError("Transformer has not been fit yet.")
+        words = self._unpack(words)
+        indices = list(range(len(self.grid)))
+        return [list(zip(self.put_on_grid(x), indices)) for x in words]
