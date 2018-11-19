@@ -144,7 +144,7 @@ class CMU(Reader):
 
     def _open(self, fields, **kwargs):
         """Open a file for reading."""
-        fields, indices = zip(*fields.items())
+        keys, indices = zip(*fields.items())
 
         df = []
         for line in open(self.path):
