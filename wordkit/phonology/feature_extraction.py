@@ -22,7 +22,8 @@ class BasePhonemeExtractor(BaseExtractor):
     @staticmethod
     def _parse_phonemes(phonemes):
         """Parse the incoming tuple of phonemes as IPA characters."""
-        phonemes = [IPAString(unicode_string=p) for p in phonemes]
+        phonemes = [IPAString(unicode_string=p, single_char_parsing=True)
+                    for p in phonemes]
 
         vowels = filter(lambda x: x[0].is_vowel, phonemes)
         consonants = filter(lambda x: not x[0].is_vowel, phonemes)

@@ -1,5 +1,6 @@
 """Tools for working with CMUDICT."""
 from .base import Reader
+import re
 import pandas as pd
 
 
@@ -68,7 +69,7 @@ CMU_2IPA = {'AO': 'ɔ',
             'T': 't',
             'D': 'd',
             'K': 'k',
-            'G': 'g',
+            'G': 'ɡ',
             'CH': 'tʃ',
             'JH': 'dʒ',
             'F': 'f',
@@ -134,6 +135,7 @@ class CMU(Reader):
                  language=None,
                  merge_duplicates=True):
         """Extract structured information from CMUDICT."""
+        self.brackets = re.compile(r"\(\d\)")
         super().__init__(path,
                          fields,
                          {'orthography': 0,
@@ -150,6 +152,7 @@ class CMU(Reader):
         for line in open(self.path):
             line = line.split("#")[0]
             word, *rest = line.strip().split()
+            word = self.brackets.sub("", word)
             df.append({"orthography": word, "phonology": rest})
         df = pd.DataFrame(df)
         return self._preprocess(df, fields)
