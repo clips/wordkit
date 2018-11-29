@@ -171,14 +171,10 @@ class WickelTransformer(BaseTransformer):
         return inverted
 
     def list_features(self, X):
-        """Lists the features for each item."""
-        inverted_features = {v: k for k, v in
-                             self.features.items()}
-
-        if np.ndim(X) == 1:
-            X = X[None, :]
+        """Lists the features for each word."""
+        X = self._unpack(X)
         for x in X:
-            yield [inverted_features[x] for x in np.flatnonzero(x)]
+            yield tuple(zip(*self._decompose(x)))[1]
 
 
 class WickelFeatureTransformer(WickelTransformer):
