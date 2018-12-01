@@ -109,7 +109,10 @@ class LinearTransformer(FeatureTransformer):
             else:
                 x = x.rjust(self.max_word_length)
         for idx, c in enumerate(x):
-            v[idx] += self.features[c]
+            try:
+                v[idx] += self.features[c]
+            except KeyError:
+                continue
 
         return v.ravel()
 

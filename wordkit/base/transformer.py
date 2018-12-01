@@ -68,7 +68,7 @@ class BaseTransformer(TransformerMixin):
         """Vectorize a word."""
         raise NotImplementedError("Base class method.")
 
-    def transform(self, X):
+    def transform(self, X, strict=True):
         """
         Transform a list of words.
 
@@ -86,14 +86,13 @@ class BaseTransformer(TransformerMixin):
         if not self._is_fit:
             raise ValueError("The transformer has not been fit yet.")
         X = self._unpack(X)
-        self._validate(X)
+        if strict:
+            self._validate(X)
 
         total = []
 
         for idx, word in enumerate(X):
             x = self.vectorize(word)
-            # This ensures that transformers which return sequences of
-            # differing lengths still return non-jagged arrays.
             total.append(x)
 
         return np.array(total)

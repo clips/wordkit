@@ -45,16 +45,29 @@ class ONCTransformer(FeatureTransformer):
 
         self._is_fit = False
 
-        self.num_syls = 0
         self.o = 0
         self.n = 0
         self.c = 0
         self.vec_len = 0
         self.syl_len = 0
-        self.grid = ""
+        self.consonant_length = 0
+        self.vowel_length = 0
+        self.syl_len = 0
+        self.num_syls = 0
 
         # Regex for detecting consecutive occurrences of the letter V
         self.r = re.compile(r"V+")
+
+    @property
+    def num_syls(self):
+        """The number of syllables."""
+        return self.__num_syls
+
+    @num_syls.setter
+    def num_syls(self, value):
+        """Makes sure the grid parameters are recalculated."""
+        self.__num_syls = value
+        self._set_grid_params((self.o, self.n, self.c), value)
 
     def _set_grid_params(self, grid, num_syls):
         """
@@ -74,7 +87,6 @@ class ONCTransformer(FeatureTransformer):
         self.syl_len += (self.n * self.vowel_length)
         self.syl_len += (self.c * self.consonant_length)
         self.vec_len = self.syl_len * num_syls
-        self.num_syls = num_syls
 
         grid = ["C" * self.o, "V" * self.n, "C" * self.c]
         self.grid = "".join(chain.from_iterable(grid * self.num_syls))
@@ -134,7 +146,7 @@ class ONCTransformer(FeatureTransformer):
         X = self._unpack(X)
         self._validate(X)
 
-        num_syls = max([len(x) for x in X])
+        self.num_syls = max([len(x) for x in X])
 
         o = 0
         n = 0
@@ -153,7 +165,7 @@ class ONCTransformer(FeatureTransformer):
             except StopIteration:
                 c = max(c_l, c)
 
-        self._set_grid_params((o, n, c), num_syls)
+        self._set_grid_params((o, n, c), self.num_syls)
         self._is_fit = True
 
         return self
@@ -217,10 +229,17 @@ class ONCTransformer(FeatureTransformer):
         grid_form = self.put_on_grid(x)
         vec = []
         for x, cv in zip(grid_form, self.grid):
-            if cv == "C":
-                vec.append(self.consonants[x])
-            else:
-                vec.append(self.vowels[x])
+            try:
+                if cv == "C":
+                    vec.append(self.consonants[x])
+                else:
+                    vec.append(self.vowels[x])
+            except KeyError:
+                if cv == "C":
+                    vec_len = next(iter(self.consonants.values()))
+                else:
+                    vec_len = next(iter(self.vowels.values()))
+                vec.append(np.zeros_like(vec_len))
 
         return np.concatenate(vec).ravel()
 

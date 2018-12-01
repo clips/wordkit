@@ -127,6 +127,8 @@ class CVTransformer(FeatureTransformer):
         X = self._unpack(X)
         self._validate(X)
 
+        self.determine_grid(X)
+
         # indexes
         self.idx2consonant = {idx: c
                               for idx, c in enumerate(sorted(self.consonants))}
@@ -137,6 +139,11 @@ class CVTransformer(FeatureTransformer):
         self.phoneme2idx = {p: idx
                             for idx, p in enumerate(sorted(self.phonemes))}
 
+        self._is_fit = True
+        return self
+
+    def determine_grid(self, X):
+        """Determine the length of the grid, but not the features."""
         first_v = self.grid_structure.index("V")
         self.grid = self.grid_structure + self.grid_structure[:first_v]
         last_v = -first_v
@@ -149,8 +156,6 @@ class CVTransformer(FeatureTransformer):
             except IndexError:
                 self.grid = self.grid[:last_v] + self.grid_structure
                 self.grid += self.grid_structure[:first_v]
-
-        # Add the number of consonants to the end of the grid structure
 
         # The grid indexer contains the number of _Features_
         # the grid contains up to that point.
@@ -176,9 +181,6 @@ class CVTransformer(FeatureTransformer):
         # The total length of the grid in features
         self.vec_len = idx
 
-        self._is_fit = True
-        return self
-
     def vectorize(self, x):
         """
         Convert a phoneme sequence to a vector representation.
@@ -200,10 +202,13 @@ class CVTransformer(FeatureTransformer):
         phon_vector = np.zeros(self.vec_len)
 
         for idx, x in enumerate(self.grid):
-            if x == "C":
-                p = self.consonants[grid[idx]]
-            elif x == "V":
-                p = self.vowels[grid[idx]]
+            try:
+                if x == "C":
+                    p = self.consonants[grid[idx]]
+                elif x == "V":
+                    p = self.vowels[grid[idx]]
+            except KeyError:
+                continue
             g_idx = self.grid_indexer[idx]
             phon_vector[g_idx: g_idx+len(p)] = p
 

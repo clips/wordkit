@@ -98,11 +98,9 @@ class WickelTransformer(BaseTransformer):
         for w, g in self._decompose(x):
             try:
                 idx = self.features[g]
+                z[idx] = max(z[idx], w)
             except KeyError:
-                raise ValueError("You passed a word containing an ngram which"
-                                 " was not in the training data: {}"
-                                 "".format(g))
-            z[idx] = max(z[idx], w)
+                pass
 
         return z
 
