@@ -202,7 +202,7 @@ class BaseReader(TransformerMixin):
         if X:
             wordlist = set(X)
             words = [x for x in words if x['orthography'] in wordlist]
-        return list(filter(filter_function, words))
+        return WordStore(filter(filter_function, words))
 
     def get_sampler(self,
                     num_to_sample,
@@ -471,3 +471,19 @@ class Reader(BaseReader):
     def _process_semantics(self, x):
         """identity function."""
         return x
+
+
+class WordStore(list):
+    """A wordstore class."""
+
+    def get(self, key, strict=False, na_value=None):
+        """Gets keys from all words in the wordstore."""
+        X = []
+        for x in self:
+            try:
+                X.append(x[key])
+            except KeyError as e:
+                if strict:
+                    raise e
+                X.append(na_value)
+        return np.array(X)
