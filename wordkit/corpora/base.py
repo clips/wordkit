@@ -3,6 +3,7 @@ import os
 import regex as re
 import numpy as np
 import pandas as pd
+import random
 
 from sklearn.base import TransformerMixin
 from collections import defaultdict
@@ -477,7 +478,25 @@ class WordStore(list):
     """A wordstore class."""
 
     def get(self, key, strict=False, na_value=None):
-        """Gets keys from all words in the wordstore."""
+        """
+        Gets values of a key from all words in the wordstore.
+
+        Parameters
+        ----------
+        key : object
+            The key to retrieve all items.
+        strict : bool
+            If this is True, raise a KeyError if a key is not present.
+            If this is False, na_value is inserted.
+        na_value : None or object
+            The value to insert if a key is not present.
+
+        Returns
+        -------
+        values : np.array
+            The value of the key to retrieve.
+
+        """
         X = []
         for x in self:
             try:
@@ -487,3 +506,30 @@ class WordStore(list):
                     raise e
                 X.append(na_value)
         return np.array(X)
+
+    def sample(self, n, distribution_key=None):
+        """
+        Sample from the wordstore.
+
+        Parameters
+        ----------
+        n : int
+            The number of items to sample.
+        distribution_key : object, None, default None
+            The key to use as a distribution. The values in this key needs to
+            be an integer or a float for this to work.
+            If this value is None, sampling is uniform
+
+        Returns
+        -------
+        words : WordStore
+            The sampled words.
+
+        """
+        if distribution_key is None:
+            sample = [random.choice(self) for x in range(n)]
+        else:
+            distribution = np.array([x[distribution_key] for x in self])
+            distribution = distribution / distribution.sum()
+            sample = np.random.choice(self, size=n, p=distribution).tolist()
+        return WordStore(sample)
