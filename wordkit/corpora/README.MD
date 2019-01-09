@@ -23,7 +23,7 @@ A list of supported corpora can be found [here](../../)
 Corpora can be filtered during the transform function by using kwargs or a
 filter function.
 
-```
+```python
 from wordkit.corpora import Subtlex
 s = Subtlex("path", language="eng-uk", fields=("frequency", "orthography"))
 
@@ -44,7 +44,6 @@ def filterer(x):
     return a and b
 
 w = s.transform(filter_function=filterer)
-
 ```
 
 ## merge
@@ -66,5 +65,4 @@ augmented = merge(from_corpus=s_words,
                   to_corpus=c_words,
                   transfer_fields=("frequency",),
                   merge_fields=("orthography",))
-
 ```
