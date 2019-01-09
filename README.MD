@@ -9,8 +9,18 @@ This is the repository of the `wordkit` package, a `Python 3.X` package for the 
 `wordkit` is a package for working with words.
 The package contains a variety of functions that allow you to:
 * Extract words from lexical databases in a structured format.
-* Featurize words for usage in computational psycholinguistic models.
-* Combine lexical databases
+* Normalize phonological strings across languages and databases.
+* Featurize words for usage in computational psycholinguistic models using the following features:
+    * Open Bigrams
+    * Wickelgraphs
+    * Wickelfeatures
+    * Consonant Vowel mapping (patpho)
+    * Onset Nucleus Coda mapping
+* Find synonyms, homographs, and homophones across languages.
+* Fuse lexical databases, also crosslingually.
+* Sample from (subsets of) corpora by frequency of occurrence.
+
+and much more.
 
 ## Installation
 
