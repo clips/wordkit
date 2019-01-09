@@ -15,6 +15,7 @@ if __name__ == "__main__":
     # retrieved.
     words = corpus.transform(orthography=lambda x: len(x) == 4)
 
+    print("The first 10 words after filtering:")
     print(words[:10])
 
     # We initialize the LinearTransformer, which puts features in slots by
@@ -35,4 +36,4 @@ if __name__ == "__main__":
     # X is a matrix with a number of rows equal to the number of words,
     # and a number of columns equal to the number of features our transformer
     # created.
-    print(X.shape)
+    print("The shape of the resulting matrix: {}".format(X.shape))

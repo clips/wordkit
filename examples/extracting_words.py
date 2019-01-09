@@ -22,6 +22,8 @@ if __name__ == "__main__":
     words = corpus.transform()
 
     # words is a list of dictionaries.
+    print("{} words in corpus".format(len(words)))
+    print("First 10 words:")
     print(words[:10])
 
     # By passing filters, we can limit the words we get to specific ones.
@@ -46,6 +48,9 @@ if __name__ == "__main__":
 
     words = corpus.transform(orthography=filter_function)
 
+    # First 10 words starting with an a
+    print("Words left after filtering: {}".format(len(words)))
+    print("First 10 words after filtering:")
     print(words[:10])
 
     # After filtering, we can filter again.
@@ -54,4 +59,6 @@ if __name__ == "__main__":
     # Note that in this case we filter again.
     words = words.filter(frequency=lambda x: x >= 10)
 
+    print("Words left after filtering: {}".format(len(words)))
+    print("First 10 words after filtering:")
     print(words[:10])
