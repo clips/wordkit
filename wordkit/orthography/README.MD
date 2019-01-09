@@ -231,7 +231,7 @@ This is the simplest method, and assumes zero similarity between individual char
 We also offer a number of pre-specified features, which are mainly aimed at replicating already existing papers.
 These can directly be passed in to the `LinearTransformer`.
 
-```python3
+```python
 from wordkit.orthography.features import fourteen, sixteen
 
 l = LinearTransformer(fourteen)

@@ -17,7 +17,7 @@ Because synsets which are not shared between words do not contribute anything me
 
 Choosing to set the `prune` switch to True also skips the validation step during input, so be sure to only pass in synsets which you know are in your dataset.
 
-```python3
+```python
 from wordkit.corpora import WordNet
 from wordkit.semantics import OneHotSemanticsTransformer
 
@@ -50,7 +50,7 @@ If you use this transformer, please cite:
 This Transformer takes an optional `prune` switch, which prunes synsets that occur only once.
 It also take a `part_meronyms` switch, which denotes whether meronyms should be extracted in addition to hypernyms.
 
-```python3
+```python
 from wordkit.corpora import WordNet
 from wordkit.semantics import HypernymSemanticsTransformer
 
@@ -69,7 +69,7 @@ The semantic vectors have to be supplied by putting them into a word2vec-style f
 The embeddings are loaded using `reach`.
 Any embeddings not present in the fitting stage are discarded, so make sure you know beforehand which words you want to keep.
 
-```python3
+```python
 from wordkit.semantics import EmbeddingTransformer
 
 e = EmbeddingTransformer("path/to/my/embeddings.vec")

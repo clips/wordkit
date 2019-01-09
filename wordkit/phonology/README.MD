@@ -144,7 +144,6 @@ words = ["photography", "graphically"]
 # bigrams with a single intervening letter get weight .8, and so on.
 w = WeightedOpenBigramTransformer(weights=(1., .8, .2))
 X = w.fit_transform(words)
-
 ```
 
 ### WickelTransformer
