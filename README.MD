@@ -220,7 +220,7 @@ words.extend(dutch.transform(filter_function=fil))
 # 'syllables': (('e', 'ɪ'),)}
 
 # You can also query specific words
-wind = english.transform(["wind"]) + dutch.transform(["wind"])
+wind = words.filter(orthography='wind')
 
 # This gives
 # wind =>
