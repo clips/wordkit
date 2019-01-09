@@ -4,6 +4,37 @@
 
 This is the repository of the `wordkit` package, a `Python 3.X` package for the featurization of words into orthographic and phonological vectors.
 
+## Overview
+
+`wordkit` is a package for working with words.
+The package contains a variety of functions that allow you to:
+* Extract words from lexical databases in a structured format.
+* Featurize words for usage in computational psycholinguistic models.
+* Combine lexical databases
+
+## Examples
+
+See the [examples](examples) for some ways in which you can use `wordkit`.
+
+## More
+
+If, after working through the examples, you want to dive deeper into `wordkit`, check out the following documentation.
+
+`wordkit` is a modular system, and contains 5 broad families of components.
+The subpackages are extensively documented using separate `README.MD` files.
+Feel free to click ahead to find descriptions of the contents of subpackages.
+
+* [orthography](wordkit/orthography)
+* [phonology](wordkit/phonology)
+* [semantics](wordkit/semantics)
+* [corpora](wordkit/corpora)
+* [samplers](wordkit/samplers)
+
+In general, a `wordkit` pipeline consists of one or more readers, which extract structured information from corpora.
+This information is then sent to one or more transformers, which are either assigned pre-defined features or a feature extractor.
+
+## Paper
+
 A paper that describes `wordkit` was accepted at LREC 2018.
 If you use `wordkit` in your research, please cite the following paper:
 
@@ -28,31 +59,10 @@ If you use `wordkit` in your research, please cite the following paper:
 Additionally, if you use any of the corpus readers in `wordkit`, you MUST cite the accompanying corpora and transformers.
 All of these references can be found in the docstrings of the applicable classes.
 
-`wordkit` makes heavy use of [ipapy](https://github.com/pettarin/ipapy), a package which parses unicode IPA characters into their IPA representations.
-
-
-## Overview
-
-`wordkit` is a modular system, and contains 5 broad families of components.
-The subpackages are extensively documented using separate `README.MD` files.
-Feel free to click ahead to find descriptions of the contents of subpackages.
-
-* [orthography](wordkit/orthography)
-* [phonology](wordkit/phonology)
-* [semantics](wordkit/semantics)
-* [corpora](wordkit/corpora)
-* [samplers](wordkit/samplers)
-
-In general, a `wordkit` pipeline consists of one or more readers, which extract structured information from corpora.
-This information is then sent to one or more transformers, which are either assigned pre-defined features or a feature extractor.
-If a feature extractor is assigned to a transformer, the feature set of that transformer is extracted automatically.
-
-Finally, a sampler can be used to sample from the resulting items.
-
 ## Corpora
 
 `wordkit` currently offers readers for the following corpora.
-Note that, while we offer predefined fields for all these corpora, any fields present in these data can be retrieved by wordkit in addition to the fields we define.
+Note that, while we offer predefined fields for all these corpora, any fields present in these data can be retrieved by `wordkit` in addition to the fields we define.
 The Lexicon Projects, for example, also contain lexicality information, accuracy information, and so on.
 These can be retrieved by passing the appropriate fields as argument to `fields`.
 
@@ -165,6 +175,8 @@ Languages: Dutch, British English, American English, French
 ```
 
 ## Example
+
+This example shows one big `wordkit` pipeline.
 
 ```python
 from wordkit.corpora import Celex
