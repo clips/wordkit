@@ -12,9 +12,16 @@ The package contains a variety of functions that allow you to:
 * Featurize words for usage in computational psycholinguistic models.
 * Combine lexical databases
 
+## Installation
+
+`wordkit` is on pip.
+
+`pip install wordkit`
+
 ## Examples
 
 See the [examples](examples) for some ways in which you can use `wordkit`.
+All examples assume you have wordkit installed (see above.)
 
 ## More
 
