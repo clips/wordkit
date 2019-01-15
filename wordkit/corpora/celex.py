@@ -131,7 +131,7 @@ class Celex(Reader):
                  fields=("orthography", "syllables", "frequency", "language"),
                  language=None,
                  merge_duplicates=True,
-                 scale_frequencies=False,
+                 scale_frequencies=True,
                  lemmas=None):
         """Extract structured information from CELEX."""
         if not os.path.exists(path):

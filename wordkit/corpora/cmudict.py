@@ -142,7 +142,7 @@ class CMU(Reader):
                           'phonology': 1},
                          language="eng",
                          merge_duplicates=merge_duplicates,
-                         scale_frequencies=False)
+                         scale_frequencies=True)
 
     def _open(self, fields, **kwargs):
         """Open a file for reading."""

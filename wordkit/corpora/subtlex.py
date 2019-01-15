@@ -58,7 +58,7 @@ class Subtlex(Reader):
                  fields=("orthography", "frequency"),
                  language=None,
                  merge_duplicates=True,
-                 scale_frequencies=False):
+                 scale_frequencies=True):
         """Initialize the subtlex reader."""
         if language is None:
             try:

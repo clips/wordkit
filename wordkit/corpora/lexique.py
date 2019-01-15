@@ -81,7 +81,7 @@ class Lexique(Reader):
                  language=None,
                  merge_duplicates=True,
                  diacritics=diacritics,
-                 scale_frequencies=False):
+                 scale_frequencies=True):
         """Initialize the reader."""
         super().__init__(path,
                          fields,

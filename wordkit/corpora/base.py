@@ -225,7 +225,7 @@ class Reader(BaseReader):
                  field_ids,
                  language,
                  merge_duplicates,
-                 scale_frequencies=False,
+                 scale_frequencies=True,
                  diacritics=diacritics,
                  **kwargs):
         """Init the base class."""
