@@ -1,6 +1,7 @@
 """Unite information from various sources."""
 from collections import defaultdict
 from copy import deepcopy
+from .base import WordStore
 
 
 def merge(from_corpus,
@@ -94,7 +95,7 @@ def merge(from_corpus,
         joined_words = [x for idx, x in enumerate(joined_words)
                         if idx in updated]
 
-    return joined_words
+    return WordStore(joined_words)
 
 
 def _hash_words(words, fields):
