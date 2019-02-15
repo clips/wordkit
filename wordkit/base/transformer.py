@@ -141,10 +141,14 @@ class FeatureTransformer(BaseTransformer):
                 features = features()
             self.extractor = features
             self.extractor.field = self.field
+        else:
+            raise ValueError("The features you passed were not of the "
+                             "correct type: expected (tuple, dict, "
+                             "BaseExtractor), got {}".format(type(features)))
 
     def fit(self, X, y=None):
         """Fit the transformer."""
-        if self.extractor:
+        if self.extractor is not None:
             features = self.extractor.extract(X)
             if not isinstance(features, dict):
                 c, v = features
