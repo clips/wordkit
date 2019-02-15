@@ -1,5 +1,5 @@
 """Tools for working with Celex."""
-import regex as re
+import re
 import logging
 import os
 

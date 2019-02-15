@@ -1,5 +1,5 @@
 """The BPAL corpus reader."""
-import regex as re
+import re
 from .base import Reader, diacritics
 from itertools import chain
 

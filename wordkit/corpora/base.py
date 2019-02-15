@@ -1,6 +1,6 @@
 """Base class for corpus readers."""
 import os
-import regex as re
+import re
 import numpy as np
 import pandas as pd
 import random
