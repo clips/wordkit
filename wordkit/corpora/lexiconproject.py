@@ -3,18 +3,21 @@ import os
 from .base import Reader
 
 
-ALLOWED_LANGUAGES = ("eng-uk", "eng-us", "fra", "nld", "chi")
+ALLOWED_LANGUAGES = ("eng-uk", "eng-us", "fra", "nld", "chi", "kor")
 LANG_SEP = {"eng-uk": "\t", "nld": "\t", "eng-us": ","}
 language2field = {"nld": {"orthography": "spelling"},
                   "eng-uk": {"orthography": "spelling"},
                   "eng-us": {"orthography": "Word", "rt": "I_Mean_RT"},
                   "fra": {"orthography": "item"},
-                  "chi": {"orthography": "Character", "rt": "RT"}}
+                  "chi": {"orthography": "Character", "rt": "RT"},
+                  "kor": {"orthography": "Stimuli", "frequency": "Freq",
+                                                    "rt": "Stim_RT_M"}}
 AUTO_LANGUAGE = {"french lexicon project words.xls": "fra",
                  "blp-items.txt": "eng-uk",
                  "dlp_items.txt": "nld",
                  "elp-items.csv": "eng-us",
-                 "Chinese Lexicon Project Sze et al.xlsx": "chi"}
+                 "Chinese Lexicon Project Sze et al.xlsx": "chi",
+                 "klp_ld_item_ver.1.0.xlsx": "kor"}
 
 
 class LexiconProject(Reader):
@@ -53,7 +56,7 @@ class LexiconProject(Reader):
     """
     def __init__(self,
                  path,
-                 fields=("orthography", "rt"),
+                 fields=("orthography", "frequency", "rt"),
                  language=None):
         """Initialize the reader."""
         if language is None:
