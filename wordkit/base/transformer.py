@@ -89,13 +89,14 @@ class BaseTransformer(TransformerMixin):
         if strict:
             self._validate(X)
 
-        total = []
+        total = np.zeros((len(X), self.vec_len))
 
+        # Looks silly, but much faster than adding to a list and then
+        # turning this into an array.
         for idx, word in enumerate(X):
-            x = self.vectorize(word)
-            total.append(x)
+            total[idx] = self.vectorize(word)
 
-        return np.array(total)
+        return total
 
 
 class FeatureTransformer(BaseTransformer):
