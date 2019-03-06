@@ -71,6 +71,7 @@ class WickelTransformer(BaseTransformer):
 
         grams = sorted(grams)
         self.features = {g: idx for idx, g in enumerate(grams)}
+        self.inv_features = {v: k for k, v in self.features.items()}
         # The vector length is equal to the number of features.
         self.vec_len = len(self.features)
         self._is_fit = True
@@ -170,6 +171,10 @@ class WickelTransformer(BaseTransformer):
 
     def list_features(self, X):
         """Lists the features for each word."""
+        if isinstance(X, np.ndarray):
+            for x in X:
+                yield tuple([self.inv_features[idx]
+                             for idx in np.flatnonzero(x)])
         X = self._unpack(X)
         for x in X:
             yield tuple(zip(*self._decompose(x)))[1]
@@ -276,4 +281,5 @@ class WickelFeatureTransformer(WickelTransformer):
 
     def inverse_transform(self, X):
         """Not implemented."""
-        raise NotImplemented("Not implemented because probably impossible.")
+        raise NotImplementedError("""Not implemented because
+                                      probably impossible.""")
