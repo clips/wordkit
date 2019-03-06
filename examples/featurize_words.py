@@ -1,5 +1,5 @@
 """Extract words from a corpus, and featurize them."""
-from wordkit.subtlex import Subtlex
+from wordkit.corpora import Subtlex
 from wordkit.orthography import LinearTransformer, OneHotCharacterExtractor
 
 
