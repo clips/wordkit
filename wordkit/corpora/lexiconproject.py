@@ -10,8 +10,10 @@ language2field = {"nld": {"orthography": "spelling"},
                   "eng-us": {"orthography": "Word", "rt": "I_Mean_RT"},
                   "fra": {"orthography": "item"},
                   "chi": {"orthography": "Character", "rt": "RT"},
-                  "kor": {"orthography": "Stimuli", "frequency": "Freq",
-                                                    "rt": "Stim_RT_M"}}
+                  "kor": {"orthography": "Stimuli",
+                          "frequency": "Freq",
+                          "Lexicality": "lexicality",
+                          "rt": "Stim_RT_M"}}
 AUTO_LANGUAGE = {"french lexicon project words.xls": "fra",
                  "blp-items.txt": "eng-uk",
                  "dlp_items.txt": "nld",
