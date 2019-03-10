@@ -224,7 +224,7 @@ class Reader(BaseReader):
                  fields,
                  field_ids,
                  language,
-                 merge_duplicates,
+                 duplicates,
                  scale_frequencies=True,
                  diacritics=diacritics,
                  **kwargs):
@@ -236,7 +236,7 @@ class Reader(BaseReader):
         self.path = path
         self.language = language
         fields = {k: field_ids.get(k, k) for k in fields}
-        self.merge_duplicates = merge_duplicates
+        self.duplicates = duplicates
         self.diacritics = diacritics
         self.scale_frequencies = scale_frequencies
         data = self._open(fields, **kwargs)
@@ -257,6 +257,12 @@ class Reader(BaseReader):
                                skiprows=skiprows,
                                na_values=nans,
                                keep_default_na=False)
+            colnames = set(df.columns)
+            redundant = set(fields.values()) - colnames
+            if redundant:
+                raise ValueError("You passed fields which were not in "
+                                 "the dataset {}. The available fields are: "
+                                 "{}".format(redundant, colnames))
         else:
             _, indices = zip(*fields.items())
             try:
@@ -314,8 +320,7 @@ class Reader(BaseReader):
         # Lower-case orthography and conver to string.
         if 'orthography' in fields:
             df['orthography'] = df['orthography'].astype(str)
-            df['orthography'] = df.apply(lambda x: x['orthography'].lower(),
-                                         axis=1)
+
         # Process phonology
         if 'phonology' in fields:
             df['phonology'] = df.apply(lambda x:
@@ -349,12 +354,15 @@ class Reader(BaseReader):
 
         # We want to merge duplicates, but we don't want to merge on the
         # basis of frequency. Instead, we sum the frequency.
-        if self.merge_duplicates:
+        if self.duplicates:
             ungroupable = {'frequency'}
             cols_to_group = list(set(df.columns) - ungroupable)
             if use_freq:
                 g = df.groupby(cols_to_group)['frequency']
-                df.loc[:, ('frequency',)] = g.transform(np.sum)
+                if self.duplicates == "sum":
+                    df.loc[:, ('frequency',)] = g.transform(np.sum)
+                elif self.duplicates == "max":
+                    df.loc[:, ('frequency',)] = g.transform(np.max)
             df = df.drop_duplicates().copy()
 
         # Scale the frequencies.
