@@ -219,13 +219,13 @@ fil = lambda x: not set(x['orthography']).intersection({"'", ',', '-', '/', '.'}
 # Link to epl.cd
 english = Celex("epl.cd",
                 fields=fields,
-                merge_duplicates=True)
+                duplicates="max")
 
 # Link to dpl.cd
 dutch = Celex("dpl.cd",
               fields=fields,
               language='nld',
-              merge_duplicates=True)
+              duplicates="max")
 
 words = english.transform(filter_function=fil)
 words.extend(dutch.transform(filter_function=fil))
