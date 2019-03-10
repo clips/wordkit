@@ -354,7 +354,7 @@ class Deri(Reader):
                  path,
                  fields=("orthography", "phonology"),
                  language=None,
-                 merge_duplicates=True,
+                 duplicates="max",
                  diacritics=diacritics,
                  scale_frequencies=True):
         """Extract words from Deri and Knight corpora."""
@@ -368,7 +368,7 @@ class Deri(Reader):
                           'phonology': 3,
                           'language': 0},
                          language,
-                         merge_duplicates,
+                         duplicates=duplicates,
                          diacritics=diacritics,
                          scale_frequencies=scale_frequencies,
                          header=None,

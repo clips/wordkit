@@ -100,7 +100,7 @@ class BPal(Reader):
     def __init__(self,
                  path,
                  fields=("orthography", "syllables", "phonology"),
-                 merge_duplicates=True,
+                 duplicates="max",
                  scale_frequencies=True):
         """Initialize the BPAL reader."""
         allowed_fields = {"orthography": 0,
@@ -111,7 +111,7 @@ class BPal(Reader):
                          fields,
                          allowed_fields,
                          language="esp",
-                         merge_duplicates=merge_duplicates,
+                         duplicates=duplicates,
                          diacritics=diacritics,
                          scale_frequencies=scale_frequencies,
                          sep="\t",

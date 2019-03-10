@@ -119,10 +119,12 @@ class Celex(Reader):
     fields : iterable, default ("orthography", "syllables", "frequency")
         An iterable of strings containing the fields this reader has
         to read from the corpus.
-    merge_duplicates : bool, default False
+    duplicates : str in {"sum", "max"} or False,
         Whether to merge duplicates which are indistinguishable according
         to the selected fields.
         If this is False, duplicates may occur in the output.
+        If this is either "sum" or "max", the frequencies of the duplicates
+        are summed or maxed.
 
     """
 
@@ -130,7 +132,7 @@ class Celex(Reader):
                  path,
                  fields=("orthography", "syllables", "frequency", "language"),
                  language=None,
-                 merge_duplicates=True,
+                 duplicates="max",
                  scale_frequencies=True,
                  lemmas=None):
         """Extract structured information from CELEX."""
@@ -177,7 +179,7 @@ class Celex(Reader):
                          fields,
                          p,
                          language,
-                         merge_duplicates,
+                         duplicates,
                          scale_frequencies,
                          sep="\\",
                          quote=QUOTE_NONE,

@@ -57,7 +57,7 @@ class Subtlex(Reader):
                  path,
                  fields=("orthography", "frequency"),
                  language=None,
-                 merge_duplicates=True,
+                 duplicates="max",
                  scale_frequencies=True):
         """Initialize the subtlex reader."""
         if language is None:
@@ -86,7 +86,7 @@ class Subtlex(Reader):
                          fields,
                          language2field[language],
                          language,
-                         merge_duplicates=merge_duplicates,
+                         duplicates=duplicates,
                          diacritics=None,
                          scale_frequencies=scale_frequencies,
                          sep="\t",

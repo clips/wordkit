@@ -79,7 +79,7 @@ class Lexique(Reader):
                  path,
                  fields=('orthography', 'phonology', 'frequency'),
                  language=None,
-                 merge_duplicates=True,
+                 duplicates="max",
                  diacritics=diacritics,
                  scale_frequencies=True):
         """Initialize the reader."""
@@ -90,7 +90,7 @@ class Lexique(Reader):
                           "frequency": "10_freqlivres",
                           "syllables": "23_syll"},
                          "fra",
-                         merge_duplicates,
+                         duplicates=duplicates,
                          diacritics=diacritics,
                          scale_frequencies=scale_frequencies,
                          sep="\t")

@@ -50,7 +50,7 @@ class WordNet(Reader):
                          field_ids={"semantics": 0,
                                     "orthography": 2},
                          language=language,
-                         merge_duplicates=True,
+                         duplicates="max",
                          comment="#",
                          sep="\t",
                          header=None)

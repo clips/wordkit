@@ -133,7 +133,7 @@ class CMU(Reader):
                  path,
                  fields=("orthography", "phonology"),
                  language=None,
-                 merge_duplicates=True):
+                 duplicates="max"):
         """Extract structured information from CMUDICT."""
         self.brackets = re.compile(r"\(\d\)")
         super().__init__(path,
@@ -141,7 +141,7 @@ class CMU(Reader):
                          {'orthography': 0,
                           'phonology': 1},
                          language="eng",
-                         merge_duplicates=merge_duplicates,
+                         duplicates=duplicates,
                          scale_frequencies=True)
 
     def _open(self, fields, **kwargs):
