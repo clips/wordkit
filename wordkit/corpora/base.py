@@ -308,6 +308,10 @@ class Reader(BaseReader):
         df = df.loc[:, keys]
 
         # Drop nans before further processing.
+        use_freq = 'frequency' in fields
+        if use_freq:
+            df['frequency'] = df['frequency'].fillna(0)
+
         df = df.dropna()
 
         # Assign language, but we need to see whether this is a user-assigned
@@ -345,8 +349,6 @@ class Reader(BaseReader):
             df['semantics'] = g['semantics'].transform(np.sum)
             # Drop duplicate entries
             df = df.drop_duplicates().copy()
-
-        use_freq = 'frequency' in fields
 
         df = df.dropna()
         if df.empty:
