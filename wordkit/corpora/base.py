@@ -9,8 +9,6 @@ from sklearn.base import TransformerMixin
 from collections import defaultdict
 from functools import partial
 
-# special collection of nans because words like nan and null do occur in our
-# corpora. These do not.
 nans = {'',
         '#N/A',
         '#N/A N/A',
@@ -55,6 +53,11 @@ diacritics = {'ː',
 def identity(x):
     """Identity function."""
     return x
+
+
+def apply_if_not_na(x, func):
+    """Applies function to something if it is not NA."""
+    return x if np.isnan(x) else func(x)
 
 
 def segment_phonology(phonemes, items=diacritics, to_keep=diacritics):
@@ -309,10 +312,6 @@ class Reader(BaseReader):
 
         # Drop nans before further processing.
         use_freq = 'frequency' in fields
-        if use_freq:
-            df['frequency'] = df['frequency'].fillna(0)
-
-        df = df.dropna()
 
         # Assign language, but we need to see whether this is a user-assigned
         # property or not.
@@ -321,24 +320,26 @@ class Reader(BaseReader):
         elif self.language:
             df['language'] = self.language
 
-        # Lower-case orthography and conver to string.
         if 'orthography' in fields:
             df['orthography'] = df['orthography'].astype(str)
 
         # Process phonology
         if 'phonology' in fields:
+            func = partial(apply_if_not_na, func=self._process_phonology)
             df['phonology'] = df.apply(lambda x:
-                                       self._process_phonology(x['phonology']),
+                                       func(x['phonology']),
                                        axis=1)
         # Process syllabic phonology
         if 'syllables' in fields:
+            func = partial(apply_if_not_na, func=self._process_syllable)
             df['syllables'] = df.apply(lambda x:
-                                       self._process_syllable(x['syllables']),
+                                       func(x['syllables']),
                                        axis=1)
         # Process semantics
         if 'semantics' in fields:
+            func = partial(apply_if_not_na, func=self._process_semantics)
             df['semantics'] = df.apply(lambda x:
-                                       self._process_semantics(x['semantics']),
+                                       func(x['semantics']),
                                        axis=1)
             # This might return NaNs
             df = df.dropna()
@@ -350,7 +351,6 @@ class Reader(BaseReader):
             # Drop duplicate entries
             df = df.drop_duplicates().copy()
 
-        df = df.dropna()
         if df.empty:
             raise ValueError("All your rows contained at least one NaN.")
 
@@ -369,15 +369,23 @@ class Reader(BaseReader):
 
         # Scale the frequencies.
         if use_freq and self.scale_frequencies:
-            summ = np.sum(df.frequency)
-            total = np.sum(df.frequency) / 1e6
-            m = min(df.frequency[df.frequency > 0])
-            smoothed_total = (summ + (len(df.frequency) * m)) / 1e6
-            df['frequency_per_million'] = df['frequency'] / total
-            df['log_frequency'] = np.log10(df['frequency'] + m)
+            mask = ~np.isnan(df.frequency)
+            mask_freq = df.frequency[mask]
+            summ = np.sum(mask_freq)
+            total = np.sum(mask_freq) / 1e6
+            m = min(mask_freq[mask_freq > 0])
+            smoothed_total = (summ + (len(mask_freq) * m)) / 1e6
+            d = np.zeros(len(df)) * np.nan
+            d[mask] = mask_freq / total
+            df['frequency_per_million'] = d
+            d = np.zeros(len(df)) * np.nan
+            d[mask] = np.log10(mask_freq + m)
+            df['log_frequency'] = d
             # Should reference publication.
-            df['zipf_score'] = np.log10((df['frequency'] + m) / smoothed_total)
-            df['zipf_score'] += 3
+            d = np.zeros(len(df)) * np.nan
+            d[mask] = np.log10((mask_freq + m) / smoothed_total)
+            d[mask] += 3
+            df['zipf_score'] = d
 
         return df
 
