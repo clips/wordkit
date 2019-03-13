@@ -498,7 +498,6 @@ class WordStore(list):
             there we evaluate all functions before calling any([]).
 
             """
-
             if not functions:
                 return True
             for k, v in functions.items():
@@ -520,8 +519,8 @@ class WordStore(list):
                         raise ValueError("We don't know what to do with the "
                                          "value you passed for the key {} "
                                          "".format(k))
-                    if not t:
-                        return False
+                if not t:
+                    return False
             return True
 
         # Check which kwargs pertain to the data.
