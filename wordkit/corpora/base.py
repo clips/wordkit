@@ -167,7 +167,11 @@ class BaseReader(TransformerMixin):
             input list, as words can be expressed in multiple ways.
 
         """
-        return self.data.filter(filter_function, **kwargs)
+        d = self.data
+        X = set(X)
+        if X:
+            d = self.data.filter(orthography=lambda x: x in X)
+        return d.filter(filter_function, **kwargs)
 
 
 class Reader(BaseReader):
@@ -337,13 +341,12 @@ class Reader(BaseReader):
                                        axis=1)
         # Process semantics
         if 'semantics' in fields:
-            func = partial(apply_if_not_na, func=self._process_semantics)
             df['semantics'] = df.apply(lambda x:
-                                       func(x['semantics']),
+                                       self._process_semantics(x['semantics']),
                                        axis=1)
-            # This might return NaNs
-            df = df.dropna()
-            other_fields = tuple(set(df.columns) - {'semantics'})
+            # df = df.dropna()
+            other_fields = list(set(df.columns) - {'semantics'})
+            df = df.dropna(0, subset=('semantics',))
             g = df.groupby(other_fields)
 
             # Slow, but only way this works.
