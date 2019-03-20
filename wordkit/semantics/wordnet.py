@@ -51,10 +51,12 @@ class OneHotSemanticsTransformer(BaseTransformer):
             self.feature_names.update(x)
 
         if self.prune:
-            self.feature_names = {k: v for k, v in self.feature_names.items()
+            self.feature_names = {k for k, v in self.feature_names.items()
                                   if v > 1}
 
         self.features = {k: idx for idx, k in enumerate(self.feature_names)}
+        self.feature_names, _ = zip(*sorted(self.features.items(),
+                                            key=lambda x: x[1]))
         self.vec_len = len(self.feature_names)
         self._is_fit = True
         return self
