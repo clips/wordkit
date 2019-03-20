@@ -2,6 +2,7 @@
 import numpy as np
 
 from ..base.transformer import FeatureTransformer
+from .feature_extraction import IndexCharacterExtractor
 
 
 class LinearTransformer(FeatureTransformer):
@@ -148,3 +149,43 @@ class LinearTransformer(FeatureTransformer):
             inverted.append("".join([keys[idx] for idx in res]).strip())
 
         return inverted
+
+
+class OneHotLinearTransformer(LinearTransformer):
+    """A LinearTransformer that automatically performs one hot encoding."""
+
+    def __init__(self,
+                 field=None,
+                 left=True,
+                 variable_length=False,
+                 include_space=True):
+        """Init the transformer."""
+        index = IndexCharacterExtractor(include_space=include_space)
+        super().__init__(index, field, left, variable_length)
+
+    def fit(self, X):
+        """Override the fit."""
+        super().fit(X)
+        self.vec_len = self.max_word_length * len(self.features)
+        self.dlen = len(self.features)
+        return self
+
+    def vectorize(self, x):
+        """Vectorize the data."""
+        if len(x) > self.max_word_length:
+            raise ValueError("Your word is too long")
+        if self.variable_length:
+            v = np.zeros((len(x), self.dlen))
+        else:
+            v = np.zeros((self.max_word_length, self.dlen))
+            if self.left:
+                x = x.ljust(self.max_word_length)
+            else:
+                x = x.rjust(self.max_word_length)
+        for idx, c in enumerate(x):
+            try:
+                v[idx][self.features[c][0]] = 1
+            except KeyError:
+                continue
+
+        return v.ravel()
