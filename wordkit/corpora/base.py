@@ -126,6 +126,7 @@ class BaseReader(TransformerMixin):
                   X=(),
                   y=None,
                   filter_function=None,
+                  filter_nan=(),
                   **kwargs):
         """
         Transform a list of words into dictionaries.
@@ -171,7 +172,7 @@ class BaseReader(TransformerMixin):
         X = set(X)
         if X:
             d = self.data.filter(orthography=lambda x: x in X)
-        return d.filter(filter_function, **kwargs)
+        return d.filter(filter_function, filter_nan, **kwargs)
 
 
 class Reader(BaseReader):
@@ -453,14 +454,10 @@ class WordStore(list):
                 X.append(na_value)
         return np.array(X)
 
-    def filter(self, filter_function=None, **kwargs):
+    def filter(self, filter_function=None, filter_nan=(), **kwargs):
         """
         Parameters
         ----------
-        X : list of strings.
-            The orthographic form of the input words.
-        y : None
-            For sklearn compatibility.
         filter_function : function or None, default None
             The filtering function to use. A filtering function is a function
             which accepts a dictionary as argument and which returns a boolean
@@ -470,7 +467,10 @@ class WordStore(list):
             Example of a filtering function could be a function which
             constrains the frequencies of retrieved words, or the number of
             syllables.
-        kwargs : lambda function
+        filter_nan : iterable, optional, default ()
+            Which fields to filter for Nans. If this is None or an empty list,
+            no filtering is performed.
+        kwargs : dict
             This function also takes general keyword arguments that take
             keys as keys and functions as values. This offers a more flexible
             alternative to the filter_function option above.
@@ -527,7 +527,23 @@ class WordStore(list):
             return True
 
         # Check which kwargs pertain to the data.
-        functions = {k: v for k, v in kwargs.items()}
+        functions = {k: v for k, v in kwargs.items() if k in self.fields}
+        if isinstance(filter_nan, str):
+            filter_nan = (filter_nan,)
+        diff = set(filter_nan) - set(self.fields)
+        if diff:
+            raise ValueError("You selected {} for nan filtering, but {} "
+                             "was not in the set of fields for this Wordstore"
+                             ": {}".format(filter_nan,
+                                           diff,
+                                           set(self.fields)))
+        for k in filter_nan:
+            if k in functions:
+                func = functions[k]
+                functions[k] = lambda x: not np.isnan(x) and func(x)
+            else:
+                functions[k] = lambda x: not np.isnan(x)
+
         # Only if we actually have functions should we do something.
         if functions:
             # If we also have a filter function, we should compose it
