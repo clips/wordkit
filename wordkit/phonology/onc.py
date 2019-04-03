@@ -69,6 +69,19 @@ class ONCTransformer(FeatureTransformer):
         self.__num_syls = value
         self._set_grid_params((self.o, self.n, self.c), value)
 
+    def _make_cvc(self, syll):
+        """Makes a cvc grid from a syllable."""
+        cvc = []
+        for x in syll:
+            if x in self.consonants:
+                cvc.append("C")
+            elif x in self.vowels:
+                cvc.append("V")
+            else:
+                raise ValueError("{} was neither a consonant nor a vowel."
+                                 "".format(x))
+        return "".join(cvc)
+
     def _set_grid_params(self, grid, num_syls):
         """
         Set the grid params given a grid.
@@ -154,8 +167,7 @@ class ONCTransformer(FeatureTransformer):
 
         for syll in set(chain.from_iterable(X)):
 
-            cvc = "".join(["C" if x in self.consonants
-                           else "V" for x in syll])
+            cvc = self._make_cvc(syll)
             c_l = len(cvc)
             try:
                 m = next(self.r.finditer(cvc))
@@ -173,6 +185,8 @@ class ONCTransformer(FeatureTransformer):
     def put_on_grid(self, x):
         """Put phonemes on a syllabic grid."""
         grid = []
+        if not self._is_fit:
+            raise ValueError("The transformer was not fit yet.")
 
         m = next(self.r.finditer(self.grid))
         # Start index of the nucleus
@@ -182,7 +196,7 @@ class ONCTransformer(FeatureTransformer):
         for s in x:
             syll = [" " for x in "".join(self.syllable_grid)]
             # s is a syllable.
-            cvc = "".join(["C" if p in self.consonants else "V" for p in s])
+            cvc = self._make_cvc(s)
             try:
                 m = next(self.r.finditer(cvc))
                 # Letter index of the nucleus

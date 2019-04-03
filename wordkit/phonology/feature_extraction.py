@@ -20,13 +20,26 @@ class BasePhonemeExtractor(BaseExtractor):
                 for p in phonemes]
 
     @staticmethod
-    def _parse_phonemes(phonemes):
+    def _is_valid(phoneme):
+        """
+        Check whether a phoneme is valid.
+
+        To qualify as valid, the phoneme should consist of a single character
+        and zero or more diacritics.
+        """
+        a, *rest = phoneme
+        return not a.is_diacritic and all([x.is_diacritic for x in rest])
+
+    def _parse_phonemes(self, phonemes):
         """Parse the incoming tuple of phonemes as IPA characters."""
         phonemes = [IPAString(unicode_string=p, single_char_parsing=True)
                     for p in phonemes]
 
+        for x in phonemes:
+            if not self._is_valid(x):
+                raise ValueError("{} was not a valid phoneme.".format(x))
         vowels = filter(lambda x: x[0].is_vowel, phonemes)
-        consonants = filter(lambda x: not x[0].is_vowel, phonemes)
+        consonants = filter(lambda x: x[0].is_consonant, phonemes)
 
         return list(vowels), list(consonants)
 
