@@ -23,7 +23,6 @@ class BaseTransformer(TransformerMixin):
     def __init__(self, field):
         """Initialize the transformer."""
         self._is_fit = False
-        self.features = None
         self.field = field
 
     def _validate(self, X):
