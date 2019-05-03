@@ -10,7 +10,7 @@ class EmbeddingTransformer(BaseTransformer):
 
     Word embeddings are pre-trained distributed representations of words.
     The distributed representations are usually obtained by utilizing the
-    distributional hypothesis; i.e. that words with the same meaning are
+    distributional hypothesis, i.e., that words with the same meaning are
     accompanied by the same words.
 
     This transformer utilizes a file with stored embeddings.
