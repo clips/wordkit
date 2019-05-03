@@ -23,16 +23,20 @@ class EmbeddingTransformer(BaseTransformer):
         Glove or word2vec style headers.
     field : str or None
         The field to use.
+    normalize : bool, default False
+        Whether to normalize the resulting embeddings to unit length.
 
     """
 
     def __init__(self,
                  path_to_embeddings,
-                 field=None):
+                 field=None,
+                 normalize=False):
         """Transform words into embeddings."""
         super().__init__(field)
         self.path = path_to_embeddings
         self.features = {}
+        self.normalize = normalize
 
     def _validate(self, X):
         """Validate the input data."""
@@ -52,7 +56,9 @@ class EmbeddingTransformer(BaseTransformer):
         super().fit(X)
         X = self._unpack(X)
         mtr, words = Reach._load(self.path, X)
-        self.features = {k: v for k, v in zip(words, mtr)}
+        if self.normalize:
+            mtr = Reach.normalize(mtr)
+        self.features = dict(zip(words, mtr))
         self.vec_len = mtr.shape[1]
         self.feature_names = set(self.features.keys())
         self._is_fit = True
