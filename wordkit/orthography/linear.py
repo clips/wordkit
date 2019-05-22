@@ -119,6 +119,8 @@ class LinearTransformer(FeatureTransformer):
 
     def inverse_transform(self, X):
         """Transform a corpus back to word representations."""
+        if not self._is_fit:
+            raise ValueError("The transformer has not been fit yet.")
         X = np.asarray(X)
         inverted = []
 
@@ -132,7 +134,7 @@ class LinearTransformer(FeatureTransformer):
                 X = X[None, :]
             if X.shape[1] != self.vec_len:
                 raise ValueError("Your matrix was not the correct shape. "
-                                 "We expect a (N, {}) matrix, but we got a "
+                                 "Expected a (N, {}) matrix, but got a "
                                  "{} shaped one".format(self.vec_len, X.shape))
             feature_length = self.vec_len // self.max_word_length
             X_ = X.reshape((-1, self.max_word_length, feature_length))
