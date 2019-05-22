@@ -28,7 +28,9 @@ class BasePhonemeExtractor(BaseExtractor):
         and zero or more diacritics.
         """
         a, *rest = phoneme
-        return not a.is_diacritic and all([x.is_diacritic for x in rest])
+        a = not (a.is_diacritic or a.is_suprasegmental)
+        rest = all([x.is_diacritic or x.is_suprasegmental for x in rest])
+        return a and rest
 
     def _parse_phonemes(self, phonemes):
         """Parse the incoming tuple of phonemes as IPA characters."""
