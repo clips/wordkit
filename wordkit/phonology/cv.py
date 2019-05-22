@@ -262,6 +262,16 @@ class CVTransformer(FeatureTransformer):
 
     def inverse_transform(self, X):
         """Transform a set of word representations back to their form."""
+        X = np.asarray(X)
+        if not self._is_fit:
+            raise ValueError("The transformer has not been fit yet.")
+        if np.ndim(X) == 1:
+            X = X[None, :]
+        if X.shape[1] != self.vec_len:
+            raise ValueError("Your matrix was not the correct shape. "
+                             "Expected a (N, {}) matrix, but got a "
+                             "{} shaped one".format(self.vec_len, X.shape))
+
         vowel_keys, vowels = zip(*self.vowels.items())
         consonant_keys, consonants = zip(*self.consonants.items())
 
