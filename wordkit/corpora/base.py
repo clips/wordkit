@@ -57,7 +57,10 @@ def identity(x):
 
 def apply_if_not_na(x, func):
     """Applies function to something if it is not NA."""
-    return x if np.isnan(x) else func(x)
+    try:
+        return x if np.isnan(x) else func(x)
+    except TypeError:
+        return func(x)
 
 
 def segment_phonology(phonemes, items=diacritics, to_keep=diacritics):
