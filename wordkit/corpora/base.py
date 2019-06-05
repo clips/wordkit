@@ -427,6 +427,11 @@ class WordStore(list):
         self.fields = {k: next(iter(v)) if len(v) == 1 else None
                        for k, v in self.fields.items()}
 
+    def __getitem__(self, item):
+        """Getter that returns a wordstore instead of a list."""
+        result = list.__getitem__(self, item)
+        return WordStore(result)
+
     def get(self, key, strict=False, na_value=None):
         """
         Gets values of a key from all words in the wordstore.
