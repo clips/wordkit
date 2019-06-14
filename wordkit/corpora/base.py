@@ -374,26 +374,6 @@ class Reader(BaseReader):
                     df.loc[:, ('frequency',)] = g.transform(np.max)
             df = df.drop_duplicates().copy()
 
-        # Scale the frequencies.
-        if use_freq and self.scale_frequencies:
-            mask = ~np.isnan(df.frequency)
-            mask_freq = df.frequency[mask]
-            summ = np.sum(mask_freq)
-            total = np.sum(mask_freq) / 1e6
-            m = min(mask_freq[mask_freq > 0])
-            smoothed_total = (summ + (len(mask_freq) * m)) / 1e6
-            d = np.zeros(len(df)) * np.nan
-            d[mask] = mask_freq / total
-            df['frequency_per_million'] = d
-            d = np.zeros(len(df)) * np.nan
-            d[mask] = np.log10(mask_freq + m)
-            df['log_frequency'] = d
-            # Should reference publication.
-            d = np.zeros(len(df)) * np.nan
-            d[mask] = np.log10((mask_freq + m) / smoothed_total)
-            d[mask] += 3
-            df['zipf_score'] = d
-
         return df
 
     def fit(self, X, y=None):
@@ -420,19 +400,76 @@ class WordStore(list):
         """Initialize the wordstore."""
         super().__init__(*args, **kwargs)
         # field to type mapping
-        self.fields = defaultdict(set)
+        self._fields = defaultdict(set)
         for x in self:
             for k, v in x.items():
-                self.fields[k].add(type(v))
-        self.fields = {k: next(iter(v)) if len(v) == 1 else None
-                       for k, v in self.fields.items()}
+                self._fields[k].add(type(v))
+        self._fields = {k: next(iter(v)) if len(v) == 1 else None
+                        for k, v in self._fields.items()}
 
-    def __getitem__(self, item):
+        self._prep = {"log_frequency": self._prep_log_frequency,
+                      "zipf_score": self._prep_zipf_score,
+                      "frequency_per_million": self._prep_frequency_million,
+                      "length": self._prep_length}
+
+    def __getitem__(self, x):
         """Getter that returns a wordstore instead of a list."""
-        result = list.__getitem__(self, item)
-        return WordStore(result)
+        if isinstance(x, str):
+            return self._get(x, strict=True)
+        result = super().__getitem__(x)
+        if len(result) == 1:
+            result = [result]
+        return type(self)(result)
 
-    def get(self, key, strict=False, na_value=None):
+    def __setitem__(self, x, item):
+        """Setter."""
+        if isinstance(x, int):
+            if isinstance(item, dict):
+                super().__setitem__(x, item)
+            else:
+                raise ValueError("You tried adding a non-dictionary item to "
+                                 "the WordStore.")
+        elif isinstance(x, str):
+            if isinstance(item, (np.ndarray, list, tuple)):
+                if len(item) != len(self):
+                    raise ValueError("Your list of items to add was not "
+                                     "the same length as your WordStore: "
+                                     "got {}, expected {}.".format(len(item),
+                                                                   len(self)))
+                for i, value in zip(self, item):
+                    i[x] = value
+                self.add_field(x, item)
+            else:
+                raise ValueError("You tried adding a non-list to a string "
+                                 "index.")
+        else:
+            raise ValueError("You passed an illegal combination of things. "
+                             "x = {} with type {}; item = {} with type {} "
+                             "".format(x, type(x), item, type(item)))
+
+    def append(self, x):
+        """Append function with check."""
+        if not isinstance(x, dict):
+            raise ValueError("You can only append dicts to a WordStore.")
+        super().append(x)
+
+    def extend(self, x):
+        """Append function with check."""
+        if not all([isinstance(x_, dict) for x_ in x]):
+            raise ValueError("You can only append dicts to a WordStore.")
+        super().append(x)
+
+    def add_field(self, key, values):
+        """Adds a field to the _fields dictionary."""
+        if key in self._fields:
+            raise ValueError("Key already in fields.")
+        t = set([type(x) for x in set(values)])
+        if len(t) == 1:
+            self._fields[key] = type(next(iter(t)))
+        else:
+            self._fields[key] = None
+
+    def _get(self, key, strict=False, na_value=None):
         """
         Gets values of a key from all words in the wordstore.
 
@@ -453,6 +490,12 @@ class WordStore(list):
 
         """
         X = []
+        if key not in self._fields and key in {"log_frequency",
+                                               "frequency_per_million",
+                                               "zipf_score",
+                                               "length"}:
+            self[key] = self._prep[key]()
+
         for x in self:
             try:
                 X.append(x[key])
@@ -461,6 +504,57 @@ class WordStore(list):
                     raise e
                 X.append(na_value)
         return np.array(X)
+
+    def _prep_log_frequency(self):
+        """Add log frequency."""
+        if "frequency" not in self._fields:
+            raise ValueError("You tried to access a frequency-derived "
+                             "field: log_frequency, but frequency was not in "
+                             "the set of fields.")
+
+        freq = self._get("frequency", np.nan)
+        mask = ~np.isnan(freq)
+        mask_freq = freq[mask]
+        m = mask_freq[mask_freq > 0].min()
+        d = np.zeros(len(freq)) * np.nan
+        d[mask] = np.log10(mask_freq + m)
+        return d
+
+    def _prep_frequency_million(self):
+        """Prepare the frequency per million."""
+        if "frequency" not in self._fields:
+            raise ValueError("You tried to access a frequency-derived "
+                             "field: frequency_per_million, but frequency was "
+                             "not in the set of fields.")
+        freq = self._get("frequency", np.nan)
+        mask = ~np.isnan(freq)
+        mask_freq = freq[mask]
+        summ = mask_freq.sum()
+        m = mask_freq[mask_freq > 0].min()
+        smoothed_total = (summ + (len(mask_freq) * m)) / 1e6
+        d = np.zeros(len(freq)) * np.nan
+        d[mask] = mask_freq / smoothed_total
+        return d
+
+    def _prep_zipf_score(self):
+        """Add the zipf score."""
+        if "frequency" not in self._fields:
+            raise ValueError("You tried to access a frequency-derived "
+                             "field: zipf_score, but frequency was "
+                             "not in the set of fields.")
+        d = self._prep_frequency_million()
+        mask = ~np.isnan(d)
+        m = d[d > 0].min()
+        d[mask] = np.log10(d[mask] + m) + 3
+        return d
+
+    def _prep_length(self):
+        """Prepare length."""
+        if "orthography" not in self._fields:
+            raise ValueError("You tried to access the derived field: length "
+                             "but orthography, from which length is derived, "
+                             "is not in the set of fields.")
+        return [len(x) for x in self._get('orthography')]
 
     def filter(self, filter_function=None, filter_nan=(), **kwargs):
         """
@@ -522,7 +616,7 @@ class WordStore(list):
                             # If something doesn't have the key, it does not
                             # get selected.
                             t = False
-                    elif isinstance(v, self.fields[k]):
+                    elif isinstance(v, self._fields[k]):
                         t = x[k] == v
                     elif isinstance(v, (tuple, set, list)):
                         t = x[k] in set(v)
@@ -558,7 +652,7 @@ class WordStore(list):
             if filter_function:
                 functions['__general__'] = filter_function
             filter_function = partial(_filter, functions)
-        return WordStore(filter(filter_function, self))
+        return type(self)(filter(filter_function, self))
 
     def sample(self, n, distribution_key=None):
         """
@@ -585,4 +679,4 @@ class WordStore(list):
             distribution = np.array([x[distribution_key] for x in self])
             distribution = distribution / distribution.sum()
             sample = np.random.choice(self, size=n, p=distribution).tolist()
-        return WordStore(sample)
+        return type(self)(sample)
