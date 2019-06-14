@@ -259,6 +259,9 @@ class ONCTransformer(FeatureTransformer):
 
     def inverse_transform(self, X):
         """Transform a matrix back into their word representations."""
+        X = np.asarray(X)
+        if not self._is_fit:
+            raise ValueError("The transformer has not been fit yet.")
         if np.ndim(X) == 1:
             X = X[None, :]
         if X.shape[1] != self.vec_len:
