@@ -591,7 +591,7 @@ class WordStore(list):
         """
         # Kwargs contains functions
         # compose a new function on the fly using _filter
-        def _filter(functions, x):
+        def _filter(functions, fields, x):
             """
             Generate new filter_function
 
@@ -616,7 +616,7 @@ class WordStore(list):
                             # If something doesn't have the key, it does not
                             # get selected.
                             t = False
-                    elif isinstance(v, self._fields[k]):
+                    elif isinstance(v, fields[k]):
                         t = x[k] == v
                     elif isinstance(v, (tuple, set, list)):
                         t = x[k] in set(v)
@@ -629,10 +629,10 @@ class WordStore(list):
             return True
 
         # Check which kwargs pertain to the data.
-        functions = {k: v for k, v in kwargs.items() if k in self.fields}
+        functions = {k: v for k, v in kwargs.items() if k in self._fields}
         if isinstance(filter_nan, str):
             filter_nan = (filter_nan,)
-        diff = set(filter_nan) - set(self.fields)
+        diff = set(filter_nan) - set(self._fields)
         if diff:
             raise ValueError("You selected {} for nan filtering, but {} "
                              "was not in the set of fields for this Wordstore"
@@ -651,7 +651,7 @@ class WordStore(list):
             # If we also have a filter function, we should compose it
             if filter_function:
                 functions['__general__'] = filter_function
-            filter_function = partial(_filter, functions)
+            filter_function = partial(_filter, functions, self._fields)
         return type(self)(filter(filter_function, self))
 
     def sample(self, n, distribution_key=None):
