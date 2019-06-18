@@ -2,8 +2,7 @@
 import numpy as np
 
 from ..base.transformer import BaseTransformer
-from math import ceil
-from itertools import product, chain
+from itertools import chain
 
 
 class WickelTransformer(BaseTransformer):
@@ -109,8 +108,8 @@ class WickelTransformer(BaseTransformer):
     def _ngrams(word, n, num_padding, strict=True):
         """Lazily get all ngrams in a string."""
         if num_padding:
-            padding = ("#",) * num_padding
-            word = padding + tuple(word) + padding
+            padding = "#" * num_padding
+            word = "{}{}{}".format(padding, word, padding)
         if len(word) < n:
             if strict:
                 raise ValueError("You tried to featurize words shorter than "
@@ -175,9 +174,10 @@ class WickelTransformer(BaseTransformer):
             for x in X:
                 yield tuple([self.inv_features[idx]
                              for idx in np.flatnonzero(x)])
-        X = self._unpack(X)
-        for x in X:
-            yield tuple(zip(*self._decompose(x)))[1]
+        else:
+            X = self._unpack(X)
+            for x in X:
+                yield tuple(zip(*self._decompose(x)))[1]
 
 
 class WickelFeatureTransformer(WickelTransformer):
