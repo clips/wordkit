@@ -531,6 +531,7 @@ class WordStore(list):
         mask_freq = freq[mask]
         summ = mask_freq.sum()
         m = mask_freq[mask_freq > 0].min()
+        mask_freq += m
         smoothed_total = (summ + (len(mask_freq) * m)) / 1e6
         d = np.zeros(len(freq)) * np.nan
         d[mask] = mask_freq / smoothed_total
@@ -638,7 +639,7 @@ class WordStore(list):
                              "was not in the set of fields for this Wordstore"
                              ": {}".format(filter_nan,
                                            diff,
-                                           set(self.fields)))
+                                           set(self._fields)))
         for k in filter_nan:
             if k in functions:
                 func = functions[k]
