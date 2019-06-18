@@ -417,7 +417,8 @@ class WordStore(list):
         if isinstance(x, str):
             return self._get(x, strict=True)
         result = super().__getitem__(x)
-        if len(result) == 1:
+        # Only got a single result back
+        if isinstance(result, dict):
             result = [result]
         return type(self)(result)
 
