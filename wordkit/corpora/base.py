@@ -631,6 +631,16 @@ class WordStore(list):
             return True
 
         # Check which kwargs pertain to the data.
+        special_fields = set(set(self._prep) & set(kwargs)) - set(self._fields)
+        for x in special_fields:
+            self._get(x)
+        not_fields = set(kwargs) - set(self._fields)
+        if not_fields:
+            raise ValueError("You selected {} for filtering, but {} "
+                             "was not in the set of fields for this WordStore"
+                             ": {}".format(set(kwargs),
+                                           not_fields,
+                                           set(self._fields)))
         functions = {k: v for k, v in kwargs.items() if k in self._fields}
         if isinstance(filter_nan, str):
             filter_nan = (filter_nan,)
