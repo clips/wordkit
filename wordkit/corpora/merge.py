@@ -1,4 +1,5 @@
 """Unite information from various sources."""
+import numpy as np
 from collections import defaultdict
 from copy import deepcopy
 from .base import WordStore
@@ -53,8 +54,8 @@ def merge(from_corpus,
     >>> new = merge(words_s, words_c, "orthography", "frequency")
 
     """
-    from_keys = set(from_corpus[0].keys())
-    to_keys = set(to_corpus[0].keys())
+    from_keys = set(from_corpus[0]._fields)
+    to_keys = set(to_corpus[0]._fields)
 
     if isinstance(merge_fields, str):
         merge_fields = (merge_fields,)
@@ -70,32 +71,29 @@ def merge(from_corpus,
                          " choice.".format(all_diff))
 
     transfer_fields = set(transfer_fields)
-    words_set_from = _hash_words(from_corpus, merge_fields)
-    words_set_to = _hash_words(to_corpus, merge_fields)
 
-    keys = set(words_set_from.keys()) and set(words_set_to.keys())
-    words_set_from = {k: v for k, v in words_set_from.items() if k in keys}
-    words_set_to = {k: v for k, v in words_set_to.items() if k in keys}
+    f = _hash_words(from_corpus, merge_fields)
+    t = _hash_words(to_corpus, merge_fields)
 
-    joined_words = deepcopy(to_corpus)
-    updated = set()
-
-    for k, indices in words_set_from.items():
+    to_corpus = deepcopy(to_corpus)
+    # Create mapping
+    updates = np.empty((len(transfer_fields), len(to_corpus)),
+                       dtype=object)
+    for x, indices in f.items():
+        idx = indices[0]
         try:
-            for idx in words_set_to[k]:
-                for from_idx in indices:
-                    word = joined_words[idx]
-                    information_to_add = from_corpus[from_idx]
-                    word.update(information_to_add)
-                updated.add(idx)
+            for fidx, field in enumerate(transfer_fields):
+                updates[fidx][t[x]] = from_corpus[idx][field]
         except KeyError:
             pass
 
-    if discard:
-        joined_words = [x for idx, x in enumerate(joined_words)
-                        if idx in updated]
+    for fidx, field in enumerate(transfer_fields):
+        to_corpus[field] = updates[fidx]
 
-    return WordStore(joined_words)
+    if discard:
+        to_corpus = to_corpus.filter(filter_nan=transfer_fields)
+
+    return WordStore(to_corpus)
 
 
 def _hash_words(words, fields):
@@ -105,4 +103,4 @@ def _hash_words(words, fields):
     for idx, x in enumerate(words):
         indices[tuple([x[field] for field in fields])].add(idx)
 
-    return dict(indices)
+    return {k: list(v) for k, v in indices.items()}

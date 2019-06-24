@@ -92,7 +92,7 @@ def segment_phonology(phonemes, items=diacritics, to_keep=diacritics):
         If to_keep and items are the same list, all items are kept.
 
     """
-    phonemes = remove_double.sub("\g<1>", phonemes)
+    phonemes = remove_double.sub(r"\g<1>", phonemes)
     phonemes = [list(p) for p in phonemes]
     idx = 0
     while idx < len(phonemes):
@@ -415,7 +415,7 @@ class WordStore(list):
     def __getitem__(self, x):
         """Getter that returns a wordstore instead of a list."""
         if isinstance(x, str):
-            return self._get(x, strict=True)
+            return self.get(x, strict=True)
         result = super().__getitem__(x)
         # Only got a single result back
         if isinstance(result, dict):
@@ -470,7 +470,7 @@ class WordStore(list):
         else:
             self._fields[key] = None
 
-    def _get(self, key, strict=False, na_value=None):
+    def get(self, key, strict=False, na_value=None):
         """
         Gets values of a key from all words in the wordstore.
 
@@ -513,7 +513,7 @@ class WordStore(list):
                              "field: log_frequency, but frequency was not in "
                              "the set of fields.")
 
-        freq = self._get("frequency", np.nan)
+        freq = self.get("frequency", np.nan)
         mask = ~np.isnan(freq)
         mask_freq = freq[mask]
         m = mask_freq[mask_freq > 0].min()
@@ -527,7 +527,7 @@ class WordStore(list):
             raise ValueError("You tried to access a frequency-derived "
                              "field: frequency_per_million, but frequency was "
                              "not in the set of fields.")
-        freq = self._get("frequency", np.nan)
+        freq = self.get("frequency", np.nan)
         mask = ~np.isnan(freq)
         mask_freq = freq[mask]
         summ = mask_freq.sum()
@@ -556,7 +556,7 @@ class WordStore(list):
             raise ValueError("You tried to access the derived field: length "
                              "but orthography, from which length is derived, "
                              "is not in the set of fields.")
-        return [len(x) for x in self._get('orthography')]
+        return [len(x) for x in self.get('orthography')]
 
     def filter(self, filter_function=None, filter_nan=(), **kwargs):
         """
@@ -633,7 +633,7 @@ class WordStore(list):
         # Check which kwargs pertain to the data.
         special_fields = set(set(self._prep) & set(kwargs)) - set(self._fields)
         for x in special_fields:
-            self._get(x)
+            self.get(x)
         not_fields = set(kwargs) - set(self._fields)
         if not_fields:
             raise ValueError("You selected {} for filtering, but {} "
@@ -651,12 +651,20 @@ class WordStore(list):
                              ": {}".format(filter_nan,
                                            diff,
                                            set(self._fields)))
+
+        def is_value(x):
+            """Check if something is a value."""
+            try:
+                return not (x is None or np.isnan(x))
+            except TypeError:
+                return bool(x)
+
         for k in filter_nan:
             if k in functions:
                 func = functions[k]
-                functions[k] = lambda x: not np.isnan(x) and func(x)
+                functions[k] = lambda x: is_value(x) and func(x)
             else:
-                functions[k] = lambda x: not np.isnan(x)
+                functions[k] = lambda x: is_value(x)
 
         # Only if we actually have functions should we do something.
         if functions:
