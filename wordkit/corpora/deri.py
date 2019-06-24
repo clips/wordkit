@@ -355,8 +355,7 @@ class Deri(Reader):
                  fields=("orthography", "phonology"),
                  language=None,
                  duplicates="max",
-                 diacritics=diacritics,
-                 scale_frequencies=True):
+                 diacritics=diacritics):
         """Extract words from Deri and Knight corpora."""
         if language is not None and language not in ALLOWED_LANGUAGES:
             raise ValueError("The language you supplied is not in the list "
@@ -370,7 +369,6 @@ class Deri(Reader):
                          language,
                          duplicates=duplicates,
                          diacritics=diacritics,
-                         scale_frequencies=scale_frequencies,
                          header=None,
                          sep="\t")
 

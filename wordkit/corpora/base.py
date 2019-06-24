@@ -203,14 +203,14 @@ class Reader(BaseReader):
         names used by wordkit.
     language : string
         The language of the corpus.
-    merge_duplicates : bool, optional, default False
+    duplicates : str, one of {"max", "sum", "", None}
         Whether to merge duplicates which are indistinguishable according
         to the selected fields.
+        If this evaluates to False duplicates may occur in the output.
+        The string will determine whether to take the max or sum of the
+        values.
         Note that frequency is not counted as a field for determining
         duplicates. Frequency is instead added together for any duplicates.
-        If this is False, duplicates may occur in the output.
-    scale_frequencies : bool, default False
-        Whether to scale the frequencies by a pre-defined amount.
     diacritics : tuple
         The diacritic markers from the IPA alphabet to keep. All diacritics
         which are IPA valid can be correctly parsed by wordkit, but it may
@@ -236,7 +236,6 @@ class Reader(BaseReader):
                  field_ids,
                  language,
                  duplicates,
-                 scale_frequencies=True,
                  diacritics=diacritics,
                  **kwargs):
         """Init the base class."""
@@ -249,7 +248,6 @@ class Reader(BaseReader):
         fields = {k: field_ids.get(k, k) for k in fields}
         self.duplicates = duplicates
         self.diacritics = diacritics
-        self.scale_frequencies = scale_frequencies
         data = self._open(fields, **kwargs)
         super().__init__(data)
 

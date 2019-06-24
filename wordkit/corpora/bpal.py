@@ -100,8 +100,7 @@ class BPal(Reader):
     def __init__(self,
                  path,
                  fields=("orthography", "syllables", "phonology"),
-                 duplicates="max",
-                 scale_frequencies=True):
+                 duplicates="max"):
         """Initialize the BPAL reader."""
         allowed_fields = {"orthography": 0,
                           "syllables": 1,
@@ -113,7 +112,6 @@ class BPal(Reader):
                          language="esp",
                          duplicates=duplicates,
                          diacritics=diacritics,
-                         scale_frequencies=scale_frequencies,
                          sep="\t",
                          encoding="latin-1",
                          quote=0,

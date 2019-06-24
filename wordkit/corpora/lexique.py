@@ -80,8 +80,7 @@ class Lexique(Reader):
                  fields=('orthography', 'phonology', 'frequency'),
                  language=None,
                  duplicates="max",
-                 diacritics=diacritics,
-                 scale_frequencies=True):
+                 diacritics=diacritics):
         """Initialize the reader."""
         super().__init__(path,
                          fields,
@@ -92,7 +91,6 @@ class Lexique(Reader):
                          "fra",
                          duplicates=duplicates,
                          diacritics=diacritics,
-                         scale_frequencies=scale_frequencies,
                          sep="\t")
 
     def _process_phonology(self, string):

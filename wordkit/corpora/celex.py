@@ -133,7 +133,6 @@ class Celex(Reader):
                  fields=("orthography", "syllables", "frequency", "language"),
                  language=None,
                  duplicates="max",
-                 scale_frequencies=True,
                  lemmas=None):
         """Extract structured information from CELEX."""
         if not os.path.exists(path):
@@ -180,7 +179,6 @@ class Celex(Reader):
                          p,
                          language,
                          duplicates,
-                         scale_frequencies,
                          sep="\\",
                          quote=QUOTE_NONE,
                          header=None)
