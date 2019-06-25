@@ -84,7 +84,6 @@ class Subtlex(Reader):
                          fields,
                          language2field[language],
                          language,
-                         duplicates=duplicates,
                          diacritics=None,
                          sep="\t",
                          skiprows=skiprows)
