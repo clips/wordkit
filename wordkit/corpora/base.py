@@ -142,7 +142,6 @@ class BaseReader(TransformerMixin):
                   X=(),
                   y=None,
                   filter_function=None,
-                  filter_nan=(),
                   **kwargs):
         """
         Transform a list of words into dictionaries.
@@ -188,7 +187,7 @@ class BaseReader(TransformerMixin):
         X = set(X)
         if X:
             d = self.data.filter(orthography=lambda x: x in X)
-        return d.filter(filter_function, filter_nan, **kwargs)
+        return d.filter(filter_function, **kwargs)
 
 
 class Reader(BaseReader):
@@ -702,19 +701,19 @@ class WordStore(list):
     def filter_nan(self, fields):
         """Simple nan filtering."""
         if isinstance(fields, str):
-            filter_nan = (fields,)
-        diff = set(filter_nan) - set(self.fields)
+            fields = (fields,)
+        diff = set(fields) - set(self.fields)
         if diff:
             raise ValueError("You selected {} for nan filtering, but {} "
                              "was not in the set of fields for this Wordstore"
-                             ": {}".format(filter_nan,
+                             ": {}".format(fields,
                                            diff,
                                            set(self.fields)))
 
         not_nan = np.ones(len(self), dtype=np.bool)
         for x in fields:
             not_nan &= not_nan_or_none(self[x])
-        type(self)(self[not_nan])
+        return type(self)(self[not_nan])
 
     def sample(self, n, distribution_key=None):
         """
