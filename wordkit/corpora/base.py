@@ -16,9 +16,10 @@ def not_nan_or_none(x):
     x = np.asarray(x)
     m1 = x != None # noqa
     try:
-        m2 = ~np.isnan(x)
-        return np.logical_and(m1, m2)
-    except TypeError:
+        # Looks stupid, is correct
+        m1[m1] &= ~np.isnan(x[m1].astype(float))
+        return m1
+    except (TypeError, ValueError):
         return m1
 
 
@@ -606,7 +607,7 @@ class WordStore(list):
                              "is not in the set of fields.")
         o = self['orthography']
         mask = not_nan_or_none(o)
-        return [len(x) if y else np.nan for x, y in zip(o, mask)]
+        return np.array([len(x) if y else np.nan for x, y in zip(o, mask)])
 
     def filter(self, filter_function=None, **kwargs):
         """
