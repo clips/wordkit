@@ -8,6 +8,16 @@ import random
 from sklearn.base import TransformerMixin
 from collections import defaultdict
 from functools import partial
+from copy import deepcopy
+
+
+def _nan_or_none(x):
+    """Check whether a given input is either nan or None."""
+    try:
+        return np.isnan(x)
+    except TypeError:
+        return x is None
+
 
 nans = {'',
         '#N/A',
@@ -203,14 +213,6 @@ class Reader(BaseReader):
         names used by wordkit.
     language : string
         The language of the corpus.
-    duplicates : str, one of {"max", "sum", "", None}
-        Whether to merge duplicates which are indistinguishable according
-        to the selected fields.
-        If this evaluates to False duplicates may occur in the output.
-        The string will determine whether to take the max or sum of the
-        values.
-        Note that frequency is not counted as a field for determining
-        duplicates. Frequency is instead added together for any duplicates.
     diacritics : tuple
         The diacritic markers from the IPA alphabet to keep. All diacritics
         which are IPA valid can be correctly parsed by wordkit, but it may
@@ -224,8 +226,7 @@ class Reader(BaseReader):
     >>>     return (not a) and b
     >>>
     >>> r = Reader("/path/",
-    >>>            ("orthography", "frequency"),
-    >>>            "eng")
+    >>>            ("orthography", "frequency"))
     >>> words = r.transform(filter_function=freq_alpha)
 
     """
@@ -235,7 +236,6 @@ class Reader(BaseReader):
                  fields,
                  field_ids,
                  language,
-                 duplicates,
                  diacritics=diacritics,
                  **kwargs):
         """Init the base class."""
@@ -246,7 +246,6 @@ class Reader(BaseReader):
         self.path = path
         self.language = language
         fields = {k: field_ids.get(k, k) for k in fields}
-        self.duplicates = duplicates
         self.diacritics = diacritics
         data = self._open(fields, **kwargs)
         super().__init__(data)
@@ -316,9 +315,6 @@ class Reader(BaseReader):
                 df = df.assign(**{field: df[in_df_name]})
         df = df.loc[:, keys]
 
-        # Drop nans before further processing.
-        use_freq = 'frequency' in fields
-
         # Assign language, but we need to see whether this is a user-assigned
         # property or not.
         if 'language' in fields and self.language:
@@ -359,19 +355,6 @@ class Reader(BaseReader):
         if df.empty:
             raise ValueError("All your rows contained at least one NaN.")
 
-        # We want to merge duplicates, but we don't want to merge on the
-        # basis of frequency. Instead, we sum the frequency.
-        if self.duplicates:
-            ungroupable = {'frequency'}
-            cols_to_group = list(set(df.columns) - ungroupable)
-            if use_freq:
-                g = df.groupby(cols_to_group)['frequency']
-                if self.duplicates == "sum":
-                    df.loc[:, ('frequency',)] = g.transform(np.sum)
-                elif self.duplicates == "max":
-                    df.loc[:, ('frequency',)] = g.transform(np.max)
-            df = df.drop_duplicates().copy()
-
         return df
 
     def fit(self, X, y=None):
@@ -398,23 +381,74 @@ class WordStore(list):
         """Initialize the wordstore."""
         super().__init__(*args, **kwargs)
         # field to type mapping
-        self._fields = defaultdict(set)
-        for x in self:
+        self.fields = {}
+
+        skip = set()
+        for idx, x in enumerate(self):
+            self._check_dict(idx, x)
             for k, v in x.items():
-                self._fields[k].add(type(v))
-        self._fields = {k: next(iter(v)) if len(v) == 1 else None
-                        for k, v in self._fields.items()}
+                if k in skip:
+                    continue
+                if k in self.fields:
+                    if not isinstance(v, self.fields[k]):
+                        skip.add(k)
+                        self.fields[k] = None
+                else:
+                    self.fields[k] = type(v)
 
         self._prep = {"log_frequency": self._prep_log_frequency,
                       "zipf_score": self._prep_zipf_score,
                       "frequency_per_million": self._prep_frequency_million,
                       "length": self._prep_length}
 
+    def __add__(self, x):
+        """Override add to return Wordstores."""
+        return WordStore(super().__add__(deepcopy(x)))
+
+    def _check_dict(self, idx, x):
+        if not isinstance(x, dict):
+            raise ValueError("Item {}: {} was not a dictionary. "
+                             "A wordstore requires all items to be "
+                             "dictionaries.".format(idx, x))
+
+    def __iadd__(self, other):
+        """Check and add to fields."""
+        # Need to do check and update because no new object can be created.
+        skip = {k for k, v in self.fields.items() if v is None}
+        for idx, x in enumerate(other):
+            self._check_dict(idx, x)
+            for k, v in x.items():
+                if k in skip:
+                    continue
+                if k in self.fields:
+                    if not isinstance(v, self.fields[k]):
+                        skip.add(k)
+                        self.fields[k] = None
+                else:
+                    self.fields[k] = type(v)
+
+        return super().__iadd__(deepcopy(other))
+
     def __getitem__(self, x):
         """Getter that returns a wordstore instead of a list."""
         if isinstance(x, str):
-            return self.get(x, strict=True)
-        result = super().__getitem__(x)
+            return self.get(x, strict=False, na_value=None)
+        if isinstance(x, (np.ndarray, list)):
+            result = []
+            if isinstance(x, list):
+                x = np.asarray(x)
+            if x.dtype == np.bool:
+                if len(x) != len(self):
+                    raise ValueError("Boolean indexing is only allowed when "
+                                     "the length of the boolean array matches "
+                                     "the length of the WordStore: got {}, "
+                                     "expected {}"
+                                     "".format(len(x), len(self)))
+                x = np.flatnonzero(x)
+            for idx in x:
+                result.append(super().__getitem__(idx))
+        else:
+            result = super().__getitem__(x)
         # Only got a single result back
         if isinstance(result, dict):
             result = [result]
@@ -436,7 +470,8 @@ class WordStore(list):
                                      "got {}, expected {}.".format(len(item),
                                                                    len(self)))
                 for i, value in zip(self, item):
-                    i[x] = value
+                    if not _nan_or_none(value):
+                        i[x] = value
                 self.add_field(x, item)
             else:
                 raise ValueError("You tried adding a non-list to a string "
@@ -445,6 +480,14 @@ class WordStore(list):
             raise ValueError("You passed an illegal combination of things. "
                              "x = {} with type {}; item = {} with type {} "
                              "".format(x, type(x), item, type(item)))
+
+    def _na_type(self, key):
+        """Get the appropriate missing value type for a given field."""
+        field_type = self.fields[key]
+        if field_type is not None:
+            if issubclass(field_type, (int, float)):
+                return np.nan
+        return None
 
     def append(self, x):
         """Append function with check."""
@@ -460,13 +503,11 @@ class WordStore(list):
 
     def add_field(self, key, values):
         """Adds a field to the _fields dictionary."""
-        if key in self._fields:
-            raise ValueError("Key already in fields.")
         t = set([type(x) for x in set(values)])
         if len(t) == 1:
-            self._fields[key] = type(next(iter(t)))
+            self.fields[key] = type(next(iter(t)))
         else:
-            self._fields[key] = None
+            self.fields[key] = None
 
     def get(self, key, strict=False, na_value=None):
         """
@@ -489,12 +530,19 @@ class WordStore(list):
 
         """
         X = []
-        if key not in self._fields and key in {"log_frequency",
-                                               "frequency_per_million",
-                                               "zipf_score",
-                                               "length"}:
-            self[key] = self._prep[key]()
+        if key not in self.fields:
+            if key in {"log_frequency",
+                       "frequency_per_million",
+                       "zipf_score",
+                       "length"}:
+                self[key] = self._prep[key]()
+            else:
+                raise ValueError("Tried to retrieve a field: {}, which was "
+                                 "not in any of the records in the WordStore."
+                                 "".format(key))
 
+        if na_value is None:
+            na_value = self._na_type(key)
         for x in self:
             try:
                 X.append(x[key])
@@ -506,7 +554,7 @@ class WordStore(list):
 
     def _prep_log_frequency(self):
         """Add log frequency."""
-        if "frequency" not in self._fields:
+        if "frequency" not in self.fields:
             raise ValueError("You tried to access a frequency-derived "
                              "field: log_frequency, but frequency was not in "
                              "the set of fields.")
@@ -521,7 +569,7 @@ class WordStore(list):
 
     def _prep_frequency_million(self):
         """Prepare the frequency per million."""
-        if "frequency" not in self._fields:
+        if "frequency" not in self.fields:
             raise ValueError("You tried to access a frequency-derived "
                              "field: frequency_per_million, but frequency was "
                              "not in the set of fields.")
@@ -538,7 +586,7 @@ class WordStore(list):
 
     def _prep_zipf_score(self):
         """Add the zipf score."""
-        if "frequency" not in self._fields:
+        if "frequency" not in self.fields:
             raise ValueError("You tried to access a frequency-derived "
                              "field: zipf_score, but frequency was "
                              "not in the set of fields.")
@@ -550,11 +598,12 @@ class WordStore(list):
 
     def _prep_length(self):
         """Prepare length."""
-        if "orthography" not in self._fields:
+        if "orthography" not in self.fields:
             raise ValueError("You tried to access the derived field: length "
                              "but orthography, from which length is derived, "
                              "is not in the set of fields.")
-        return [len(x) for x in self.get('orthography')]
+        return [len(x) if not _nan_or_none(x) else np.nan
+                for x in self.get('orthography')]
 
     def filter(self, filter_function=None, filter_nan=(), **kwargs):
         """
@@ -629,26 +678,26 @@ class WordStore(list):
             return True
 
         # Check which kwargs pertain to the data.
-        special_fields = set(set(self._prep) & set(kwargs)) - set(self._fields)
+        special_fields = set(set(self._prep) & set(kwargs)) - set(self.fields)
         for x in special_fields:
             self.get(x)
-        not_fields = set(kwargs) - set(self._fields)
+        not_fields = set(kwargs) - set(self.fields)
         if not_fields:
             raise ValueError("You selected {} for filtering, but {} "
                              "was not in the set of fields for this WordStore"
                              ": {}".format(set(kwargs),
                                            not_fields,
-                                           set(self._fields)))
-        functions = {k: v for k, v in kwargs.items() if k in self._fields}
+                                           set(self.fields)))
+        functions = {k: v for k, v in kwargs.items() if k in self.fields}
         if isinstance(filter_nan, str):
             filter_nan = (filter_nan,)
-        diff = set(filter_nan) - set(self._fields)
+        diff = set(filter_nan) - set(self.fields)
         if diff:
             raise ValueError("You selected {} for nan filtering, but {} "
                              "was not in the set of fields for this Wordstore"
                              ": {}".format(filter_nan,
                                            diff,
-                                           set(self._fields)))
+                                           set(self.fields)))
 
         def is_value(x):
             """Check if something is a value."""
@@ -669,7 +718,7 @@ class WordStore(list):
             # If we also have a filter function, we should compose it
             if filter_function:
                 functions['__general__'] = filter_function
-            filter_function = partial(_filter, functions, self._fields)
+            filter_function = partial(_filter, functions, self.fields)
         return type(self)(filter(filter_function, self))
 
     def sample(self, n, distribution_key=None):
@@ -698,3 +747,38 @@ class WordStore(list):
             distribution = distribution / distribution.sum()
             sample = np.random.choice(self, size=n, p=distribution).tolist()
         return type(self)(sample)
+
+    def collapse(self, fields, fields_to_merge, merge="sum"):
+        """Collapses the WordStore by adding duplicates together."""
+        if merge not in ("sum", "mean", "max"):
+            raise ValueError("merge needs to be {'sum', 'mean', 'max'}")
+        if isinstance(fields, str):
+            fields = [fields]
+        if isinstance(fields_to_merge, str):
+            fields_to_merge = [fields_to_merge]
+
+        keys = np.stack([self.get(x, True, None) for x in fields])
+        _, idxes, inverse, c = np.unique(keys,
+                                         axis=1,
+                                         return_inverse=True,
+                                         return_index=True,
+                                         return_counts=True)
+
+        new = self[idxes]
+        for f in fields_to_merge:
+            vals = self[f].astype(float)
+            res = np.zeros(len(new))
+            for idx, inv in enumerate(inverse):
+                if idx == inv:
+                    continue
+                if merge == "min":
+                    res[inv] = min(res[inv], vals[idx])
+                if merge == "max":
+                    res[inv] = min(res[inv], vals[idx])
+                else:
+                    res[inv] += vals[idx]
+            if merge == "mean":
+                res /= c
+            new[f] = res
+
+        return new
