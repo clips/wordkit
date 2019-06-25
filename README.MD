@@ -213,19 +213,14 @@ fields = ('orthography', 'frequency', 'phonology', 'syllables')
 # We also use it to select only monosyllables.
 fil = lambda x: not set(x['orthography']).intersection({"'", ',', '-', '/', '.'}) and len(x['syllables']) == 1
 
-# We set merge duplicates to True because some of
-# the distinctions in Celex (e.g. POS) do not matter to us.
-
 # Link to epl.cd
 english = Celex("epl.cd",
-                fields=fields,
-                duplicates="max")
+                fields=fields)
 
 # Link to dpl.cd
 dutch = Celex("dpl.cd",
               fields=fields,
-              language='nld',
-              duplicates="max")
+              language='nld')
 
 words = english.transform(filter_function=fil)
 words.extend(dutch.transform(filter_function=fil))
