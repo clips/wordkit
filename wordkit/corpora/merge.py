@@ -54,8 +54,8 @@ def merge(from_corpus,
     >>> new = merge(words_s, words_c, "orthography", "frequency")
 
     """
-    from_keys = set(from_corpus[0]._fields)
-    to_keys = set(to_corpus[0]._fields)
+    from_keys = set(from_corpus[0].fields)
+    to_keys = set(to_corpus[0].fields)
 
     if isinstance(merge_fields, str):
         merge_fields = (merge_fields,)

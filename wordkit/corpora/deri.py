@@ -339,10 +339,6 @@ class Deri(Reader):
     fields : iterable, default ("orthography", "phonology")
         An iterable of strings containing the fields this reader has
         to read from the corpus.
-    merge_duplicates : bool, default False
-        Whether to merge duplicates which are indistinguishable according
-        to the selected fields.
-        If this is False, duplicates may occur in the output.
     diacritics : tuple
         The diacritic markers from the IPA alphabet to keep. All diacritics
         which are IPA valid can be correctly parsed by wordkit, but it may
@@ -354,7 +350,6 @@ class Deri(Reader):
                  path,
                  fields=("orthography", "phonology"),
                  language=None,
-                 duplicates="max",
                  diacritics=diacritics):
         """Extract words from Deri and Knight corpora."""
         if language is not None and language not in ALLOWED_LANGUAGES:
@@ -367,7 +362,6 @@ class Deri(Reader):
                           'phonology': 3,
                           'language': 0},
                          language,
-                         duplicates=duplicates,
                          diacritics=diacritics,
                          header=None,
                          sep="\t")

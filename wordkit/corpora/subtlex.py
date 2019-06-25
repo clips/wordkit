@@ -56,8 +56,7 @@ class Subtlex(Reader):
     def __init__(self,
                  path,
                  fields=("orthography", "frequency"),
-                 language=None,
-                 duplicates="max"):
+                 language=None):
         """Initialize the subtlex reader."""
         if language is None:
             try:

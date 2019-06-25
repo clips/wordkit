@@ -66,12 +66,6 @@ class Lexique(Reader):
         The fields to retrieve from the corpus.
     language : str
         The language of the corpus. Currently not used in Lexique.
-    merge_duplicates : bool, optional, default False
-        Whether to merge duplicates which are indistinguishable according
-        to the selected fields.
-        Note that frequency is not counted as a field for determining
-        duplicates. Frequency is instead added together for any duplicates.
-        If this is False, duplicates may occur in the output.
 
     """
 
@@ -79,7 +73,6 @@ class Lexique(Reader):
                  path,
                  fields=('orthography', 'phonology', 'frequency'),
                  language=None,
-                 duplicates="max",
                  diacritics=diacritics):
         """Initialize the reader."""
         super().__init__(path,
@@ -89,7 +82,6 @@ class Lexique(Reader):
                           "frequency": "10_freqlivres",
                           "syllables": "23_syll"},
                          "fra",
-                         duplicates=duplicates,
                          diacritics=diacritics,
                          sep="\t")
 

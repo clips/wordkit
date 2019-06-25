@@ -59,8 +59,7 @@ class LexiconProject(Reader):
     def __init__(self,
                  path,
                  fields=("orthography", "rt"),
-                 language=None,
-                 duplicates="max"):
+                 language=None):
         """Initialize the reader."""
         if language is None:
             try:
@@ -85,5 +84,4 @@ class LexiconProject(Reader):
                          fields,
                          language2field[language],
                          language,
-                         duplicates=duplicates,
                          sep=LANG_SEP.get(language, None))

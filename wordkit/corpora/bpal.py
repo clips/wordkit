@@ -88,19 +88,12 @@ class BPal(Reader):
     fields : tuple
         The fields to extract using this corpus reader. Any invalid fields
         will cause the reader to throw a ValueError.
-    language : str
-        This language field is here for compatibility, but is not used.
-    merge_duplicates : bool, optional, default False
-        Whether to merge duplicates which are indistinguishable according
-        to the selected fields.
-        If this is False, duplicates may occur in the output.
 
     """
 
     def __init__(self,
                  path,
-                 fields=("orthography", "syllables", "phonology"),
-                 duplicates="max"):
+                 fields=("orthography", "syllables", "phonology")):
         """Initialize the BPAL reader."""
         allowed_fields = {"orthography": 0,
                           "syllables": 1,
@@ -110,7 +103,6 @@ class BPal(Reader):
                          fields,
                          allowed_fields,
                          language="esp",
-                         duplicates=duplicates,
                          diacritics=diacritics,
                          sep="\t",
                          encoding="latin-1",

@@ -122,26 +122,20 @@ class CMU(Reader):
     fields : iterable, default ("orthography", "phonology"")
         An iterable of strings containing the fields this reader has
         to read from the corpus.
-    merge_duplicates : bool, default False
-        Whether to merge duplicates which are indistinguishable according
-        to the selected fields.
-        If this is False, duplicates may occur in the output.
 
     """
 
     def __init__(self,
                  path,
                  fields=("orthography", "phonology"),
-                 language=None,
-                 duplicates="max"):
+                 language=None):
         """Extract structured information from CMUDICT."""
         self.brackets = re.compile(r"\(\d\)")
         super().__init__(path,
                          fields,
                          {'orthography': 0,
                           'phonology': 1},
-                         language="eng",
-                         duplicates=duplicates)
+                         language="eng")
 
     def _open(self, fields, **kwargs):
         """Open a file for reading."""

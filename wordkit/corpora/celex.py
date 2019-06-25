@@ -119,12 +119,6 @@ class Celex(Reader):
     fields : iterable, default ("orthography", "syllables", "frequency")
         An iterable of strings containing the fields this reader has
         to read from the corpus.
-    duplicates : str in {"sum", "max"} or False,
-        Whether to merge duplicates which are indistinguishable according
-        to the selected fields.
-        If this is False, duplicates may occur in the output.
-        If this is either "sum" or "max", the frequencies of the duplicates
-        are summed or maxed.
 
     """
 
@@ -132,7 +126,6 @@ class Celex(Reader):
                  path,
                  fields=("orthography", "syllables", "frequency", "language"),
                  language=None,
-                 duplicates="max",
                  lemmas=None):
         """Extract structured information from CELEX."""
         if not os.path.exists(path):
@@ -178,14 +171,13 @@ class Celex(Reader):
                          fields,
                          p,
                          language,
-                         duplicates,
                          sep="\\",
                          quote=QUOTE_NONE,
                          header=None)
 
     def _process_syllable(self, string):
         """Process a CELEX syllable string."""
-        syll = self.double_braces.sub("\g<1>\g<2>][\g<2>\g<3>",
+        syll = self.double_braces.sub(r"\g<1>\g<2>][\g<2>\g<3>",
                                       string)
         syll = [self.replace.sub("", x)
                 for x in self.braces.split(syll) if x]
