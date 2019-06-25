@@ -11,12 +11,15 @@ from functools import partial
 from copy import deepcopy
 
 
-def _nan_or_none(x):
+def not_nan_or_none(x):
     """Check whether a given input is either nan or None."""
+    x = np.asarray(x)
+    m1 = x != None # noqa
     try:
-        return np.isnan(x)
+        m2 = ~np.isnan(x)
+        return np.logical_and(m1, m2)
     except TypeError:
-        return x is None
+        return m1
 
 
 nans = {'',
@@ -451,7 +454,7 @@ class WordStore(list):
             result = super().__getitem__(x)
         # Only got a single result back
         if isinstance(result, dict):
-            result = [result]
+            return result
         return type(self)(result)
 
     def __setitem__(self, x, item):
@@ -469,10 +472,10 @@ class WordStore(list):
                                      "the same length as your WordStore: "
                                      "got {}, expected {}.".format(len(item),
                                                                    len(self)))
-                for i, value in zip(self, item):
-                    if not _nan_or_none(value):
-                        i[x] = value
-                self.add_field(x, item)
+                mask = not_nan_or_none(item)
+                for idx in np.flatnonzero(mask):
+                    self[idx][x] = item[idx]
+                self.add_field(x, item[mask])
             else:
                 raise ValueError("You tried adding a non-list to a string "
                                  "index.")
@@ -498,8 +501,8 @@ class WordStore(list):
     def extend(self, x):
         """Append function with check."""
         if not all([isinstance(x_, dict) for x_ in x]):
-            raise ValueError("You can only append dicts to a WordStore.")
-        super().append(x)
+            raise ValueError("You can only extend dicts to a WordStore.")
+        super().extend(x)
 
     def add_field(self, key, values):
         """Adds a field to the _fields dictionary."""
@@ -602,8 +605,9 @@ class WordStore(list):
             raise ValueError("You tried to access the derived field: length "
                              "but orthography, from which length is derived, "
                              "is not in the set of fields.")
-        return [len(x) if not _nan_or_none(x) else np.nan
-                for x in self.get('orthography')]
+        o = self['orthography']
+        mask = not_nan_or_none(o)
+        return [len(x) if y else np.nan for x, y in zip(o, mask)]
 
     def filter(self, filter_function=None, filter_nan=(), **kwargs):
         """
@@ -748,14 +752,16 @@ class WordStore(list):
             sample = np.random.choice(self, size=n, p=distribution).tolist()
         return type(self)(sample)
 
-    def collapse(self, fields, fields_to_merge, merge="sum"):
+    def collapse(self, fields=None, fields_to_merge="frequency", merge="sum"):
         """Collapses the WordStore by adding duplicates together."""
         if merge not in ("sum", "mean", "max"):
-            raise ValueError("merge needs to be {'sum', 'mean', 'max'}")
+            raise ValueError("merge needs to be from {'sum', 'mean', 'max'}")
         if isinstance(fields, str):
             fields = [fields]
         if isinstance(fields_to_merge, str):
             fields_to_merge = [fields_to_merge]
+        if fields is None:
+            fields = set(self.fields) - set(fields_to_merge)
 
         keys = np.stack([self.get(x, True, None) for x in fields])
         _, idxes, inverse, c = np.unique(keys,
@@ -763,22 +769,32 @@ class WordStore(list):
                                          return_inverse=True,
                                          return_index=True,
                                          return_counts=True)
-
-        new = self[idxes]
+        # All unique items, sorted
+        # Inverse is created with reference to this order.
+        new = deepcopy(self[idxes])
         for f in fields_to_merge:
+            # Vals is length of Inverse, not indexes
             vals = self[f].astype(float)
-            res = np.zeros(len(new))
-            for idx, inv in enumerate(inverse):
-                if idx == inv:
-                    continue
+
+            mask = not_nan_or_none(vals)
+            # Also mask the inverse array
+            loc_inv = inverse[mask]
+            res = np.zeros(len(new), dtype=float)
+            not_touched = np.ones(len(idxes), dtype=bool)
+
+            for idx, inv_idx in zip(np.arange(len(vals))[mask], loc_inv):
+                new_v = vals[idx]
+                not_touched[inv_idx] = False
+
                 if merge == "min":
-                    res[inv] = min(res[inv], vals[idx])
+                    res[inv_idx] = min(res[inv_idx], new_v)
                 if merge == "max":
-                    res[inv] = min(res[inv], vals[idx])
+                    res[inv_idx] = min(res[inv_idx], new_v)
                 else:
-                    res[inv] += vals[idx]
+                    res[inv_idx] += new_v
             if merge == "mean":
                 res /= c
+            res[not_touched] = np.nan
             new[f] = res
 
         return new
