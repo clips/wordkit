@@ -609,7 +609,7 @@ class WordStore(list):
         mask = not_nan_or_none(o)
         return [len(x) if y else np.nan for x, y in zip(o, mask)]
 
-    def filter(self, filter_function=None, filter_nan=(), **kwargs):
+    def filter(self, filter_function=None, **kwargs):
         """
         Parameters
         ----------
@@ -622,9 +622,6 @@ class WordStore(list):
             Example of a filtering function could be a function which
             constrains the frequencies of retrieved words, or the number of
             syllables.
-        filter_nan : iterable, optional, default ()
-            Which fields to filter for Nans. If this is None or an empty list,
-            no filtering is performed.
         kwargs : dict
             This function also takes general keyword arguments that take
             keys as keys and functions as values. This offers a more flexible
@@ -693,29 +690,6 @@ class WordStore(list):
                                            not_fields,
                                            set(self.fields)))
         functions = {k: v for k, v in kwargs.items() if k in self.fields}
-        if isinstance(filter_nan, str):
-            filter_nan = (filter_nan,)
-        diff = set(filter_nan) - set(self.fields)
-        if diff:
-            raise ValueError("You selected {} for nan filtering, but {} "
-                             "was not in the set of fields for this Wordstore"
-                             ": {}".format(filter_nan,
-                                           diff,
-                                           set(self.fields)))
-
-        def is_value(x):
-            """Check if something is a value."""
-            try:
-                return not (x is None or np.isnan(x))
-            except TypeError:
-                return bool(x)
-
-        for k in filter_nan:
-            if k in functions:
-                func = functions[k]
-                functions[k] = lambda x: is_value(x) and func(x)
-            else:
-                functions[k] = lambda x: is_value(x)
 
         # Only if we actually have functions should we do something.
         if functions:
@@ -724,6 +698,23 @@ class WordStore(list):
                 functions['__general__'] = filter_function
             filter_function = partial(_filter, functions, self.fields)
         return type(self)(filter(filter_function, self))
+
+    def filter_nan(self, fields):
+        """Simple nan filtering."""
+        if isinstance(fields, str):
+            filter_nan = (fields,)
+        diff = set(filter_nan) - set(self.fields)
+        if diff:
+            raise ValueError("You selected {} for nan filtering, but {} "
+                             "was not in the set of fields for this Wordstore"
+                             ": {}".format(filter_nan,
+                                           diff,
+                                           set(self.fields)))
+
+        not_nan = np.ones(len(self), dtype=np.bool)
+        for x in fields:
+            not_nan &= not_nan_or_none(self[x])
+        type(self)(self[not_nan])
 
     def sample(self, n, distribution_key=None):
         """
