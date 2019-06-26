@@ -210,10 +210,13 @@ class Reader(BaseReader):
         The path to the corpus this reader has to read.
     fields : iterable
         An iterable of strings containing the fields this reader has
-        to read from the corpus.
+        to read from the corpus. If this iterable evaluates to False, all
+        fields are read.
     field_ids : dict
         A mapping which maps the field names from your data to the internal
         names used by wordkit.
+        The direction of this mapping is {desired_field: actual_field}
+        example: {"orthography": "Word"}
     language : string
         The language of the corpus.
     diacritics : tuple
