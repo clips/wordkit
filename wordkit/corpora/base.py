@@ -248,12 +248,11 @@ class Reader(BaseReader):
 
         self.path = path
         self.language = language
-        fields = {k: field_ids.get(k, k) for k in fields}
         self.diacritics = diacritics
-        data = self._open(fields, **kwargs)
+        data = self._open(fields, field_ids, **kwargs)
         super().__init__(data)
 
-    def _open(self, fields, **kwargs):
+    def _open(self, fields, field_ids, **kwargs):
         """Open a file for reading."""
         header = kwargs.get('header', "infer")
         sep = kwargs.get('sep', ",")
@@ -268,18 +267,10 @@ class Reader(BaseReader):
                                skiprows=skiprows,
                                na_values=nans,
                                keep_default_na=False)
-            colnames = set(df.columns)
-            redundant = set(fields.values()) - colnames
-            if redundant:
-                raise ValueError("You passed fields which were not in "
-                                 "the dataset {}. The available fields are: "
-                                 "{}".format(redundant, colnames))
         else:
-            _, indices = zip(*fields.items())
             try:
                 df = pd.read_csv(self.path,
                                  sep=sep,
-                                 usecols=indices,
                                  quoting=quoting,
                                  header=header,
                                  encoding=encoding,
@@ -289,16 +280,27 @@ class Reader(BaseReader):
             except ValueError as e:
                 raise ValueError("Something went wrong during reading of "
                                  "your data. Things that could be wrong: \n"
-                                 "- column names: you supplied {}\n"
                                  "- separator: you supplied {}\n"
                                  "- encoding: you supplied {}\n"
                                  "- language: you supplied {}\n"
                                  "The original error was:\n"
-                                 "'{}'".format(indices,
-                                               sep,
+                                 "'{}'".format(sep,
                                                encoding,
                                                self.language,
                                                e))
+
+        if not fields:
+            fields = set(df.columns)
+            rev = {v: k for k, v in field_ids.items()}
+            fields = {rev.get(k, k): k for k in fields}
+        else:
+            colnames = set(df.columns)
+            fields = {k: field_ids.get(k, k) for k in fields}
+            redundant = set(fields.values()) - colnames
+            if redundant:
+                raise ValueError("You passed fields which were not in "
+                                 "the dataset {}. The available fields are: "
+                                 "{}".format(redundant, colnames))
 
         return self._preprocess(df, fields)
 
