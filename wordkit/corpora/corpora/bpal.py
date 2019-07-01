@@ -1,6 +1,6 @@
 """The BPAL corpus reader."""
 import re
-from .base import Reader, diacritics
+from ..base import Reader, diacritics
 from itertools import chain
 
 

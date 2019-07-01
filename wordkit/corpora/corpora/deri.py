@@ -1,7 +1,7 @@
 """Tools for working with the multilingual corpora from Deri and Knight."""
 import re
 
-from .base import Reader, segment_phonology, diacritics
+from ..base import Reader, segment_phonology, diacritics
 from ipapy.ipastring import IPAString
 
 

@@ -1,6 +1,6 @@
 """Corpus readers for Subtlex."""
 import os
-from .base import Reader
+from ..base import Reader
 
 # Currently redundant, but useful for future-proofing.
 language2field = {"eng-uk": {"orthography": "Spelling",

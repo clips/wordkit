@@ -1,5 +1,5 @@
 """Read semantic information from multilingual wordnets."""
-from .base import Reader
+from ..base import Reader
 
 
 class WordNet(Reader):

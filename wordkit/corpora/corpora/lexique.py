@@ -1,5 +1,5 @@
 """Read the Lexique database."""
-from .base import Reader, segment_phonology, diacritics
+from ..base import Reader, segment_phonology, diacritics
 from itertools import chain
 
 

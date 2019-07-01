@@ -1,5 +1,5 @@
 """Tools for working with CMUDICT."""
-from .base import Reader
+from ..base import Reader
 import re
 import pandas as pd
 

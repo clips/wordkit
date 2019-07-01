@@ -3,7 +3,7 @@ import re
 import logging
 import os
 
-from .base import Reader, segment_phonology
+from ..base import Reader, segment_phonology
 from itertools import chain
 from copy import copy
 from csv import QUOTE_NONE

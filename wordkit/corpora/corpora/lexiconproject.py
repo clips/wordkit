@@ -1,6 +1,6 @@
 """Readers for lexicon project corpora."""
 import os
-from .base import Reader
+from ..base import Reader
 
 
 ALLOWED_LANGUAGES = ("eng-uk", "eng-us", "fra", "nld", "chi", "kor")
