@@ -4,10 +4,17 @@ import json
 
 from copy import deepcopy
 from collections import defaultdict
+from itertools import chain
+from .utils import (calc_length,
+                    calc_fpm_score,
+                    calc_zipf_score,
+                    calc_log_frequency)
 
 
 def not_nan_or_none(x):
     """Check whether a given input is either nan or None."""
+    if np.ndim(x) > 2:
+        return np.ones(x.shape[0], dtype=bool)
     x = np.asarray(x)
     m1 = x != None # noqa
     try:
@@ -20,6 +27,11 @@ def not_nan_or_none(x):
 
 class Frame(list):
     """A Frame class."""
+
+    prep = {"zipf_score": calc_zipf_score,
+            "log_frequency": calc_log_frequency,
+            "frequency_per_million": calc_fpm_score,
+            "length": calc_length}
 
     def __add__(self, x):
         """Override add to return Frame."""
@@ -123,6 +135,8 @@ class Frame(list):
             The value of the key to retrieve.
 
         """
+        if key not in self.columns and key in self.prep:
+            self[key] = self.prep[key](self)
         X = np.array([x.get(key, None) for x in self])
         try:
             X = X.astype(float)
@@ -212,7 +226,8 @@ class Frame(list):
         # All unique items, sorted
         # Inverse is created with reference to this order.
         idxes = real_idx[idxes]
-        new = self[idxes][columns + columns_to_merge].copy()
+        joined = list(chain(columns, columns_to_merge))
+        new = self[idxes][joined].copy()
 
         for idx, f in enumerate(columns_to_merge):
             vals = self.get(f)[not_none]
@@ -226,11 +241,12 @@ class Frame(list):
 
             for idx, inv_idx in zip(np.arange(len(vals))[mask], loc_inv):
                 not_touched[inv_idx] = False
-                res_[inv_idx].append(vals[idx])
+                res_[inv_idx].append(vals[idx].tolist())
             for k, v in res_.items():
                 res[k] = func(v)
 
             res[not_touched] = None
+            # TODO: check return types
             new[f] = res
 
         return new
@@ -242,3 +258,19 @@ class Frame(list):
     def copy(self):
         """Return a copy."""
         return deepcopy(self)
+
+    def drop(self, keys):
+        """Drops one or more columns."""
+        for x in self:
+            for k in keys:
+                try:
+                    x.pop(k)
+                except KeyError:
+                    pass
+        return self
+
+    def transform(self, key, function):
+        """Transforms."""
+        for x in self:
+            x[key] = function(x[key])
+        return self

@@ -1,17 +1,16 @@
 """Tools for working with Celex."""
 import re
-import logging
 import os
+import csv
 
-from ..base import Reader, segment_phonology
+from ..base import reader, segment_phonology
 from itertools import chain
 from copy import copy
-from csv import QUOTE_NONE
+from functools import partial
+
 
 remove_double = re.compile(r"ː+")
 
-
-logger = logging.getLogger(__name__)
 
 AUTO_LANGUAGE = {"epl.cd": "eng-uk",
                  "dpl.cd": "nld",
@@ -32,6 +31,13 @@ language2field = {'eng-uk': {'orthography': 1,
                           'phonology': 4,
                           'frequency': 2,
                           'syllables': 4}}
+
+lengths = {("nld", True): (11, 0),
+           ("eng-uk", True): (4, 4),
+           ("deu", True): (11, 0),
+           ("nld", False): (7, 0),
+           ("eng-uk", False): (5, 4),
+           ("deu", False): (7, 0)}
 
 CELEX_2IPA = {"O~": "ɒ̃",
               "A~": "ɒ",
@@ -79,6 +85,27 @@ CELEX_2IPA = {"O~": "ɒ̃",
               ":": "ː"}
 
 celex_regex = re.compile(r"{}".format("|".join(CELEX_2IPA.keys())))
+replace = re.compile(r"(,|r\*)")
+braces = re.compile(r"[\[\]]+")
+double_braces = re.compile(r"(\[[^\]]+?)\[(.+?)\]([^\[])")
+
+
+def syll_func(string):
+    """Process a CELEX syllable string."""
+    syll = double_braces.sub(r"\g<1>\g<2>][\g<2>\g<3>",
+                             string)
+    syll = [replace.sub("", x)
+            for x in braces.split(syll) if x]
+    syll = [segment_phonology(x) for x in celex_to_ipa(syll)]
+    return tuple(syll)
+
+
+def phon_func(string):
+    """Process a CELEX phonology string."""
+    phon = [replace.sub("", x)
+            for x in braces.split(string) if x]
+    phon = [segment_phonology(x) for x in celex_to_ipa(phon)]
+    return tuple(chain.from_iterable(phon))
 
 
 def celex_to_ipa(syllables):
@@ -87,106 +114,75 @@ def celex_to_ipa(syllables):
         yield "".join([CELEX_2IPA[p] for p in celex_regex.findall(syll)])
 
 
-class Celex(Reader):
-    r"""
-    The reader for the CELEX corpus.
+def _celex_opener(path, word_length, struct_length=0, **kwargs):
+    """Open a CELEX file for reading."""
+    csv_file = csv.reader(open(path), **kwargs)
+    data = []
+    for line in csv_file:
+        rem = len(line) - word_length
+        if rem != 0:
+            if not struct_length:
+                raise ValueError(line)
+            if rem % struct_length:
+                raise ValueError(line)
 
-    This reader is built with the assumption that you have access to the lemma
-    files of the Celex corpus. Normally these named like "xpl.cd", where x is
-    a letter which refers to a language. More information can be found in the
-    CELEX readme.
+        inform = line[:word_length]
+        if struct_length == 0:
+            data.append(dict(enumerate(inform)))
+            continue
+        for x in range(word_length, len(line), struct_length):
+            data.append(dict(enumerate(inform + line[x:x+struct_length])))
 
-    Currently, we include readers for the Dutch and English parts of CELEX,
-    but adding other readers should be straightforward and can be done
-    by adding other translation dictionaries.
+    return data
 
-    If you use the CELEX corpus, you _must_ cite the following paper:
 
-    @article{baayen1993celex,
-      title={The {CELEX} lexical data base on {CD-ROM}},
-      author={Baayen, R Harald and Piepenbrock, Richard and van H, Rijn},
-      year={1993},
-      publisher={Linguistic Data Consortium}
-    }
+def celex(path,
+          fields=("orthography", "syllables", "frequency", "language"),
+          language=None,
+          lemmas=None):
+    """Extract structured information from CELEX."""
+    if language is None:
+        try:
+            language = AUTO_LANGUAGE[os.path.split(path)[1].lower()]
+        except KeyError:
+            raise ValueError("You passed None to language, but we failed "
+                             "to determine the language automatically.")
+    else:
+        try:
+            if AUTO_LANGUAGE[os.path.split(path)[1]] != language:
+                raise ValueError("Your language is {}, but your filename "
+                                 "belongs to another language."
+                                 "".format(language))
+        except KeyError:
+            pass
 
-    Parameters
-    ----------
-    path : string
-        The path to the corpus this reader has to read.
-
-    language : string, default ("eng")
-        The language of the corpus.
-    fields : iterable, default ("orthography", "syllables", "frequency")
-        An iterable of strings containing the fields this reader has
-        to read from the corpus.
-
-    """
-
-    def __init__(self,
-                 path,
-                 fields=("orthography", "syllables", "frequency", "language"),
-                 language=None,
-                 lemmas=None):
-        """Extract structured information from CELEX."""
-        if not os.path.exists(path):
-            raise FileNotFoundError("{} not found.".format(path))
-        if language is None:
-            try:
-                language = AUTO_LANGUAGE[os.path.split(path)[1].lower()]
-            except KeyError:
-                raise ValueError("You passed None to language, but we failed "
-                                 "to determine the language automatically.")
+    if lemmas is None:
+        if path.endswith("l.cd"):
+            lemmas = True
+        elif path.endswith("w.cd"):
+            lemmas = False
         else:
-            try:
-                if AUTO_LANGUAGE[os.path.split(path)[1]] != language:
-                    raise ValueError("Your language is {}, but your filename "
-                                     "belongs to another language."
-                                     "".format(language))
-            except KeyError:
-                pass
+            raise ValueError("You passed None to lemmas, but we failed "
+                             "to determine wether your files contained "
+                             "lemmas automatically.")
 
-        if lemmas is None:
-            if path.endswith("l.cd"):
-                self.lemmas = True
-            elif path.endswith("w.cd"):
-                self.lemmas = False
-            else:
-                raise ValueError("You passed None to lemmas, but we failed "
-                                 "to determine wether your files contained "
-                                 "lemmas automatically.")
-        else:
-            self.lemmas = lemmas
+    p = copy(language2field[language])
+    if not lemmas:
+        p['phonology'] += 1
+        p['syllables'] += 1
+    fields = {k: v for k, v in p.items() if k in fields}
 
-        p = copy(language2field[language])
-        if not self.lemmas:
-            p['phonology'] += 1
-            p['syllables'] += 1
-        fields = {k: v for k, v in p.items() if k in fields}
+    w_length, s_length = lengths[(language, lemmas)]
+    _opener = partial(_celex_opener,
+                      word_length=w_length,
+                      struct_length=s_length)
 
-        self.replace = re.compile(r"(,|r\*)")
-        self.braces = re.compile(r"[\[\]]+")
-        self.double_braces = re.compile(r"(\[[^\]]+?)\[(.+?)\]([^\[])")
-
-        super().__init__(path,
-                         fields,
-                         p,
-                         language,
-                         sep="\\",
-                         quote=QUOTE_NONE,
-                         header=None)
-
-    def _process_syllable(self, string):
-        """Process a CELEX syllable string."""
-        syll = self.double_braces.sub(r"\g<1>\g<2>][\g<2>\g<3>",
-                                      string)
-        syll = [self.replace.sub("", x)
-                for x in self.braces.split(syll) if x]
-        syll = [segment_phonology(x) for x in celex_to_ipa(syll)]
-        return tuple(syll)
-
-    def _process_phonology(self, string):
-        """Process a CELEX phonology string."""
-        phon = [self.replace.sub("", x)
-                for x in self.braces.split(string) if x]
-        phon = [segment_phonology(x) for x in celex_to_ipa(phon)]
-        return tuple(chain.from_iterable(phon))
+    return reader(path,
+                  fields,
+                  p,
+                  language,
+                  delimiter="\\",
+                  quoting=csv.QUOTE_NONE,
+                  opener=_opener,
+                  preprocessors={"phonology": phon_func,
+                                 "syllables": syll_func})

@@ -273,7 +273,6 @@ The code for replicating the experiments in the `wordkit` paper can be found [he
 
 ## Requirements
 
-- sklearn
 - ipapy
 - numpy
 - pandas (for some of the corpus readers)
