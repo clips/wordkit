@@ -170,8 +170,7 @@ def celex(path,
     if not lemmas:
         p['phonology'] += 1
         p['syllables'] += 1
-    fields = {k: v for k, v in p.items() if k in fields}
-
+    fields = {f: p.get(f, f) for f in fields}
     w_length, s_length = lengths[(language, lemmas)]
     _opener = partial(_celex_opener,
                       word_length=w_length,
