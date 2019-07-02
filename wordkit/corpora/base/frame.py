@@ -4,7 +4,6 @@ import json
 
 from copy import deepcopy
 from collections import defaultdict
-from itertools import chain
 from .utils import (calc_length,
                     calc_fpm_score,
                     calc_zipf_score,
@@ -202,12 +201,19 @@ class Frame(list):
             not_nan &= not_nan_or_none(self[x])
         return type(self)(self[not_nan])
 
-    def aggregate(self, columns, columns_to_merge, func=np.sum):
+    def aggregate(self,
+                  columns,
+                  columns_to_merge,
+                  columns_to_keep,
+                  func=lambda x: x,
+                  discard=True):
         """Collapses the Frame by adding duplicates together."""
         if isinstance(columns, str):
             columns = [columns]
         if isinstance(columns_to_merge, str):
             columns_to_merge = [columns_to_merge]
+        if isinstance(columns_to_keep, str):
+            columns_to_keep = [columns_to_keep]
         if columns is None:
             columns = set(self.columns) - set(columns_to_merge)
 
@@ -216,38 +222,18 @@ class Frame(list):
         for k in keys:
             not_none &= k != None # noqa
         real_idx = np.flatnonzero(not_none)
-        keys = np.stack(keys)[:, not_none].astype(str)
+        keys = [tuple(x) for x in np.stack(keys, 1)[not_none]]
+        mapping = defaultdict(set)
+        for idx, k in enumerate(keys):
+            mapping[k].add(real_idx[idx])
 
-        _, idxes, inverse, c = np.unique(keys,
-                                         axis=1,
-                                         return_inverse=True,
-                                         return_index=True,
-                                         return_counts=True)
-        # All unique items, sorted
-        # Inverse is created with reference to this order.
-        idxes = real_idx[idxes]
-        joined = list(chain(columns, columns_to_merge))
-        new = self[idxes][joined].copy()
-
-        for idx, f in enumerate(columns_to_merge):
-            vals = self.get(f)[not_none]
-            mask = not_nan_or_none(vals)
-
-            # Also mask the inverse array
-            loc_inv = inverse[mask]
-            res = np.zeros(len(new), dtype=object)
-            res_ = defaultdict(list)
-            not_touched = np.ones(len(idxes), dtype=bool)
-
-            for idx, inv_idx in zip(np.arange(len(vals))[mask], loc_inv):
-                not_touched[inv_idx] = False
-                res_[inv_idx].append(vals[idx].tolist())
-            for k, v in res_.items():
-                res[k] = func(v)
-
-            res[not_touched] = None
-            # TODO: check return types
-            new[f] = res
+        new = self.copy()
+        for col in columns_to_merge:
+            for k, v in mapping.items():
+                tot = np.array([self[col][x] for x in v])
+                tot = func(tot[not_nan_or_none(tot)])
+                for x in v:
+                    new[x][col] = tot
 
         return new
 
