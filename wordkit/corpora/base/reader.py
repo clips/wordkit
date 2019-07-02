@@ -2,6 +2,8 @@
 import os
 import pandas as pd
 
+from collections import defaultdict
+from itertools import chain
 from .frame import Frame
 
 
@@ -67,8 +69,10 @@ def reader(path,
     # Columns in dataset
     colnames = set(df.columns)
     if fields:
-        rev = {v: k for k, v in field_ids.items()}
-        c = {rev.get(k, k) for k in colnames}
+        rev = defaultdict(list)
+        for k, v in field_ids.items():
+            rev[v].append(k)
+        c = set(chain.from_iterable([rev.get(x, [x]) for x in colnames]))
         redundant = set(fields) - c
         if redundant:
             raise ValueError("You passed fields which were not in "
