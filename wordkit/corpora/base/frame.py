@@ -252,7 +252,10 @@ class Frame(list):
             d = self[col]
             for k, v in mapping.items():
                 tot = d[list(v)]
-                tot = func(tot[not_nan_or_none(tot)])
+                tot = tot[not_nan_or_none(tot)]
+                if len(tot) == 0:
+                    continue
+                tot = func(tot)
                 for x in map2map[k]:
                     new[unique_mapping[x]][col] = tot
         new = new[indices]
