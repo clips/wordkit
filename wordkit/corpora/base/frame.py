@@ -4,6 +4,7 @@ import json
 
 from copy import deepcopy
 from collections import defaultdict
+from itertools import chain
 from .utils import (calc_length,
                     calc_fpm_score,
                     calc_zipf_score,
@@ -162,12 +163,16 @@ class Frame(list):
         """
         # Only if we actually have functions should we do something
         items = self
+        for k in kwargs:
+            self[k]
+
         iters = {k: set(v) for k, v in kwargs.items()
                  if isinstance(v, (tuple, set, list))}
         callables = {k: v for k, v in kwargs.items()
                      if callable(v)}
         singles = {k: v for k, v in kwargs.items()
                    if k not in iters and k not in callables}
+
         if singles:
             iter_singles = iter(singles.items())
             k, v = next(iter_singles)
@@ -204,7 +209,7 @@ class Frame(list):
     def aggregate(self,
                   columns,
                   columns_to_merge,
-                  columns_to_keep,
+                  columns_to_keep=None,
                   func=lambda x: x,
                   discard=True):
         """Collapses the Frame by adding duplicates together."""
@@ -214,28 +219,46 @@ class Frame(list):
             columns_to_merge = [columns_to_merge]
         if isinstance(columns_to_keep, str):
             columns_to_keep = [columns_to_keep]
-        if columns is None:
-            columns = set(self.columns) - set(columns_to_merge)
+        if columns_to_keep is not None:
+            keep_columns = columns
+            columns = columns - set(columns_to_keep)
+            all_cols = set(chain(columns, columns_to_merge, columns_to_keep))
+        else:
+            keep_columns = columns
+            all_cols = set(chain(columns, columns_to_merge))
 
         keys = [self.get(x) for x in columns]
+        unique = [self.get(x) for x in keep_columns]
         not_none = np.ones(len(keys[0]), dtype=bool)
-        for k in keys:
+        for k in unique:
             not_none &= k != None # noqa
         real_idx = np.flatnonzero(not_none)
         keys = [tuple(x) for x in np.stack(keys, 1)[not_none]]
+        unique_keys = [tuple(x) for x in np.stack(unique, 1)[not_none]]
         mapping = defaultdict(set)
-        for idx, k in enumerate(keys):
-            mapping[k].add(real_idx[idx])
+        unique_mapping = {}
+        map2map = defaultdict(set)
+        indices = []
+        for idx, (k, k2) in enumerate(zip(keys, unique_keys)):
+            idx = real_idx[idx]
+            mapping[k].add(idx)
+            map2map[k].add(k2)
+            if k2 not in unique_mapping:
+                unique_mapping[k2] = idx
+                indices.append(idx)
 
         new = self.copy()
         for col in columns_to_merge:
+            d = self[col]
             for k, v in mapping.items():
-                tot = np.array([self[col][x] for x in v])
+                tot = d[list(v)]
                 tot = func(tot[not_nan_or_none(tot)])
-                for x in v:
-                    new[x][col] = tot
-
-        return new
+                for x in map2map[k]:
+                    new[unique_mapping[x]][col] = tot
+        new = new[indices]
+        # Drop other columns
+        drop = new.columns - all_cols
+        return new.drop(drop)
 
     def save(self, path):
         """Save to file as a JSON file."""

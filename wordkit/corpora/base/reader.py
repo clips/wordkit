@@ -33,7 +33,6 @@ def _open(path, **kwargs):
                            **kwargs)
     else:
         try:
-            print(kwargs)
             df = pd.read_csv(path,
                              na_values=nans,
                              keep_default_na=False,
