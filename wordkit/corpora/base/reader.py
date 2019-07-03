@@ -51,9 +51,9 @@ def _open(path, **kwargs):
 
 
 def reader(path,
-           fields,
-           field_ids,
-           language,
+           fields=None,
+           field_ids=None,
+           language=None,
            preprocessors=None,
            opener=_open,
            **kwargs):
@@ -63,20 +63,26 @@ def reader(path,
                                 f"exist: {path}")
     if isinstance(fields, str):
         fields = (fields,)
+    if fields is None:
+        fields = tuple()
+    if field_ids is None:
+        field_ids = {}
 
     df = Frame(opener(path, **kwargs))
     # Columns in dataset
     colnames = set(df.columns)
-    if fields:
-        rev = defaultdict(list)
-        for k, v in field_ids.items():
-            rev[v].append(k)
-        c = set(chain.from_iterable([rev.get(x, [x]) for x in colnames]))
-        redundant = set(fields) - c
-        if redundant:
-            raise ValueError("You passed fields which were not in "
-                             f"the dataset {redundant}. The available fields "
-                             f"are: {c}")
+
+    rev = defaultdict(list)
+    for k, v in field_ids.items():
+        rev[v].append(k)
+    c = set(chain.from_iterable([rev.get(x, [x]) for x in colnames]))
+    redundant = set(fields) - c
+    if redundant:
+        raise ValueError("You passed fields which were not in "
+                         f"the dataset {redundant}. The available fields "
+                         f"are: {c}")
+    if not fields:
+        fields = c
     fields = {k: field_ids.get(k, k) for k in fields}
 
     for k, v in ((k, v) for k, v in fields.items() if k != v):
