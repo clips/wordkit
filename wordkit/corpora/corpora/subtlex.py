@@ -1,49 +1,49 @@
 """Corpus readers for Subtlex."""
-import os
 from ..base import reader
+from ..base.utils import _calc_hash
 
-# Currently redundant, but useful for future-proofing.
-language2field = {"eng-uk": {"orthography": "Spelling",
-                             "frequency": "FreqCount"},
-                  "eng-us": {"orthography": "Word",
-                             "frequency": "FREQcount"},
-                  "nld": {"orthography": "Word",
-                          "frequency": "FREQcount"},
-                  "deu": {"orthography": "Word",
-                          "frequency": "WFfreqCount"},
-                  "chi": {"orthography": "Word",
-                          "frequency": "WCount"}}
+PROJECT2FIELD = {"subtlex-uk": {"orthography": "Spelling",
+                                "frequency": "FreqCount"},
+                 "subtlex-us": {"orthography": "Word",
+                                "frequency": "FREQcount"},
+                 "subtlex-nl": {"orthography": "Word",
+                                "frequency": "FREQcount"},
+                 "subtlex-de": {"orthography": "Word",
+                                "frequency": "WFfreqCount"},
+                 "subtlex-ch": {"orthography": "Word",
+                                "frequency": "WCount"}}
 
-ALLOWED_LANGUAGES = set(language2field.keys())
-AUTO_LANGUAGE = {'subtlex-ch-wf.xlsx': 'chi',
-                 'subtlex-de cleaned with google00 frequencies.xlsx': 'deu',
-                 'subtlex-nl.cd-above2.txt': 'nld',
-                 'subtlex-uk.xlsx': 'eng-uk',
-                 'subtlexusfrequencyabove1.xls': 'eng-us'}
+AUTO_LANGUAGE = {'subtlex-ch': 'chi',
+                 'subtlex-de': 'deu',
+                 'subtlex-nl': 'nld',
+                 'subtlex-uk': 'eng-uk',
+                 'subtlex-us': 'eng-us'}
+
+HASHES = {'3eb1877de350ef9b59b82923ae88345d': 'subtlex-ch',
+          '786e0d7d03f9ce93b26577b543c9eb0f': 'subtlex-nl',
+          '95a270d4812047f1c02affbea3e23e28': 'subtlex-de',
+          'af7302fac01340bb8a533240ff850016': 'subtlex-us',
+          'e600f1c7067b65d068a1b8d7baf2d8d7': 'subtlex-uk'}
 
 
 def subtlex(path,
             fields=("orthography", "frequency"),
-            language=None):
+            language=None,
+            project=None):
     """Initialize the subtlex reader."""
+    if project is None:
+        project = HASHES[_calc_hash(path)]
+    else:
+        if project not in PROJECT2FIELD:
+            raise ValueError("Your project is not correct. Allowed "
+                             f"projects are {set(PROJECT2FIELD.keys())}")
     if language is None:
         try:
-            language = AUTO_LANGUAGE[os.path.split(path)[1].lower()]
+            language = AUTO_LANGUAGE[project]
         except KeyError:
             raise ValueError("You passed None to language, but we failed "
                              "to determine the language automatically.")
-    else:
-        try:
-            if AUTO_LANGUAGE[os.path.split(path)[1]] != language:
-                raise ValueError("Your language is {}, but your filename "
-                                 "belongs to another language."
-                                 "".format(language))
-        except KeyError:
-            pass
-    if language not in ALLOWED_LANGUAGES:
-        raise ValueError("Your language {}, was not in the set of "
-                         "allowed languages: {}".format(language,
-                                                        ALLOWED_LANGUAGES))
+
     if language == "chi":
         skiprows = 2
     else:
@@ -51,7 +51,7 @@ def subtlex(path,
 
     return reader(path,
                   fields,
-                  language2field[language],
+                  PROJECT2FIELD[project],
                   language,
                   sep="\t",
                   skiprows=skiprows)
