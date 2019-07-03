@@ -273,6 +273,8 @@ class Frame(list):
 
     def drop(self, keys):
         """Drops one or more columns."""
+        if isinstance(keys, str):
+            keys = [keys]
         for x in self:
             for k in keys:
                 try:
