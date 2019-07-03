@@ -221,7 +221,7 @@ class Frame(list):
             columns_to_keep = [columns_to_keep]
         if columns_to_keep is not None:
             keep_columns = columns
-            columns = columns - set(columns_to_keep)
+            columns = set(columns) - set(columns_to_keep)
             all_cols = set(chain(columns, columns_to_merge, columns_to_keep))
         else:
             keep_columns = columns
