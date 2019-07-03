@@ -23,7 +23,7 @@ if __name__ == "__main__":
     merged = merged.aggregate("orthography",
                               "frequency",
                               "phonology",
-                              np.sum)
+                              np.sum).filter_nan(("phonology", "frequency"))
 
     # The first 10 items
     print(merged[:10])
