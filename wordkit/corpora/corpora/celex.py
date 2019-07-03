@@ -1,43 +1,61 @@
 """Tools for working with Celex."""
 import re
-import os
 import csv
 
 from ..base import reader, segment_phonology
+from ..base.utils import _calc_hash
 from itertools import chain
-from copy import copy
 from functools import partial
 
 
 remove_double = re.compile(r"ː+")
 
 
-AUTO_LANGUAGE = {"epl.cd": "eng-uk",
-                 "dpl.cd": "nld",
-                 "gpl.cd": "deu",
-                 "epw.cd": "eng-uk",
-                 "dpw.cd": "nld",
-                 "gpw.cd": "deu"}
+PROJECT2LANGUAGE = {"epl.cd": "eng-uk",
+                    "dpl.cd": "nld",
+                    "gpl.cd": "deu",
+                    "epw.cd": "eng-uk",
+                    "dpw.cd": "nld",
+                    "gpw.cd": "deu"}
 
-language2field = {'eng-uk': {'orthography': 1,
-                             'phonology': 7,
-                             'frequency': 2,
-                             'syllables': 7},
-                  'nld': {'orthography': 1,
-                          'phonology': 5,
-                          'frequency': 2,
-                          'syllables': 5},
-                  'deu': {'orthography': 1,
-                          'phonology': 4,
-                          'frequency': 2,
-                          'syllables': 4}}
+HASHES = {'094d5bf93446fd4c31cb145af7f8bdf4': 'gpw.cd',
+          '1f035f9e7fd19955c0f93e5e17f12126': 'epw.cd',
+          '564782c12374346d62b6672b8f1b1002': 'epl.cd',
+          '5cb4c4dd8a3651f3993b857d1c1b8d12': 'dpl.cd',
+          '7e289712b00184c1e0d30dbb55a5a5fd': 'gpl.cd',
+          'f7a3ad8feb80e58177fcd470ea27065d': 'dpw.cd'}
 
-lengths = {("nld", True): (11, 0),
-           ("eng-uk", True): (4, 4),
-           ("deu", True): (11, 0),
-           ("nld", False): (7, 0),
-           ("eng-uk", False): (5, 4),
-           ("deu", False): (7, 0)}
+PROJECT2FIELD = {'epw.cd': {'orthography': 1,
+                            'phonology': 7,
+                            'frequency': 2,
+                            'syllables': 7},
+                 'dpw.cd': {'orthography': 1,
+                            'phonology': 5,
+                            'frequency': 2,
+                            'syllables': 5},
+                 'gpw.cd': {'orthography': 1,
+                            'phonology': 4,
+                            'frequency': 2,
+                            'syllables': 4},
+                 'epl.cd': {'orthography': 1,
+                            'phonology': 8,
+                            'frequency': 2,
+                            'syllables': 8},
+                 'dpl.cd': {'orthography': 1,
+                            'phonology': 6,
+                            'frequency': 2,
+                            'syllables': 6},
+                 'gpl.cd': {'orthography': 1,
+                            'phonology': 5,
+                            'frequency': 2,
+                            'syllables': 5}}
+
+lengths = {"dpl.cd": (11, 0),
+           "epl.cd": (4, 4),
+           "gpl.cd": (11, 0),
+           "dpw.cd": (7, 0),
+           "epw.cd": (5, 4),
+           "gpw.cd": (7, 0)}
 
 CELEX_2IPA = {"O~": "ɒ̃",
               "A~": "ɒ",
@@ -139,46 +157,30 @@ def _celex_opener(path, word_length, struct_length=0, **kwargs):
 def celex(path,
           fields=("orthography", "syllables", "frequency", "language"),
           language=None,
-          lemmas=None):
+          lemmas=None,
+          project=None):
     """Extract structured information from CELEX."""
+    if project is None:
+        hash = _calc_hash(path)
+        project = HASHES[hash]
+    else:
+        if project not in PROJECT2FIELD:
+            raise ValueError("Your project is not correct. Allowed "
+                             f"projects are {set(PROJECT2FIELD.keys())}")
     if language is None:
         try:
-            language = AUTO_LANGUAGE[os.path.split(path)[1].lower()]
+            language = PROJECT2LANGUAGE[project]
         except KeyError:
-            raise ValueError("You passed None to language, but we failed "
-                             "to determine the language automatically.")
-    else:
-        try:
-            if AUTO_LANGUAGE[os.path.split(path)[1]] != language:
-                raise ValueError("Your language is {}, but your filename "
-                                 "belongs to another language."
-                                 "".format(language))
-        except KeyError:
-            pass
+            language = None
 
-    if lemmas is None:
-        if path.endswith("l.cd"):
-            lemmas = True
-        elif path.endswith("w.cd"):
-            lemmas = False
-        else:
-            raise ValueError("You passed None to lemmas, but we failed "
-                             "to determine wether your files contained "
-                             "lemmas automatically.")
-
-    p = copy(language2field[language])
-    if not lemmas:
-        p['phonology'] += 1
-        p['syllables'] += 1
-    fields = {f: p.get(f, f) for f in fields}
-    w_length, s_length = lengths[(language, lemmas)]
+    w_length, s_length = lengths[project]
     _opener = partial(_celex_opener,
                       word_length=w_length,
                       struct_length=s_length)
 
     return reader(path,
                   fields,
-                  p,
+                  PROJECT2FIELD[project],
                   language,
                   delimiter="\\",
                   quoting=csv.QUOTE_NONE,
