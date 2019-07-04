@@ -1,4 +1,5 @@
 """Corpus readers for Subtlex."""
+import os
 from ..base import reader
 from ..base.utils import _calc_hash
 
@@ -13,17 +14,30 @@ PROJECT2FIELD = {"subtlex-uk": {"orthography": "Spelling",
                  "subtlex-ch": {"orthography": "Word",
                                 "frequency": "WCount"}}
 
+PROJECT2SEP = {"subtlex-uk": ",",
+               "subtlex-nl": "\t",
+               "subtlex-ch": ",",
+               "subtlex-de": ",",
+               "subtlex-us": ","}
+
 AUTO_LANGUAGE = {'subtlex-ch': 'chi',
                  'subtlex-de': 'deu',
                  'subtlex-nl': 'nld',
                  'subtlex-uk': 'eng-uk',
                  'subtlex-us': 'eng-us'}
 
-HASHES = {'3eb1877de350ef9b59b82923ae88345d': 'subtlex-ch',
-          '786e0d7d03f9ce93b26577b543c9eb0f': 'subtlex-nl',
-          '95a270d4812047f1c02affbea3e23e28': 'subtlex-de',
-          'af7302fac01340bb8a533240ff850016': 'subtlex-us',
-          'e600f1c7067b65d068a1b8d7baf2d8d7': 'subtlex-uk'}
+AUTO_PROJECT = {"SUBTLEX-CH-WF.xlsx": "subtlex-chi",
+                "SUBTLEX-UK.xlsx": "subtlex-uk",
+                "SUBTLEX-NL.cd-above2.txt": "subtlex-nl",
+                "SUBTLEX-DE cleaned with Google00 frequencies.xlsx": "subtlex-de", # noqa
+                "SUBTLEXusfrequencyabove1.xls": "subtlex-us"}
+
+
+HASHES = {'786e0d7d03f9ce93b26577b543c9eb0f': 'subtlex-nl',
+          '79c8672068fcf9b02e4080862c9eb17b': 'subtlex-ch',
+          'b528ba6be0785aecda7ac893caf1e722': 'subtlex-us',
+          'd171a587c9355ffb7ff5ed2ddfe55e89': 'subtlex-de',
+          'f252d192d592812f9e5bd0b4a68fffdf': 'subtlex-uk'}
 
 
 def subtlex(path,
@@ -32,9 +46,19 @@ def subtlex(path,
             project=None):
     """Initialize the subtlex reader."""
     if project is None:
-        project = HASHES[_calc_hash(path)]
+        try:
+            hash = _calc_hash(path)
+            project = HASHES[hash]
+        except KeyError:
+            try:
+                project = AUTO_PROJECT[os.path.split(path)[-1]]
+            except KeyError:
+                raise ValueError("Your project is not correct. Allowed "
+                                 f"projects are {set(PROJECT2FIELD.keys())}")
     else:
-        if project not in PROJECT2FIELD:
+        try:
+            project = AUTO_PROJECT[os.path.split(path)[-1]]
+        except KeyError:
             raise ValueError("Your project is not correct. Allowed "
                              f"projects are {set(PROJECT2FIELD.keys())}")
     if language is None:
@@ -53,5 +77,5 @@ def subtlex(path,
                   fields,
                   PROJECT2FIELD[project],
                   language,
-                  sep="\t",
+                  sep=PROJECT2SEP[project],
                   skiprows=skiprows)
