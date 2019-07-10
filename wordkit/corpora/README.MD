@@ -17,7 +17,7 @@ All corpus readers use different file formats, so please make sure the file form
 
 A list of supported corpora can be found [here](../../)
 
-All corpora function return a [Frame](../frame)
+All corpora function return a [Frame](frame)
 
 ```python
 from wordkit.corpora import subtlex
@@ -34,3 +34,8 @@ from wordkit.corpora import reader
 w = reader("path_to_weird_csv", fields=("my_frequency_1", "wordness12"))
 # w is now a frame.
 ```
+
+## Frame
+
+The most important part of the corpus readers in `wordkit` is the `Frame`.
+A `Frame` is a pandas-like dataframe that is a bit more restricted, and therefore a bit easier to use.
