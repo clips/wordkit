@@ -2,7 +2,6 @@
 import numpy as np
 from .wickel import WickelTransformer
 from itertools import combinations
-from functools import reduce
 
 
 class OpenNGramTransformer(WickelTransformer):
@@ -57,7 +56,7 @@ class OpenNGramTransformer(WickelTransformer):
 
     def inverse_transform(self, X):
         """Not implemented."""
-        raise NotImplemented("Not implemented because probably impossible.")
+        raise NotImplementedError("Not implemented.")
 
 
 class ConstrainedOpenNGramTransformer(WickelTransformer):
@@ -111,13 +110,9 @@ class ConstrainedOpenNGramTransformer(WickelTransformer):
                              self.window+1,
                              1 if self.use_padding else 0,
                              strict=False)
-        combs = (combinations(x, self.n) for x in grams)
-        result = list(reduce(set.union, combs, set()))
-        return zip(np.ones(len(result)), result)
-
-    def inverse_transform(self, X):
-        """Not implemented."""
-        raise NotImplemented("Not implemented because probably impossible.")
+        for x in grams:
+            for c in combinations(x, self.n):
+                yield 1, c
 
 
 class WeightedOpenBigramTransformer(ConstrainedOpenNGramTransformer):
