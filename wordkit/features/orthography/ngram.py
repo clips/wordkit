@@ -100,26 +100,24 @@ class ConstrainedOpenNGramTransformer(WickelTransformer):
 
     def __init__(self, n, window, field=None, use_padding=False):
         """Initialize the transformer."""
+        if (window - n) <= -2:
+            raise ValueError("Your window needs to be larger than your n - 1"
+                             ", it is now 2")
         super().__init__(n, field)
         self.window = window
         self.use_padding = use_padding
 
     def _decompose(self, word):
         """Get all unordered n-combinations of characters in a word."""
-        grams = self._ngrams(word,
-                             self.window+1,
-                             self.window,
-                             strict=False)
-        for x in grams:
-            if x.startswith("#") and not self.use_padding:
-                continue
-            for char in x[1:]:
-                if char == "#":
-                    if not self.use_padding:
-                        continue
-                    if x[0] == "#":
-                        continue
-                yield 1, (x[0], char)
+        if self.use_padding:
+            word = "#{}#".format(word)
+        for idx in range(len(word)):
+            subword = word[idx:idx+(self.window+2)]
+            focus_letter = word[idx]
+            for x in combinations(subword, self.n):
+                if x[0] != (focus_letter):
+                    continue
+                yield 1, x
 
 
 class WeightedOpenBigramTransformer(ConstrainedOpenNGramTransformer):
