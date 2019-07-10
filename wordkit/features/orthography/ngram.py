@@ -108,11 +108,18 @@ class ConstrainedOpenNGramTransformer(WickelTransformer):
         """Get all unordered n-combinations of characters in a word."""
         grams = self._ngrams(word,
                              self.window+1,
-                             1 if self.use_padding else 0,
+                             self.window,
                              strict=False)
         for x in grams:
-            for c in combinations(x, self.n):
-                yield 1, c
+            if x.startswith("#") and not self.use_padding:
+                continue
+            for char in x[1:]:
+                if char == "#":
+                    if not self.use_padding:
+                        continue
+                    if x[0] == "#":
+                        continue
+                yield 1, (x[0], char)
 
 
 class WeightedOpenBigramTransformer(ConstrainedOpenNGramTransformer):
