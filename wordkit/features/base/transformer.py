@@ -96,6 +96,10 @@ class BaseTransformer(object):
 
         return total
 
+    def fit_transform(self, X):
+        self.fit(X)
+        return self.transform(X)
+
 
 class FeatureTransformer(BaseTransformer):
     """
