@@ -98,7 +98,7 @@ class WickelTransformer(BaseTransformer):
         for w, g in self._decompose(x):
             try:
                 idx = self.features[g]
-                z[idx] = max(z[idx], w)
+                z[idx] += w
             except KeyError:
                 pass
 
