@@ -46,14 +46,16 @@ class BaseTransformer(object):
 
     def _unpack(self, X):
         """Unpack the input data."""
-        if isinstance(X, pd.DataFrame):
-            X = X[self.field]
+        if isinstance(X, pd.Series):
+            return X
+        elif isinstance(X, pd.DataFrame):
+            return X[self.field]
         elif isinstance(X[0], dict):
             if self.field is None:
                 raise ValueError("Your field was set to None, but you passed a"
                                  " dict. Please pass an explicit field when "
                                  "passing a dict.")
-            X = [x[self.field] for x in X]
+            return [x[self.field] for x in X]
 
         return X
 
