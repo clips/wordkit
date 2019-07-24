@@ -19,7 +19,7 @@ Choosing to set the `prune` switch to True also skips the validation step during
 
 ```python
 from wordkit.corpora import WordNet
-from wordkit.semantics import OneHotSemanticsTransformer
+from wordkit.features import OneHotSemanticsTransformer
 
 w = WordNet("path/to/wordnet.tsv")
 words = w.transform()
@@ -52,7 +52,7 @@ It also take a `part_meronyms` switch, which denotes whether meronyms should be 
 
 ```python
 from wordkit.corpora import WordNet
-from wordkit.semantics import HypernymSemanticsTransformer
+from wordkit.features import HypernymSemanticsTransformer
 
 w = WordNet("path/to/wordnet.tsv")
 words = w.transform()
@@ -70,7 +70,7 @@ The embeddings are loaded using `reach`.
 Any embeddings not present in the fitting stage are discarded, so make sure you know beforehand which words you want to keep.
 
 ```python
-from wordkit.semantics import EmbeddingTransformer
+from wordkit.features import EmbeddingTransformer
 
 e = EmbeddingTransformer("path/to/my/embeddings.vec")
 X = e.fit_transform(["cat", "dog"])

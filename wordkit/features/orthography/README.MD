@@ -1,4 +1,4 @@
-# Orthography
+# Orthographic features
 
 This package contains all the orthographical parts of wordkit.
 It contains [features](#feature-sets), [feature extractors](#feature-extraction), and [transformers](#transformers).
@@ -11,8 +11,7 @@ The `LinearTransformer` featurizes words by replacing each letter or phoneme in 
 It thus assumes that letter encoding is completely position-specific.
 
 ```python
-from wordkit.transformers import LinearTransformer
-from wordkit.feature_extraction import OneHotCharacterExtractor
+from wordkit.features import LinearTransformer, OneHotCharacterExtractor
 
 l = LinearTransformer(OneHotCharacterExtractor, field=None)
 X = l.fit_transform(["log", "flog", "fog"])
@@ -61,7 +60,7 @@ If you use the OpenNGramTransformer, please consider citing the following source
 The example below shows how `"salt"` and `"slat"` lead to similar encodings.
 
 ```python
-from wordkit.transformers import OpenNGramTransformer
+from wordkit.features import OpenNGramTransformer
 
 words = ["salt", "slat"]
 
@@ -80,7 +79,7 @@ The `ConstrainedOpenNGramTransformer` is similar to the `OpenNGramTransformer`, 
 If you use this transformer, please cite the sources listed under the `OpenNGramTransformer` heading, above.
 
 ```python
-from wordkit.transformers import ConstrainedOpenNGramTransformer
+from wordkit.features import ConstrainedOpenNGramTransformer
 
 words = ["photography", "graphically"]
 
@@ -96,7 +95,7 @@ The `WeightedOpenBigramTransformer` can only transform bigrams, and assigns each
 If you use this transformer, please cite the sources listed under the `OpenNGramTransformer` heading, above.
 
 ```python
-from wordkit.transformers import WeightedOpenBigramTransformer
+from wordkit.features import WeightedOpenBigramTransformer
 
 words = ["photography", "graphically"]
 
@@ -115,7 +114,7 @@ Every word is padded with `n - 1` dummy characters ("#" by default).
 Padding can be turned off by setting `use_padding` to False, but this removes the option of featurizing words which are shorter than `n` characters.
 
 ```python
-from wordkit.transformers import WickelTransformer
+from wordkit.features import WickelTransformer
 
 words = ["dog", "fog", "hotdog", "colddog"]
 
@@ -124,30 +123,6 @@ X = w.fit_transform(words)
 
 w_2 = WickelTransformer(n=3, use_padding=False)
 X_2 = w_2.fit_transform(words)
-```
-
-### WickelFeatureTransformer
-
-The `WickelFeatureTransformer` is an implementation of the featurization procedure introduced by McClelland and Rumelhart in their 1986 paper.
-It is intended to produce the same behavior as the `WickelTransformer` above, but has a lower space complexity.
-
-Instead of directly one hot encoding and storing all character trigrams directly, the `WickelFeatureTransformer` assigns a number of binary variables to each character trigram, creating a unique code for each trigram.
-
-This is done by randomly assigning a number of characters to each binary variable. Only if all characters in all positions match will the variable be assigned to this trigram.
-This guarantees that trigrams with overlap in characters will be get more similar codes than words without overlap.
-
-The `n` argument behaves as above, and determines the `n`n in character ngrams.
-The `num_units` argument determines the number of binary variables, and consequently your output dimensionality.
-The `proportion` argument determines the proportion of unique items that are randomly assigned to each unit.
-For example, if there are 26 characters in your alphabet, a proportion of .38 will assign 10 characters to each unit for each position.
-
-```python
-from wordkit.transformers import WickelFeatureTransformer
-
-words = ["dog", "fog", "hotdog", "colddog"]
-
-w = WickelFeatureTransformer(n=3, num_units=400, proportion=.38)
-X = w.fit_transform(words)
 ```
 
 # Feature extraction
@@ -161,7 +136,7 @@ Feature extraction merely determines the set of features, which are then passed 
 
 ```python
 import numpy as np
-from wordkit.feature_extraction import PhonemeFeatureExtractor, OneHotCharacterExtractor
+from wordkit.features import PhonemeFeatureExtractor, OneHotCharacterExtractor
 
 o_words = ["dog", "cat"]
 o = OneHotCharacterExtractor()
@@ -172,7 +147,7 @@ p = PhonemeFeatureExtractor()
 v_feats, c_feats = p.extract(p_words)
 
 # These can then be added to a transformer
-from wordkit.transformers import CVTransformer
+from wordkit.features import CVTransformer
 c = CVTransformer((v_feats, c_feats))
 transformed = c.fit_transform(p_words)
 
@@ -206,8 +181,7 @@ Feature extraction merely determines the set of features, which are then passed 
 
 ```python
 import numpy as np
-from wordkit.orthography import OneHotCharacterExtractor
-from wordkit.orthography import LinearTransformer
+from wordkit.features import LinearTransformer, OneHotCharacterExtractor
 
 o_words = ["dog", "cat"]
 o = OneHotCharacterExtractor()
@@ -232,7 +206,7 @@ We also offer a number of pre-specified features, which are mainly aimed at repl
 These can directly be passed in to the `LinearTransformer`.
 
 ```python
-from wordkit.orthography.features import fourteen, sixteen
+from wordkit.features import fourteen, sixteen
 
 l = LinearTransformer(fourteen)
 ```
