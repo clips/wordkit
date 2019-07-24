@@ -86,11 +86,9 @@ def reader(path,
     fields = {k: field_ids.get(k, k) for k in fields}
 
     for k, v in ((k, v) for k, v in fields.items() if k != v):
-        df[k] = df.get(v)
+        df[k] = df[v]
 
     colnames = set(df.columns)
-    other_fields = colnames - set(fields)
-    df.drop(other_fields)
     if preprocessors:
         for k, v in preprocessors.items():
             if k not in fields:
