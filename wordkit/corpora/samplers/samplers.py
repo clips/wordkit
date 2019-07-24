@@ -1,10 +1,9 @@
 """Sampler class."""
 import numpy as np
-from sklearn.base import TransformerMixin
 from collections import defaultdict
 
 
-class Sampler(TransformerMixin):
+class Sampler(object):
     """
     Sample from a list of words, based on the frequency of those words.
 

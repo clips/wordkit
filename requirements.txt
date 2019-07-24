@@ -4,4 +4,3 @@ pandas==0.20.3
 nltk==3.2.4
 setuptools==39.0.1
 reach==2.3.0
-scikit_learn==0.19.2

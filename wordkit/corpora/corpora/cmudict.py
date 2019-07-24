@@ -1,7 +1,8 @@
 """Tools for working with CMUDICT."""
-from ..base import Reader
 import re
 import pandas as pd
+
+from ..base import reader
 
 
 CMU_2IPA = {'AO': 'ɔ',
@@ -103,54 +104,29 @@ def cmu_to_ipa(phonemes):
     return tuple([CMU_2IPA[p] for p in phonemes])
 
 
-class CMU(Reader):
-    """
-    The reader for the CMUDICT corpus.
+def _open(path, **kwargs):
+    """Open a file for reading."""
+    df = []
+    for line in open(path):
+        line = line.split("#")[0]
+        word, *rest = line.strip().split()
+        word = brackets.sub("", word)
+        df.append({"orthography": word, "phonology": rest})
 
-    The CMUDICT corpus can be downloaded here:
-        https://github.com/cmusphinx/cmudict
+    return pd.DataFrame(df)
 
-    Currently, the CMUDICT has no proper reference, so please refer to the
-    github or webpage of CMU if you use this resource.
 
-    Parameters
-    ----------
-    path : string
-        The path to the corpus this reader has to read.
-    language : string, default "eng"
-        The language of the corpus.
-    fields : iterable, default ("orthography", "phonology"")
-        An iterable of strings containing the fields this reader has
-        to read from the corpus.
+brackets = re.compile(r"\(\d\)")
 
-    """
 
-    def __init__(self,
-                 path,
-                 fields=("orthography", "phonology"),
-                 language=None):
-        """Extract structured information from CMUDICT."""
-        self.brackets = re.compile(r"\(\d\)")
-        super().__init__(path,
-                         fields,
-                         {'orthography': 0,
-                          'phonology': 1},
-                         language="eng")
-
-    def _open(self, fields, **kwargs):
-        """Open a file for reading."""
-        keys, indices = zip(*fields.items())
-
-        df = []
-        for line in open(self.path):
-            line = line.split("#")[0]
-            word, *rest = line.strip().split()
-            word = self.brackets.sub("", word)
-            df.append({"orthography": word, "phonology": rest})
-        df = pd.DataFrame(df)
-        return self._preprocess(df, fields)
-
-    def _process_phonology(self, string):
-        """Process phonology."""
-        syll = cmu_to_ipa(string)
-        return syll
+def cmu(path,
+        fields=("orthography", "phonology"),
+        language=None):
+    """Extract structured information from CMUDICT."""
+    return reader(path,
+                  fields,
+                  {"orthography": "orthography",
+                   "phonology": "phonology"},
+                  language="eng",
+                  opener=_open,
+                  preprocessors={"phonology": cmu_to_ipa})

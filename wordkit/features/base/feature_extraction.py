@@ -33,4 +33,4 @@ class BaseExtractor(object):
 
     def _process(self, symbols):
         """Process the symbols and return features."""
-        raise NotImplemented()
+        raise NotImplementedError()

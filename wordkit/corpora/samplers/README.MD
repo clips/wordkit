@@ -15,7 +15,7 @@ We also offer a `BinnedSampler`, which samples while respecting the proportion o
 
 ```python
 import numpy as np
-from wordkit.samplers import Sampler, BinnedSampler
+from wordkit.corpora.samplers import Sampler, BinnedSampler
 
 np.random.seed(44)
 

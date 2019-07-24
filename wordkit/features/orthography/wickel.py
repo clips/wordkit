@@ -62,11 +62,11 @@ class WickelTransformer(BaseTransformer):
         self.feature_names = set(chain.from_iterable(X))
         grams = set()
         for x in X:
-            g = list(zip(*self._decompose(x)))
+            g = list(zip(*self._decompose(x)))[1]
             if not g:
                 raise ValueError("{} did not contain any ngrams."
                                  "".format(x))
-            grams.update(g[1])
+            grams.update(g)
 
         grams = sorted(grams)
         self.features = {g: idx for idx, g in enumerate(grams)}
@@ -98,7 +98,7 @@ class WickelTransformer(BaseTransformer):
         for w, g in self._decompose(x):
             try:
                 idx = self.features[g]
-                z[idx] = max(z[idx], w)
+                z[idx] += w
             except KeyError:
                 pass
 
@@ -108,8 +108,8 @@ class WickelTransformer(BaseTransformer):
     def _ngrams(word, n, num_padding, strict=True):
         """Lazily get all ngrams in a string."""
         if num_padding:
-            padding = "#" * num_padding
-            word = "{}{}{}".format(padding, word, padding)
+            padding = ("#",) * num_padding
+            word = tuple(chain(*[padding, word, padding]))
         if len(word) < n:
             if strict:
                 raise ValueError("You tried to featurize words shorter than "
@@ -126,8 +126,8 @@ class WickelTransformer(BaseTransformer):
         grams = self._ngrams(word,
                              self.n,
                              self.n - 1 if self.use_padding else 0)
-        grams = list(grams)
-        return list(zip(np.ones(len(grams)), grams))
+        grams = tuple(grams)
+        return tuple(zip(np.ones(len(grams)), grams))
 
     def inverse_transform(self, X, threshold=.9):
         """
@@ -178,108 +178,3 @@ class WickelTransformer(BaseTransformer):
             X = self._unpack(X)
             for x in X:
                 yield tuple(zip(*self._decompose(x)))[1]
-
-
-class WickelFeatureTransformer(WickelTransformer):
-    """
-    A transformer for WickelFeatures.
-
-    This transformer behaves more or less the same as the WickelTransformer,
-    above, but has 2 advantages: first, it assigns a higher similarity to
-    ngrams which have more overlap. Second, it usually leads to spaces with
-    smaller dimensionalities.
-
-    Parameters
-    ----------
-    n : int
-        The value of n to use in the character ngrams.
-    num_units : int
-        The number of units with which to represent each individual character
-        ngram. This number is also equal to the output dimensionality.
-    field : str or None
-        The field on which this transformer operates.
-    use_padding : bool
-        Whether to use padded or non-padded ngrams.
-    proportion : float
-        This number approximately encodes the number of units each character
-        activates. For example, given a proportion of .38, about 10 of 26
-        letters in the alphabet will be assigned to a single unit.
-
-    """
-
-    def __init__(self,
-                 n,
-                 num_units,
-                 field=None,
-                 use_padding=True,
-                 proportion=.38):
-        """Initialize the transformer."""
-        super().__init__(n, field, use_padding)
-        self.num_units = num_units
-        assert .0 < proportion < 1.0
-        self.proportion = proportion
-
-    def fit(self, X):
-        """
-        Fit the featurizer by setting the vector length and word length.
-
-        Parameters
-        ----------
-        X : dictionary of with 'orthography' as key or list of strings.
-            This is usually the output of a wordkit reader, but can also
-            simply be a list of strings.
-
-        Returns
-        -------
-        self : WickelTransformer
-            The transformer itself.
-
-        """
-        super().fit(X)
-        self._is_fit = False
-        # Assign each feature an number of units based on the individual
-        # characters this feature consists of.
-        feature_matrix = np.zeros((len(self.features), self.num_units))
-        feature_values = [list(set(x)) for x in zip(*self.features)]
-        num_values = [ceil(len(x) * self.proportion) for x in feature_values]
-        for col in range(self.num_units):
-            triples = []
-            for num, x in zip(num_values, feature_values):
-                triples.append(np.random.choice(x, size=num, replace=False))
-            all_triples = list(product(*triples))
-            for triple in all_triples:
-                try:
-                    feature_matrix[self.features[triple], col] = 1
-                except KeyError:
-                    pass
-
-        self.features = {k: feature_matrix[v]
-                         for k, v in self.features.items()}
-        self.vec_len = self.num_units
-        self._is_fit = True
-        return self
-
-    def vectorize(self, x):
-        """
-        Convert a single word into a vectorized representation.
-
-        Raises a ValueError if the word is too long.
-
-        Parameters
-        ----------
-        x : string or dictionary
-            The word to convert.
-
-        Returns
-        -------
-        v : numpy array
-            A vectorized representation of the input word.
-
-        """
-        z = np.max([self.features[g] for w, g in self._decompose(x)], axis=0)
-        return z
-
-    def inverse_transform(self, X):
-        """Not implemented."""
-        raise NotImplementedError("""Not implemented because
-                                      probably impossible.""")

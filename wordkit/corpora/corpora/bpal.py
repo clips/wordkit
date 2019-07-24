@@ -1,7 +1,8 @@
 """The BPAL corpus reader."""
 import re
-from ..base import Reader, diacritics
+from ..base import reader
 from itertools import chain
+from functools import partial
 
 
 BPAL_2IPA = {"TIO": "sjo",
@@ -52,73 +53,29 @@ def bpal_to_ipa(syllables):
         yield tuple(converted)
 
 
-class BPal(Reader):
-    r"""
-    Corpus reader for the BPal corpus.
+def syll_func(string):
+    """Process a BPAL syllable string."""
+    string = string.split("-")
+    string = tuple(bpal_to_ipa(string))
 
-    The BPal corpus is included in the distribution of the BuscaPalabras
-    tool (BPal) by Davis and Perea.
+    return tuple(string)
 
-    This corpus reader reads the "nwphono.txt" file which is included in
-    this distribution. We convert the phonemes of the BPal corpus to IPA to
-    ensure cross-language compatibility.
 
-    The tool can be downloaded at the following URL:
-    http://www.pc.rhul.ac.uk/staff/c.davis/Utilities/B-Pal.zip
+def phon_func(string):
+    """Process a BPAL phonology string."""
+    string = string.split("-")
+    string = tuple(bpal_to_ipa(string))
 
-    If you use this corpus reader, you must cite:
+    return tuple(chain.from_iterable(string))
 
-    @article{davis2005buscapalabras,
-      title={BuscaPalabras: A program for deriving orthographic and
-             phonological neighborhood statistics and other psycholinguistic
-             indices in Spanish},
-      author={Davis, Colin J and Perea, Manuel},
-      journal={Behavior Research Methods},
-      volume={37},
-      number={4},
-      pages={665--671},
-      year={2005},
-      publisher={Springer}
-    }
 
-    Parameters
-    ----------
-    path : str
-        The path to the nwphono.txt file.
-    fields : tuple
-        The fields to extract using this corpus reader. Any invalid fields
-        will cause the reader to throw a ValueError.
-
-    """
-
-    def __init__(self,
-                 path,
-                 fields=("orthography", "syllables", "phonology")):
-        """Initialize the BPAL reader."""
-        allowed_fields = {"orthography": 0,
+bpal = partial(reader,
+               field_ids={"orthography": 0,
                           "syllables": 1,
-                          "phonology": 1}
-
-        super().__init__(path,
-                         fields,
-                         allowed_fields,
-                         language="esp",
-                         diacritics=diacritics,
-                         sep="\t",
-                         encoding="latin-1",
-                         quote=0,
-                         header=None)
-
-    def _process_syllable(self, string):
-        """Process a BPAL syllable string."""
-        string = string.split("-")
-        string = tuple(bpal_to_ipa(string))
-
-        return tuple(string)
-
-    def _process_phonology(self, string):
-        """Process a BPAL phonology string."""
-        string = string.split("-")
-        string = tuple(bpal_to_ipa(string))
-
-        return tuple(chain.from_iterable(string))
+                          "phonology": 1},
+               language="esp",
+               sep="\t",
+               encoding="latin-1",
+               quoting=0,
+               header=None,
+               preprocessors={"phonology": phon_func, "syllables": syll_func})

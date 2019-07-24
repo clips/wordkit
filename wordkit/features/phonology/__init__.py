@@ -2,7 +2,7 @@
 from ..orthography.ngram import OpenNGramTransformer
 from ..orthography.ngram import ConstrainedOpenNGramTransformer
 from ..orthography.ngram import WeightedOpenBigramTransformer
-from ..orthography.wickel import WickelTransformer, WickelFeatureTransformer
+from ..orthography.wickel import WickelTransformer
 from .cv import CVTransformer
 from .onc import ONCTransformer
 from .feature_extraction import PredefinedFeatureExtractor

@@ -2,7 +2,6 @@
 import numpy as np
 from .wickel import WickelTransformer
 from itertools import combinations
-from functools import reduce
 
 
 class OpenNGramTransformer(WickelTransformer):
@@ -57,7 +56,7 @@ class OpenNGramTransformer(WickelTransformer):
 
     def inverse_transform(self, X):
         """Not implemented."""
-        raise NotImplemented("Not implemented because probably impossible.")
+        raise NotImplementedError("Not implemented.")
 
 
 class ConstrainedOpenNGramTransformer(WickelTransformer):
@@ -101,23 +100,24 @@ class ConstrainedOpenNGramTransformer(WickelTransformer):
 
     def __init__(self, n, window, field=None, use_padding=False):
         """Initialize the transformer."""
+        if (window - n) <= -2:
+            raise ValueError("Your window needs to be larger than your n - 1"
+                             ", it is now 2")
         super().__init__(n, field)
         self.window = window
         self.use_padding = use_padding
 
     def _decompose(self, word):
         """Get all unordered n-combinations of characters in a word."""
-        grams = self._ngrams(word,
-                             self.window+1,
-                             1 if self.use_padding else 0,
-                             strict=False)
-        combs = (combinations(x, self.n) for x in grams)
-        result = list(reduce(set.union, combs, set()))
-        return zip(np.ones(len(result)), result)
-
-    def inverse_transform(self, X):
-        """Not implemented."""
-        raise NotImplemented("Not implemented because probably impossible.")
+        if self.use_padding:
+            word = "#{}#".format(word)
+        for idx in range(len(word)):
+            subword = word[idx:idx+(self.window+2)]
+            focus_letter = word[idx]
+            for x in combinations(subword, self.n):
+                if x[0] != (focus_letter):
+                    continue
+                yield 1, x
 
 
 class WeightedOpenBigramTransformer(ConstrainedOpenNGramTransformer):

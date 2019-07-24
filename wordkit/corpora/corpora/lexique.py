@@ -1,6 +1,7 @@
 """Read the Lexique database."""
-from ..base import Reader, segment_phonology, diacritics
+from ..base import reader, segment_phonology
 from itertools import chain
+from functools import partial
 
 
 LEXIQUE_2IPA = {'°': 'ə',
@@ -48,53 +49,28 @@ def lexique_to_ipa(syllables):
         yield "".join([LEXIQUE_2IPA[x] for x in syll])
 
 
-class Lexique(Reader):
-    """
-    Read the Lexique corpus.
+def phon_func(string):
+    """Process phonology."""
+    string = string.split("-")
+    string = tuple(lexique_to_ipa(string))
+    string = [segment_phonology(x) for x in string]
+    return tuple(chain.from_iterable(string))
 
-    This reader reads the Lexique corpus, which contains frequency,
-    orthography, phonology and syllable fields for 125,733 French words.
 
-    The Lexique corpus does not have an associated publication, and can be
-    accessed at this link: http://www.lexique.org/
+def syll_func(string):
+    """Process syllables."""
+    string = string.split("-")
+    string = tuple(lexique_to_ipa(string))
+    string = [segment_phonology(x) for x in string]
+    return tuple(string)
 
-    Parameters
-    ----------
-    path : str
-        The path to the Lexique corpus file.
-    fields : tuple
-        The fields to retrieve from the corpus.
-    language : str
-        The language of the corpus. Currently not used in Lexique.
 
-    """
-
-    def __init__(self,
-                 path,
-                 fields=('orthography', 'phonology', 'frequency'),
-                 language=None,
-                 diacritics=diacritics):
-        """Initialize the reader."""
-        super().__init__(path,
-                         fields,
-                         {"orthography": "1_ortho",
-                          "phonology": "23_syll",
-                          "frequency": "10_freqlivres",
-                          "syllables": "23_syll"},
-                         "fra",
-                         diacritics=diacritics,
-                         sep="\t")
-
-    def _process_phonology(self, string):
-        """Process phonology."""
-        string = string.split("-")
-        string = tuple(lexique_to_ipa(string))
-        string = [segment_phonology(x) for x in string]
-        return tuple(chain.from_iterable(string))
-
-    def _process_syllable(self, string):
-        """Process syllables."""
-        string = string.split("-")
-        string = tuple(lexique_to_ipa(string))
-        string = [segment_phonology(x) for x in string]
-        return tuple(string)
+lexique = partial(reader,
+                  field_ids={"orthography": "1_ortho",
+                             "phonology": "23_syll",
+                             "frequency": "10_freqlivres",
+                             "syllables": "23_syll"},
+                  language="fra",
+                  sep="\t",
+                  preprocessors={"phonology": phon_func,
+                                 "syllables": syll_func})

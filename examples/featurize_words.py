@@ -1,5 +1,5 @@
 """Extract words from a corpus, and featurize them."""
-from wordkit.corpora import Subtlex
+from wordkit.corpora import subtlex
 from wordkit.orthography import LinearTransformer, OneHotCharacterExtractor
 
 
@@ -7,13 +7,15 @@ if __name__ == "__main__":
 
     # We instantiate a Subtlex corpus reader.
     # NOTE: replace path_to_subtlex by the path to subtlex on your own file.
-    corpus = Subtlex("path_to_subtlex", fields=("orthography", "frequency"))
+    words = subtlex("path_to_subtlex", fields=("orthography", "frequency"))
 
     # We limit ourselves to words of length 4.
     # We again use a lambda function that returns a boolean value.
     # only words for which this lambda function evaluates to True get
     # retrieved.
-    words = corpus.transform(orthography=lambda x: len(x) == 4)
+    # Note that length is not in our fields. It is calculated automatically
+    # by the frame
+    words = words.where(length=4)
 
     print("The first 10 words after filtering:")
     print(words[:10])
