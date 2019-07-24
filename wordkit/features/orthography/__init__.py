@@ -1,11 +1,11 @@
 """Orthography."""
-from .feature_extraction import OneHotCharacterExtractor, \
-                                IndexCharacterExtractor
+from .feature_extraction import (OneHotCharacterExtractor,
+                                 IndexCharacterExtractor)
 from .linear import LinearTransformer, OneHotLinearTransformer
 from .ngram import OpenNGramTransformer
 from .ngram import ConstrainedOpenNGramTransformer
 from .ngram import WeightedOpenBigramTransformer
-from .wickel import WickelTransformer, WickelFeatureTransformer
+from .wickel import WickelTransformer
 from .features import fourteen, sixteen, dislex
 
 __all__ = ["OneHotCharacterExtractor",

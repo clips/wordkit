@@ -1,5 +1,5 @@
 """Extract words from a corpus, and filter them using anonymous functions."""
-from wordkit.corpora import Subtlex
+from wordkit.corpora import subtlex
 
 
 if __name__ == "__main__":
@@ -14,12 +14,8 @@ if __name__ == "__main__":
     # to have the following fields.
 
     # NOTE: replace path_to_subtlex with the path to subtlex on your machine.
-    corpus = Subtlex("path_to_subtlex",
-                     fields=("orthography", "frequency"))
-
-    # Now we will extract specific words by adding filters.
-    # by not passing any arguments, we simply extract all words.
-    words = corpus.transform()
+    words = subtlex("path_to_subtlex",
+                    fields=("orthography", "frequency"))
 
     # words is a list of dictionaries.
     print("{} words in corpus".format(len(words)))
@@ -36,7 +32,7 @@ if __name__ == "__main__":
     # with an 'a'.
 
     # Note the use of the lambda, which is an anonymous function.
-    words = corpus.transform(orthography=lambda x: x[0] == 'a')
+    start_a = words.where(orthography=lambda x: x[0] == 'a')
     # You can also define other functions.
     # this one is equivalent to the lambda above.
 
@@ -46,19 +42,19 @@ if __name__ == "__main__":
             return True
         return False
 
-    words = corpus.transform(orthography=filter_function)
+    start_a_2 = words.where(orthography=filter_function)
 
     # First 10 words starting with an a
-    print("Words left after filtering: {}".format(len(words)))
+    print("Words left after filtering: {}".format(len(start_a)))
     print("First 10 words after filtering:")
-    print(words[:10])
+    print(start_a_2)
 
     # After filtering, we can filter again.
     # Let's filter on frequency by throwing away any words with frequencies
     # smaller than 10.
     # Note that in this case we filter again.
-    words = words.filter(frequency=lambda x: x >= 10)
+    start_a = start_a.where(frequency=lambda x: x >= 10)
 
-    print("Words left after filtering: {}".format(len(words)))
+    print("Words left after filtering: {}".format(len(start_a)))
     print("First 10 words after filtering:")
-    print(words[:10])
+    print(start_a[:10])

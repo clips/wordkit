@@ -1,21 +1,18 @@
 """Corpora."""
-from .corpora import (Celex,
-                      CMU,
-                      Deri,
-                      Subtlex,
-                      Lexique,
-                      BPal,
-                      WordNet,
-                      LexiconProject)
-from .base import Reader
+from .corpora import (celex,
+                      cmu,
+                      subtlex,
+                      lexique,
+                      bpal,
+                      wordnet,
+                      lexiconproject)
+from .base import reader
 
-__all__ = ["Celex",
-           "CMU",
-           "Deri",
-           "merge",
-           "Subtlex",
-           "BPal",
-           "Lexique",
-           "WordNet",
-           "LexiconProject",
-           "Reader"]
+__all__ = ["celex",
+           "cmu",
+           "subtlex",
+           "bpal",
+           "lexique",
+           "wordnet",
+           "lexiconproject",
+           "reader"]

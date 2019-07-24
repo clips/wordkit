@@ -1,12 +1,12 @@
 """Base classes for transformers."""
 import numpy as np
+import pandas as pd
 
 from itertools import chain
-from sklearn.base import TransformerMixin
 from .feature_extraction import BaseExtractor
 
 
-class BaseTransformer(TransformerMixin):
+class BaseTransformer(object):
     """
     Base class for transformers without input features.
 
@@ -46,7 +46,9 @@ class BaseTransformer(TransformerMixin):
 
     def _unpack(self, X):
         """Unpack the input data."""
-        if isinstance(X[0], dict):
+        if isinstance(X, pd.DataFrame):
+            X = X[self.field]
+        elif isinstance(X[0], dict):
             if self.field is None:
                 raise ValueError("Your field was set to None, but you passed a"
                                  " dict. Please pass an explicit field when "
@@ -88,7 +90,11 @@ class BaseTransformer(TransformerMixin):
         if strict:
             self._validate(X)
 
-        total = np.zeros((len(X), self.vec_len))
+        if isinstance(self.vec_len, int):
+            total = np.zeros((len(X), self.vec_len))
+        else:
+            # Support for tensors.
+            total = np.zeros((len(X), *self.vec_len))
 
         # Looks silly, but much faster than adding to a list and then
         # turning this into an array.
@@ -96,6 +102,10 @@ class BaseTransformer(TransformerMixin):
             total[idx] = self.vectorize(word)
 
         return total
+
+    def fit_transform(self, X):
+        self.fit(X)
+        return self.transform(X)
 
 
 class FeatureTransformer(BaseTransformer):

@@ -1,8 +1,7 @@
 """Base classes."""
-from .reader import diacritics, Reader, segment_phonology
+from .reader import reader
+from .utils import segment_phonology
 
 
-__all__ = ["BaseReader",
-           "diacritics",
-           "Reader",
+__all__ = ["reader",
            "segment_phonology"]
