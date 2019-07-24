@@ -37,8 +37,8 @@ All examples assume you have wordkit installed (see above.)
 
 If, after working through the examples, you want to dive deeper into `wordkit`, check out the following documentation.
 
-`wordkit` is a modular system, and contains 5 broad families of components.
-The subpackages are extensively documented using separate `README.MD` files.
+`wordkit` is a modular system, and contains two broad families of components.
+The subpackages are documented using separate `README.MD` files.
 Feel free to click ahead to find descriptions of the contents of subpackages.
 
 * [corpora](wordkit/corpora)
