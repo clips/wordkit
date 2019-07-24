@@ -1,6 +1,8 @@
 """Tools for working with CMUDICT."""
-from ..base import reader
 import re
+import pandas as pd
+
+from ..base import reader
 
 
 CMU_2IPA = {'AO': 'ɔ',
@@ -111,7 +113,7 @@ def _open(path, **kwargs):
         word = brackets.sub("", word)
         df.append({"orthography": word, "phonology": rest})
 
-    return df
+    return pd.DataFrame(df)
 
 
 brackets = re.compile(r"\(\d\)")

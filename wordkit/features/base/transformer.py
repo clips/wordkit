@@ -1,5 +1,6 @@
 """Base classes for transformers."""
 import numpy as np
+import pandas as pd
 
 from itertools import chain
 from .feature_extraction import BaseExtractor
@@ -45,7 +46,9 @@ class BaseTransformer(object):
 
     def _unpack(self, X):
         """Unpack the input data."""
-        if isinstance(X[0], dict):
+        if isinstance(X, pd.DataFrame):
+            X = X[self.field]
+        elif isinstance(X[0], dict):
             if self.field is None:
                 raise ValueError("Your field was set to None, but you passed a"
                                  " dict. Please pass an explicit field when "

@@ -6,7 +6,7 @@ from .corpora import (celex,
                       bpal,
                       wordnet,
                       lexiconproject)
-from .base import reader, Frame
+from .base import reader
 
 __all__ = ["celex",
            "cmu",
@@ -15,5 +15,4 @@ __all__ = ["celex",
            "lexique",
            "wordnet",
            "lexiconproject",
-           "reader",
-           "Frame"]
+           "reader"]

@@ -1,6 +1,7 @@
 """Tools for working with Celex."""
 import re
 import csv
+import pandas as pd
 
 from ..base import reader, segment_phonology
 from ..base.utils import _calc_hash
@@ -151,7 +152,7 @@ def _celex_opener(path, word_length, struct_length=0, **kwargs):
         for x in range(word_length, len(line), struct_length):
             data.append(dict(enumerate(inform + line[x:x+struct_length])))
 
-    return data
+    return pd.DataFrame(data)
 
 
 def celex(path,

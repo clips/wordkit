@@ -19,8 +19,9 @@ def wordnet(path,
     if restrict_pos:
         if not isinstance(restrict_pos, (tuple, list, set)):
             restrict_pos = {restrict_pos}
-        df = df.where(semantics=lambda x: x.split("-")[1] in restrict_pos)
+
+        def pos_func(x):
+            return x.split("-")[1] in restrict_pos
+        df = df[[pos_func(x) for x in df['semantics']]].reset_index(drop=True)
+
     return df
-    return df.aggregate("orthography",
-                        "semantics",
-                        lambda x: x)

@@ -41,11 +41,8 @@ If, after working through the examples, you want to dive deeper into `wordkit`, 
 The subpackages are extensively documented using separate `README.MD` files.
 Feel free to click ahead to find descriptions of the contents of subpackages.
 
-* [orthography](wordkit/orthography)
-* [phonology](wordkit/phonology)
-* [semantics](wordkit/semantics)
 * [corpora](wordkit/corpora)
-* [samplers](wordkit/samplers)
+* [features](wordkit/features)
 
 In general, a `wordkit` pipeline consists of one or more readers, which extract structured information from corpora.
 This information is then sent to one or more transformers, which are either assigned pre-defined features or a feature extractor.
@@ -75,6 +72,67 @@ If you use `wordkit` in your research, please cite the following paper:
 
 Additionally, if you use any of the corpus readers in `wordkit`, you MUST cite the accompanying corpora and transformers.
 All of these references can be found in the docstrings of the applicable classes.
+
+## Example
+
+This example shows one big `wordkit` pipeline.
+
+```python
+import pandas as pd
+
+from wordkit.corpora import celex
+from wordkit.features import LinearTransformer, WickelTransformer, fourteen
+from string import ascii_lowercase
+
+# The fields we want to extract from our corpora.
+fields = ('orthography', 'frequency', 'phonology', 'syllables')
+
+# Link to epl.cd
+english = celex("epl.cd",
+                fields=fields)
+# Link to dpl.cd
+dutch = celex("dpl.cd",
+              fields=fields,
+              language='nld')
+
+# Merge both corpora.
+words = pd.concat([english, dutch], sort=False).reindex()
+
+# We filter both corpora to only contain monosyllables and words
+# with only alphabetical characters
+words = words[[len(x) == 1 for x in words["syllables"]]]
+words = words[[not set(x) - set(ascii_lowercase)
+              for x in words["orthography"]]]
+
+# words[0] =>
+# {'frequency': 413887.0,
+# 'orthography': 'a',
+# 'phonology': ('e', 'ɪ'),
+# 'syllables': (('e', 'ɪ'),)}
+
+# You can also query specific words
+wind = words[words['orthography'] == "wind"]
+
+# This gives
+# wind =>
+#              phonology orthography           syllables  frequency  log_frequency  frequency_per_million  zipf_score  length
+# 61272  (w, a, ɪ, n, d)        wind  ((w, a, ɪ, n, d),)        299       2.475671               7.654269    0.883904       4
+# 62511     (w, ɪ, n, d)        wind     ((w, ɪ, n, d),)       2171       3.336660              55.576652    1.744892       4
+# 96273     (w, ɪ, n, t)        wind     ((w, ɪ, n, t),)       4703       3.672375             116.504660    2.066343       4
+
+# Now, let's transform into features
+# Orthography is a linear transformer with the fourteen segment feature set.
+o = LinearTransformer(fourteen, field='orthography')
+# For phonology we use Wickelphones.
+p = WickelTransformer(n=3, field='phonology')
+
+X_o = o.fit_transform(words)
+X_p = p.fit_transform(words)
+
+# Get the feature vector length for each featurizer
+o.vec_len # 112
+p.vec_len # 4923
+```
 
 ## Corpora
 
@@ -189,82 +247,6 @@ These contain RT data with which you can validate models.
 ```
 Fields: Orthography, rt
 Languages: Dutch, British English, American English, French
-```
-
-## Example
-
-This example shows one big `wordkit` pipeline.
-
-```python
-from wordkit.corpora import Celex
-from wordkit.orthography import LinearTransformer, WickelTransformer
-from wordkit.orthography.features import fourteen
-from sklearn.pipeline import FeatureUnion
-
-# The fields we want to extract from our corpora.
-fields = ('orthography', 'frequency', 'phonology', 'syllables')
-
-# Filter function
-# A filter function can be added to a corpus to filter out any
-# words which do not conform to some criterion, e.g. frequency
-# constraints.
-# In this case, we use it to remove punctuation marks for which
-# we do not have any features.
-# We also use it to select only monosyllables.
-fil = lambda x: not set(x['orthography']).intersection({"'", ',', '-', '/', '.'}) and len(x['syllables']) == 1
-
-# Link to epl.cd
-english = Celex("epl.cd",
-                fields=fields)
-
-# Link to dpl.cd
-dutch = Celex("dpl.cd",
-              fields=fields,
-              language='nld')
-
-words = english.transform(filter_function=fil)
-words.extend(dutch.transform(filter_function=fil))
-
-# words[0] =>
-# {'frequency': 1267035,
-# 'orthography': 'a',
-# 'phonology': ('e', 'ɪ'),
-# 'syllables': (('e', 'ɪ'),)}
-
-# You can also query specific words
-wind = words.filter(orthography='wind')
-
-# This gives
-# wind =>
-# [{'frequency': 16.154509673599474,
-#   'orthography': 'wind',
-#   'phonology': ('w', 'a', 'ɪ', 'n', 'd'),
-#   'syllables': (('w', 'a', 'ɪ', 'n', 'd'),)},
-#  {'frequency': 116.57008309321614,
-#   'orthography': 'wind',
-#   'phonology': ('w', 'ɪ', 'n', 'd'),
-#   'syllables': (('w', 'ɪ', 'n', 'd'),)},
-#  {'frequency': 116.49571380983738,
-#   'orthography': 'wind',
-#   'phonology': ('w', 'ɪ', 'n', 't'),
-#   'syllables': (('w', 'ɪ', 'n', 't'),)}]
-# Note that the frequency has been divided scaled to 1M words.
-
-# Now, let's transform into features
-# Orthography is a linear transformer with the fourteen segment feature set.
-o = LinearTransformer(fourteen, field='orthography')
-# For phonology we use Wickelphones.
-p = WickelTransformer(n=3, field='phonology')
-
-featurizer = FeatureUnion([("o", o), ("p", p)])
-
-# Fit and transform the featurizers.
-X = featurizer.fit_transform(words)
-# A (7650, 4877) matrix.
-
-# Get the feature vector length for each featurizer
-o.vec_len # 112
-p.vec_len # 4765
 ```
 
 ## Experiments
