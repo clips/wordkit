@@ -87,7 +87,11 @@ class BaseTransformer(object):
         if strict:
             self._validate(X)
 
-        total = np.zeros((len(X), self.vec_len))
+        if isinstance(self.vec_len, int):
+            total = np.zeros((len(X), self.vec_len))
+        else:
+            # Support for tensors.
+            total = np.zeros((len(X), *self.vec_len))
 
         # Looks silly, but much faster than adding to a list and then
         # turning this into an array.
