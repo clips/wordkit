@@ -62,11 +62,11 @@ class WickelTransformer(BaseTransformer):
         self.feature_names = set(chain.from_iterable(X))
         grams = set()
         for x in X:
-            g = list(zip(*self._decompose(x)))
+            g = list(zip(*self._decompose(x)))[1]
             if not g:
                 raise ValueError("{} did not contain any ngrams."
                                  "".format(x))
-            grams.update(g[1])
+            grams.update(g)
 
         grams = sorted(grams)
         self.features = {g: idx for idx, g in enumerate(grams)}
@@ -108,8 +108,8 @@ class WickelTransformer(BaseTransformer):
     def _ngrams(word, n, num_padding, strict=True):
         """Lazily get all ngrams in a string."""
         if num_padding:
-            padding = "#" * num_padding
-            word = "{}{}{}".format(padding, word, padding)
+            padding = ("#",) * num_padding
+            word = tuple(chain(*[padding, word, padding]))
         if len(word) < n:
             if strict:
                 raise ValueError("You tried to featurize words shorter than "
@@ -126,8 +126,8 @@ class WickelTransformer(BaseTransformer):
         grams = self._ngrams(word,
                              self.n,
                              self.n - 1 if self.use_padding else 0)
-        grams = list(grams)
-        return list(zip(np.ones(len(grams)), grams))
+        grams = tuple(grams)
+        return tuple(zip(np.ones(len(grams)), grams))
 
     def inverse_transform(self, X, threshold=.9):
         """
