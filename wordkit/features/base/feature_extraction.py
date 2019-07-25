@@ -1,4 +1,5 @@
 """Base class for feature extractors."""
+import pandas as pd
 from itertools import chain
 
 
@@ -12,7 +13,15 @@ class BaseExtractor(object):
 
     def extract(self, X):
         """Extract features from a list of words."""
-        if isinstance(X[0], dict):
+        # Unpack dataframes correctly.
+        if isinstance(X, pd.DataFrame):
+            if self.field is None:
+                raise ValueError("You didn't pass a field value to the "
+                                 "extractor but also passed a DataFrame.")
+            X = X[self.field].values
+        elif isinstance(X, pd.Series):
+            X = X.values
+        elif isinstance(X[0], dict):
 
             if self.field is None:
                 raise ValueError("You didn't pass a field value to the "
@@ -20,10 +29,10 @@ class BaseExtractor(object):
             X = [x[self.field] for x in X]
 
         if isinstance(X[0][0], str):
-            all_symbols = set(chain.from_iterable(X))
+            all_symbols = set(chain(*X))
         elif isinstance(X[0][0], tuple):
             x_ = [chain.from_iterable(x) for x in X]
-            all_symbols = set(chain.from_iterable(x_))
+            all_symbols = set(chain(*x_))
         else:
             raise ValueError("Couldn't recognize type of data passed.")
 
