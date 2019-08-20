@@ -49,7 +49,7 @@ class BaseTransformer(object):
         if isinstance(X, pd.Series):
             return X
         elif isinstance(X, pd.DataFrame):
-            return X[self.field]
+            return X[self.field].values
         elif isinstance(X[0], dict):
             if self.field is None:
                 raise ValueError("Your field was set to None, but you passed a"
