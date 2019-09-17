@@ -191,3 +191,17 @@ class OneHotLinearTransformer(LinearTransformer):
                 continue
 
         return v.ravel()
+
+    def inverse_transform(self, x):
+        """Transform an array back to a word representation."""
+        if np.ndim(x) == 1:
+            # Add extra dimension.
+            x = x[None, :]
+        # Change into slots
+        idx2feat = {v[0]: k for k, v in self.features.items()}
+        x = x.reshape((len(x), self.max_word_length, -1)).argmax(-1)
+
+        result = []
+        for x_ in x:
+            result.append("".join([idx2feat[x] for x in x_]))
+        return result
