@@ -47,7 +47,7 @@ class BaseTransformer(object):
     def _unpack(self, X):
         """Unpack the input data."""
         if isinstance(X, pd.Series):
-            return X
+            return X.values
         elif isinstance(X, pd.DataFrame):
             if self.field is None:
                 raise ValueError("Your field was set to None, but you passed"
