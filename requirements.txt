@@ -1,6 +1,6 @@
-ipapy==0.0.8.0
-numpy==1.12.1
-pandas==0.20.3
-nltk==3.2.4
-setuptools==39.0.1
-reach==2.3.0
+pandas>=0.24.1
+nltk>=3.4.4
+setuptools>=39.0.1
+ipapy>=0.0.8.0
+numpy>=1.12.1
+reach>=3.0.0
