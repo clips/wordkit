@@ -163,16 +163,16 @@ def _celex(path,
 def celex_english(path,
                   fields=("orthography", "syllables", "frequency"),
                   lemmas=False):
-    return _celex(path, fields, lemmas, "english")
+    return _celex(path, fields, lemmas, "eng")
 
 
 def celex_dutch(path,
                 fields=("orthography", "syllables", "frequency"),
                 lemmas=False):
-    return _celex(path, fields, lemmas, "dutch")
+    return _celex(path, fields, lemmas, "nld")
 
 
 def celex_german(path,
                  fields=("orthography", "syllables", "frequency"),
                  lemmas=False):
-    return _celex(path, fields, lemmas, "german")
+    return _celex(path, fields, lemmas, "deu")
