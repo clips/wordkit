@@ -2,7 +2,7 @@
 from ..base import reader
 
 
-PROJECT2SEP = {"blp": "\t", "dlp2": "\t"}
+PROJECT2SEP = {"blp": "\t", "dlp2": "\t", "dlp1": "\t"}
 PROJECT2FIELD = {"dlp1": {"orthography": "spelling"},
                  "dlp2": {"orthography": "spelling", "rt": "rtC.mean"},
                  "blp": {"orthography": "spelling"},
@@ -47,7 +47,8 @@ def dlp1(path, fields):
     return reader(path,
                   fields,
                   PROJECT2FIELD["dlp1"],
-                  language="nld")
+                  language="nld",
+                  sep=PROJECT2SEP["dlp1"])
 
 
 def dlp2(path, fields):

@@ -25,7 +25,7 @@ def subtlex(path,
     """Initialize the subtlex reader."""
     if language is None:
         raise ValueError("Please pass a language")
-    if language == "chi":
+    if language == "zh":
         skiprows = 2
     else:
         skiprows = 0
@@ -50,12 +50,7 @@ def subtlexus(path,
 
 def subtlexnl(path,
               fields=("orthography", "frequency")):
-    return subtlex(path, fields, "eng-us")
-
-
-def subtlexde(path,
-              fields=("orthography", "frequency")):
-    return subtlex(path, fields, "ger")
+    return subtlex(path, fields, "nld")
 
 
 def subtlexzh(path,

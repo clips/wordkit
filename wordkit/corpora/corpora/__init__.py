@@ -1,7 +1,7 @@
 """Import the various corpora."""
 from .celex import celex_german, celex_english, celex_dutch
 from .cmudict import cmu
-from .subtlex import subtlexde, subtlexnl, subtlexuk, subtlexus, subtlexzh
+from .subtlex import subtlexnl, subtlexuk, subtlexus, subtlexzh
 from .lexique import lexique
 from .bpal import bpal
 from .wordnet import wordnet
