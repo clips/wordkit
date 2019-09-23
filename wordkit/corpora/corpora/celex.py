@@ -11,13 +11,6 @@ from functools import partial
 remove_double = re.compile(r"ː+")
 
 
-PROJECT2LANGUAGE = {"epl.cd": "eng-uk",
-                    "dpl.cd": "nld",
-                    "gpl.cd": "deu",
-                    "epw.cd": "eng-uk",
-                    "dpw.cd": "nld",
-                    "gpw.cd": "deu"}
-
 PROJECT2FIELD = {("eng", False): {'orthography': 1,
                                   'phonology': 8,
                                   'frequency': 2,
