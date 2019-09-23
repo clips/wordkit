@@ -1,29 +1,18 @@
 """Improve the CELEX frequency norms."""
-import numpy as np
+import pandas as pd
 
-from wordkit.corpora import celex, subtlex
+from wordkit.corpora import celex_english, subtlexuk
 
 
 if __name__ == "__main__":
 
     # In this tutorial we merge the celex and subtlex corpora.
     # This allows us to update the out-dated frequencies from celex.
-    c = celex("path_to_celex", fields=("orthography", "phonology"))
-    s = subtlex("path_to_subtlex", fields=("orthography", "frequency"))
+    c = celex_english("path_to_celex", fields=("orthography", "phonology"))
+    s = subtlexuk("path_to_subtlex", fields=("orthography", "frequency"))
 
-    # We concatenate both corpora
-    merged = (c + s)
-
-    # And then aggregate the merged corpus by orthography
-    # The first argument is the set by which to aggregate.
-    # This can be a tuple or a single field name.
-    # The second argument specifies which columns are merged.
-    # The third argument specifies which columns are kept.
-    # The fourth argument specifies how to merge the merged columns.
-    merged = merged.aggregate("orthography",
-                              "frequency",
-                              "phonology",
-                              np.sum).filter_nan(("phonology", "frequency"))
+    # Merge the corpora using pandas
+    merged = pd.merge(c, s)
 
     # The first 10 items
     print(merged[:10])
