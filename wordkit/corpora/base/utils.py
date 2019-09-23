@@ -1,6 +1,5 @@
 import numpy as np
 import re
-import hashlib
 
 diacritics = {'ː',
               '̤',
@@ -79,15 +78,3 @@ def segment_phonology(phonemes, items=diacritics, to_keep=diacritics):
             idx += 1
 
     return tuple(["".join(x) for x in phonemes if x])
-
-
-def _calc_hash(fname):
-    """Calculate the hash of a file."""
-    hasher = hashlib.md5()
-    with open(fname, 'rb') as f:
-        buf = f.read(65536)
-        while len(buf):
-            while len(buf) > 0:
-                hasher.update(buf)
-                buf = f.read(65536)
-    return hasher.hexdigest()
