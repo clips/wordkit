@@ -4,7 +4,6 @@ import csv
 import pandas as pd
 
 from ..base import reader, segment_phonology
-from ..base.utils import _calc_hash
 from itertools import chain
 from functools import partial
 
@@ -19,44 +18,37 @@ PROJECT2LANGUAGE = {"epl.cd": "eng-uk",
                     "dpw.cd": "nld",
                     "gpw.cd": "deu"}
 
-HASHES = {'094d5bf93446fd4c31cb145af7f8bdf4': 'gpw.cd',
-          '1f035f9e7fd19955c0f93e5e17f12126': 'epw.cd',
-          '564782c12374346d62b6672b8f1b1002': 'epl.cd',
-          '5cb4c4dd8a3651f3993b857d1c1b8d12': 'dpl.cd',
-          '7e289712b00184c1e0d30dbb55a5a5fd': 'gpl.cd',
-          'f7a3ad8feb80e58177fcd470ea27065d': 'dpw.cd'}
+PROJECT2FIELD = {("eng", False): {'orthography': 1,
+                                  'phonology': 8,
+                                  'frequency': 2,
+                                  'syllables': 8},
+                 ("nld", False): {'orthography': 1,
+                                  'phonology': 6,
+                                  'frequency': 2,
+                                  'syllables': 6},
+                 ("deu", False): {'orthography': 1,
+                                  'phonology': 5,
+                                  'frequency': 2,
+                                  'syllables': 5},
+                 ("eng", True): {'orthography': 1,
+                                 'phonology': 7,
+                                 'frequency': 2,
+                                 'syllables': 7},
+                 ("nld", True): {'orthography': 1,
+                                 'phonology': 5,
+                                 'frequency': 2,
+                                 'syllables': 5},
+                 ("deu", True): {'orthography': 1,
+                                 'phonology': 4,
+                                 'frequency': 2,
+                                 'syllables': 4}}
 
-PROJECT2FIELD = {'epw.cd': {'orthography': 1,
-                            'phonology': 8,
-                            'frequency': 2,
-                            'syllables': 8},
-                 'dpw.cd': {'orthography': 1,
-                            'phonology': 6,
-                            'frequency': 2,
-                            'syllables': 6},
-                 'gpw.cd': {'orthography': 1,
-                            'phonology': 5,
-                            'frequency': 2,
-                            'syllables': 5},
-                 'epl.cd': {'orthography': 1,
-                            'phonology': 7,
-                            'frequency': 2,
-                            'syllables': 7},
-                 'dpl.cd': {'orthography': 1,
-                            'phonology': 5,
-                            'frequency': 2,
-                            'syllables': 5},
-                 'gpl.cd': {'orthography': 1,
-                            'phonology': 4,
-                            'frequency': 2,
-                            'syllables': 4}}
-
-lengths = {"dpl.cd": (11, 0),
-           "epl.cd": (4, 4),
-           "gpl.cd": (11, 0),
-           "dpw.cd": (7, 0),
-           "epw.cd": (5, 4),
-           "gpw.cd": (7, 0)}
+lengths = {("nld", True): (11, 0),
+           ("eng", True): (4, 4),
+           ("deu", True): (11, 0),
+           ("nld", False): (7, 0),
+           ("eng", False): (5, 4),
+           ("deu", False): (7, 0)}
 
 CELEX_2IPA = {"O~": "ɒ̃",
               "A~": "ɒ",
@@ -155,36 +147,39 @@ def _celex_opener(path, word_length, struct_length=0, **kwargs):
     return pd.DataFrame(data)
 
 
-def celex(path,
-          fields=("orthography", "syllables", "frequency"),
-          language=None,
-          lemmas=None,
-          project=None):
-    """Extract structured information from CELEX."""
-    if project is None:
-        hash = _calc_hash(path)
-        project = HASHES[hash]
-    else:
-        if project not in PROJECT2FIELD:
-            raise ValueError("Your project is not correct. Allowed "
-                             f"projects are {set(PROJECT2FIELD.keys())}")
-    if language is None:
-        try:
-            language = PROJECT2LANGUAGE[project]
-        except KeyError:
-            language = None
-
-    w_length, s_length = lengths[project]
+def _celex(path,
+           fields,
+           lemmas,
+           language):
+    w_length, s_length = lengths[(language, lemmas)]
     _opener = partial(_celex_opener,
                       word_length=w_length,
                       struct_length=s_length)
 
     return reader(path,
                   fields,
-                  PROJECT2FIELD[project],
+                  PROJECT2FIELD[(language, lemmas)],
                   language,
                   delimiter="\\",
                   quoting=csv.QUOTE_NONE,
                   opener=_opener,
                   preprocessors={"phonology": phon_func,
                                  "syllables": syll_func})
+
+
+def celex_english(path,
+                  fields=("orthography", "syllables", "frequency"),
+                  lemmas=False):
+    return _celex(path, fields, lemmas, "english")
+
+
+def celex_dutch(path,
+                fields=("orthography", "syllables", "frequency"),
+                lemmas=False):
+    return _celex(path, fields, lemmas, "dutch")
+
+
+def celex_german(path,
+                 fields=("orthography", "syllables", "frequency"),
+                 lemmas=False):
+    return _celex(path, fields, lemmas, "german")
