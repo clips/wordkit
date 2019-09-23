@@ -80,7 +80,7 @@ This example shows one big `wordkit` pipeline.
 ```python
 import pandas as pd
 
-from wordkit.corpora import celex
+from wordkit.corpora import celex_english, celex_dutch
 from wordkit.features import LinearTransformer, WickelTransformer, fourteen
 from string import ascii_lowercase
 
@@ -88,12 +88,11 @@ from string import ascii_lowercase
 fields = ('orthography', 'frequency', 'phonology', 'syllables')
 
 # Link to epl.cd
-english = celex("epl.cd",
-                fields=fields)
+english = celex_english("epw.cd",
+                        fields=fields)
 # Link to dpl.cd
-dutch = celex("dpl.cd",
-              fields=fields,
-              language='nld')
+dutch = celex_dutch("dpw.cd",
+                    fields=fields)
 
 # Merge both corpora.
 words = pd.concat([english, dutch], sort=False).reindex()
@@ -104,21 +103,25 @@ words = words[[len(x) == 1 for x in words["syllables"]]]
 words = words[[not set(x) - set(ascii_lowercase)
               for x in words["orthography"]]]
 
-# words[0] =>
-# {'frequency': 413887.0,
-# 'orthography': 'a',
-# 'phonology': ('e', 'ɪ'),
-# 'syllables': (('e', 'ɪ'),)}
+# words.iloc[0] =>
+# orthography                      a
+# phonology                   (e, ɪ)
+# syllables                ((e, ɪ),)
+# frequency                   844672
+# log_frequency              5.92669
+# frequency_per_million        21363
+# zipf_score                 4.32966
+# length                           1
 
 # You can also query specific words
 wind = words[words['orthography'] == "wind"]
 
 # This gives
 # wind =>
-#              phonology orthography           syllables  frequency  log_frequency  frequency_per_million  zipf_score  length
-# 61272  (w, a, ɪ, n, d)        wind  ((w, a, ɪ, n, d),)        299       2.475671               7.654269    0.883904       4
-# 62511     (w, ɪ, n, d)        wind     ((w, ɪ, n, d),)       2171       3.336660              55.576652    1.744892       4
-# 96273     (w, ɪ, n, t)        wind     ((w, ɪ, n, t),)       4703       3.672375             116.504660    2.066343       4
+#        orthography        phonology  ... zipf_score  length
+# 146523        wind  (w, a, ɪ, n, d)  ...   0.015757       4
+# 146524        wind     (w, ɪ, n, d)  ...   1.683096       4
+# 313527        wind     (w, ɪ, n, t)  ...   2.042675       4
 
 # Now, let's transform into features
 # Orthography is a linear transformer with the fourteen segment feature set.
@@ -130,8 +133,8 @@ X_o = o.fit_transform(words)
 X_p = p.fit_transform(words)
 
 # Get the feature vector length for each featurizer
-o.vec_len # 112
-p.vec_len # 4923
+o.vec_len # 126
+p.vec_len # 5415
 ```
 
 ## Corpora
