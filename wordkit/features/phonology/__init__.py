@@ -1,8 +1,8 @@
 """Phonology."""
-from ..orthography.ngram import OpenNGramTransformer
-from ..orthography.ngram import ConstrainedOpenNGramTransformer
-from ..orthography.ngram import WeightedOpenBigramTransformer
-from ..orthography.wickel import WickelTransformer
+from ..orthography.openngram import (OpenNGramTransformer,
+                                     ConstrainedOpenNGramTransformer,
+                                     WeightedOpenBigramTransformer)
+from ..orthography.ngram import NGramTransformer
 from .cv import CVTransformer
 from .onc import ONCTransformer
 from .feature_extraction import PredefinedFeatureExtractor
@@ -21,8 +21,7 @@ __all__ = ["CVTransformer",
            "OpenNGramTransformer",
            "ConstrainedOpenNGramTransformer",
            "WeightedOpenBigramTransformer",
-           "WickelTransformer",
-           "WickelFeatureTransformer",
+           "NGramTransformer",
            "dislex_features",
            "binary_features",
            "patpho_bin",
