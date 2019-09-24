@@ -62,4 +62,7 @@ class PlateLinearTransformer(PlateTransformer, LinearMixIn):
 
 
 class PlateOpenNGramTransformer(PlateTransformer, OpenNGramMixIn):
-    pass
+
+    def __init__(self, vec_size, n):
+        super().__init__(vec_size)
+        self.n = n

@@ -56,4 +56,7 @@ class KanervaLinearTransformer(KanervaTransformer, LinearMixIn):
 
 
 class KanervaOpenNGramTransformer(KanervaTransformer, OpenNGramMixIn):
-    pass
+
+    def __init__(self, vec_size, n, density=1.0):
+        super().__init__(vec_size, density)
+        self.n = n
