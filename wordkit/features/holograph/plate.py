@@ -3,7 +3,7 @@ import numpy as np
 
 from .base import (HolographicTransformer,
                    OpenNGramMixIn,
-                   NGramMixIn,
+                   WickelgraphMixIn,
                    LinearMixIn)
 
 
@@ -50,7 +50,7 @@ class PlateTransformer(HolographicTransformer):
         return words
 
 
-class PlateNGramTransformer(PlateTransformer, NGramMixIn):
+class PlateWickelTransformer(PlateTransformer, WickelgraphMixIn):
 
     def __init__(self, vec_size, n):
         super().__init__(vec_size)
