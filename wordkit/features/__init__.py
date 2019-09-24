@@ -21,6 +21,15 @@ from .phonology import (CVTransformer,
                         patpho_real,
                         plunkett_phonemes,
                         put_on_grid)
+from .semantics import (EmbeddingTransformer,
+                        HypernymSemanticsTransformer,
+                        OneHotSemanticsTransformer)
+from .holography import (KanervaNGramTransformer,
+                         KanervaLinearTransformer,
+                         KanervaOpenNGramTransformer,
+                         PlateNGramTransformer,
+                         PlateLinearTransformer,
+                         PlateOpenNGramTransformer)
 
 __all__ = ["OneHotCharacterExtractor",
            "LinearTransformer",
@@ -43,4 +52,13 @@ __all__ = ["OneHotCharacterExtractor",
            "patpho_bin",
            "patpho_real",
            "plunkett_phonemes",
-           "put_on_grid"]
+           "put_on_grid",
+           "EmbeddingTransformer",
+           "HypernymSemanticsTransformer",
+           "OneHotSemanticsTransformer",
+           "KanervaNGramTransformer",
+           "KanervaLinearTransformer",
+           "KanervaOpenNGramTransformer",
+           "PlateNGramTransformer",
+           "PlateLinearTransformer",
+           "PlateOpenNGramTransformer"]
