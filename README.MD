@@ -168,7 +168,7 @@ Languages:  Dutch, German, English
 ```
 
 **WARNING:** the Celex frequency norms are no longer thought to be correct. Please use the `SUBTLEX` frequencies instead.
-You can use the Celex corpus with `SUBTLEX` frequency norms by using a [`merge`](wordkit/corpora#merge).   
+You can use the Celex corpus with `SUBTLEX` frequency norms by using a pandas merge.
 If you use `CELEX` frequency norms at a psycholinguistic conference, you _will_ get yelled at.
 
 #### CMUDICT
@@ -260,7 +260,7 @@ The code for replicating the experiments in the `wordkit` paper can be found [he
 
 - ipapy
 - numpy
-- pandas (for some of the corpus readers)
+- pandas
 - reach (for the semantics)
 - nltk (for wordnet-related semantics)
 
