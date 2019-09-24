@@ -45,7 +45,7 @@ class HolographicTransformer(BaseTransformer):
         return vec
 
 
-class WickelgraphMixIn(object):
+class NGramMixIn(object):
 
     def hierarchify(self, x):
         return [tuple(x) for x in WickelTransformer._ngrams(x, self.n, 0)]

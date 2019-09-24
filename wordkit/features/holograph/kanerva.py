@@ -3,7 +3,7 @@ import numpy as np
 
 from .base import (HolographicTransformer,
                    OpenNGramMixIn,
-                   WickelgraphMixIn,
+                   NGramMixIn,
                    LinearMixIn)
 
 
@@ -44,7 +44,7 @@ class KanervaTransformer(HolographicTransformer):
         return a + b
 
 
-class KanervaWickelTransformer(KanervaTransformer, WickelgraphMixIn):
+class KanervaNGramTransformer(KanervaTransformer, NGramMixIn):
 
     def __init__(self, vec_size, n, density=1.0):
         super().__init__(vec_size, density)
