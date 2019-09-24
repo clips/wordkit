@@ -9,8 +9,8 @@ from .base import (HolographicTransformer,
 
 class KanervaTransformer(HolographicTransformer):
 
-    def __init__(self, vec_size, density=1.0):
-        super().__init__(vec_size)
+    def __init__(self, vec_size, density=1.0, field=None):
+        super().__init__(vec_size, field)
         assert .0 < density <= 1.0
         assert (vec_size % 2) == 0
         density = int(vec_size * density)
