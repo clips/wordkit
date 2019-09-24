@@ -2,10 +2,10 @@
 from .feature_extraction import (OneHotCharacterExtractor,
                                  IndexCharacterExtractor)
 from .linear import LinearTransformer, OneHotLinearTransformer
-from .ngram import OpenNGramTransformer
-from .ngram import ConstrainedOpenNGramTransformer
-from .ngram import WeightedOpenBigramTransformer
-from .wickel import WickelTransformer
+from .openngram import (OpenNGramTransformer,
+                        ConstrainedOpenNGramTransformer,
+                        WeightedOpenBigramTransformer)
+from .ngram import NGramTransformer
 from .features import fourteen, sixteen, dislex
 
 __all__ = ["OneHotCharacterExtractor",
@@ -13,8 +13,7 @@ __all__ = ["OneHotCharacterExtractor",
            "OpenNGramTransformer",
            "ConstrainedOpenNGramTransformer",
            "WeightedOpenBigramTransformer",
-           "WickelTransformer",
-           "WickelFeatureTransformer",
+           "NGramTransformer",
            "OneHotLinearTransformer",
            "IndexCharacterExtractor",
            "fourteen",
