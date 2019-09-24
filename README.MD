@@ -11,9 +11,9 @@ The package contains a variety of functions that allow you to:
 * Extract words from lexical databases in a structured format.
 * Normalize phonological strings across languages and databases.
 * Featurize words for usage in computational psycholinguistic models using the following features:
-    * Open Bigrams
-    * Wickelgraphs
-    * Wickelfeatures
+    * Open ngrams
+    * Character ngrams
+    * Holographic features
     * Consonant Vowel mapping (patpho)
     * Onset Nucleus Coda mapping
 * Find synonyms, homographs, and homophones across languages.
@@ -81,7 +81,7 @@ This example shows one big `wordkit` pipeline.
 import pandas as pd
 
 from wordkit.corpora import celex_english, celex_dutch
-from wordkit.features import LinearTransformer, WickelTransformer, fourteen
+from wordkit.features import LinearTransformer, NGramTransformer, fourteen
 from string import ascii_lowercase
 
 # The fields we want to extract from our corpora.
@@ -126,8 +126,8 @@ wind = words[words['orthography'] == "wind"]
 # Now, let's transform into features
 # Orthography is a linear transformer with the fourteen segment feature set.
 o = LinearTransformer(fourteen, field='orthography')
-# For phonology we use Wickelphones.
-p = WickelTransformer(n=3, field='phonology')
+# For phonology we use ngrams.
+p = NGramTransformer(n=3, field='phonology')
 
 X_o = o.fit_transform(words)
 X_p = p.fit_transform(words)

@@ -2,7 +2,7 @@
 import numpy as np
 
 from ..base import BaseTransformer
-from ..orthography import WickelTransformer
+from ..orthography import NGramTransformer
 from itertools import chain, combinations
 
 
@@ -48,7 +48,7 @@ class HolographicTransformer(BaseTransformer):
 class NGramMixIn(object):
 
     def hierarchify(self, x):
-        return [tuple(x) for x in WickelTransformer._ngrams(x, self.n, 0)]
+        return [tuple(x) for x in NGramTransformer._ngrams(x, self.n, 0)]
 
 
 class OpenNGramMixIn(object):

@@ -50,7 +50,7 @@ class PlateTransformer(HolographicTransformer):
         return words
 
 
-class PlateWickelTransformer(PlateTransformer, NGramMixIn):
+class PlateNGramTransformer(PlateTransformer, NGramMixIn):
 
     def __init__(self, vec_size, n):
         super().__init__(vec_size)

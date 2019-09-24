@@ -9,7 +9,7 @@ class NGramTransformer(BaseTransformer):
     """
     A transformer for Wickelgraphs or Wickelphones.
 
-    Wickelgraphs are more commonly known under the name of character ngrams.
+    Character ngrams are also known under the name of wickelphones or -graphs.
 
     Wickelgraphs assume that words are represented as unordered ngrams of
     characters. This introduces some idea of context into the letter
@@ -53,7 +53,7 @@ class NGramTransformer(BaseTransformer):
 
         Returns
         -------
-        self : WickelTransformer
+        self : NGramTransformer
             The transformer itself.
 
         """

@@ -144,22 +144,22 @@ w = WeightedOpenBigramTransformer(weights=(1., .8, .2))
 X = w.fit_transform(words)
 ```
 
-### WickelTransformer
+### NGramTransformer
 
-The `WickelTransformer` turns words into character ngrams.
+The `NGramTransformer` turns words into character ngrams.
 Every word is padded with `n - 1` dummy characters ("#" by default).
 
 Padding can be turned off by setting `use_padding` to False, but this removes the option of featurizing words which are shorter than `n` characters.
 
 ```python
-from wordkit.features import WickelTransformer
+from wordkit.features import NGramTransformer
 
 words = ["dog", "fog", "hotdog", "colddog"]
 
-w = WickelTransformer(n=3)
+w = NGramTransformer(n=3)
 X = w.fit_transform(words)
 
-w_2 = WickelTransformer(n=3, use_padding=False)
+w_2 = NGramTransformer(n=3, use_padding=False)
 X_2 = w_2.fit_transform(words)
 ```
 
