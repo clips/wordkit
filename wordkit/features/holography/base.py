@@ -48,16 +48,30 @@ class HolographicTransformer(BaseTransformer):
 class NGramMixIn(object):
 
     def hierarchify(self, x):
-        return [tuple(x) for x in NGramTransformer._ngrams(x, self.n, 0)]
+        return [map(tuple, NGramTransformer._ngrams(x, self.n, 0))]
 
 
 class OpenNGramMixIn(object):
 
     def hierarchify(self, x):
-        return [tuple(x) for x in combinations(x, self.n)]
+        return [map(tuple, combinations(x, self.n))]
 
 
 class LinearMixIn(object):
 
     def hierarchify(self, x):
         return [tuple(x)]
+
+
+class ConstrainedOpenNGramMixIn(object):
+
+    def hierarchify(self, x):
+        t = []
+        for idx in range(len(x)):
+            subword = x[idx:idx+(self.window+2)]
+            focus_letter = x[idx]
+            for c in combinations(subword, self.n):
+                if c[0] != (focus_letter):
+                    continue
+                t.append(tuple(c))
+        return t

@@ -4,7 +4,8 @@ import numpy as np
 from .base import (HolographicTransformer,
                    OpenNGramMixIn,
                    NGramMixIn,
-                   LinearMixIn)
+                   LinearMixIn,
+                   ConstrainedOpenNGramMixIn)
 
 
 class KanervaTransformer(HolographicTransformer):
@@ -60,3 +61,12 @@ class KanervaOpenNGramTransformer(KanervaTransformer, OpenNGramMixIn):
     def __init__(self, vec_size, n, density=1.0):
         super().__init__(vec_size, density)
         self.n = n
+
+
+class KanervaConstrainedOpenNGramTransformer(KanervaTransformer,
+                                             ConstrainedOpenNGramMixIn):
+
+    def __init__(self, vec_size, n, window, density=1.0):
+        super().__init__(vec_size, density)
+        self.n = n
+        self.window = window

@@ -4,7 +4,8 @@ import numpy as np
 from .base import (HolographicTransformer,
                    OpenNGramMixIn,
                    NGramMixIn,
-                   LinearMixIn)
+                   LinearMixIn,
+                   ConstrainedOpenNGramMixIn)
 
 
 class PlateTransformer(HolographicTransformer):
@@ -66,3 +67,12 @@ class PlateOpenNGramTransformer(PlateTransformer, OpenNGramMixIn):
     def __init__(self, vec_size, n):
         super().__init__(vec_size)
         self.n = n
+
+
+class PlateConstrainedOpenNGramTransformer(PlateTransformer,
+                                           ConstrainedOpenNGramMixIn):
+
+    def __init__(self, vec_size, n, window):
+        super().__init__(vec_size)
+        self.n = n
+        self.window = window
