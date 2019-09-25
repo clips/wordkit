@@ -1,10 +1,12 @@
 """Holographic features."""
 from .kanerva import (KanervaLinearTransformer,
                       KanervaNGramTransformer,
-                      KanervaOpenNGramTransformer)
+                      KanervaOpenNGramTransformer,
+                      KanervaConstrainedOpenNGramTransformer)
 from .plate import (PlateLinearTransformer,
                     PlateNGramTransformer,
-                    PlateOpenNGramTransformer)
+                    PlateOpenNGramTransformer,
+                    PlateConstrainedOpenNGramTransformer)
 
 
 __all__ = ["KanervaLinearTransformer",
@@ -12,4 +14,6 @@ __all__ = ["KanervaLinearTransformer",
            "KanervaOpenNGramTransformer",
            "PlateLinearTransformer",
            "PlateNGramTransformer",
-           "PlateOpenNGramTransformer"]
+           "PlateOpenNGramTransformer",
+           "KanervaConstrainedOpenNGramTransformer",
+           "PlateConstrainedOpenNGramTransformer"]
