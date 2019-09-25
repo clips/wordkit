@@ -47,9 +47,10 @@ class KanervaTransformer(HolographicTransformer):
 
 class KanervaNGramTransformer(KanervaTransformer, NGramMixIn):
 
-    def __init__(self, vec_size, n, density=1.0):
-        super().__init__(vec_size, density)
+    def __init__(self, vec_size, n, use_padding=True, density=1.0, field=None):
+        super().__init__(vec_size, density, field)
         self.n = n
+        self.use_padding = use_padding
 
 
 class KanervaLinearTransformer(KanervaTransformer, LinearMixIn):
@@ -58,15 +59,22 @@ class KanervaLinearTransformer(KanervaTransformer, LinearMixIn):
 
 class KanervaOpenNGramTransformer(KanervaTransformer, OpenNGramMixIn):
 
-    def __init__(self, vec_size, n, density=1.0):
-        super().__init__(vec_size, density)
+    def __init__(self, vec_size, n, density=1.0, field=None):
+        super().__init__(vec_size, density, field)
         self.n = n
 
 
 class KanervaConstrainedOpenNGramTransformer(KanervaTransformer,
                                              ConstrainedOpenNGramMixIn):
 
-    def __init__(self, vec_size, n, window, density=1.0):
-        super().__init__(vec_size, density)
+    def __init__(self,
+                 vec_size,
+                 n,
+                 window,
+                 use_padding=True,
+                 density=1.0,
+                 field=None):
+        super().__init__(vec_size, density, field)
         self.n = n
         self.window = window
+        self.use_padding = use_padding

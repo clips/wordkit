@@ -53,9 +53,10 @@ class PlateTransformer(HolographicTransformer):
 
 class PlateNGramTransformer(PlateTransformer, NGramMixIn):
 
-    def __init__(self, vec_size, n):
-        super().__init__(vec_size)
+    def __init__(self, vec_size, n, use_padding=True, field=None):
+        super().__init__(vec_size, field)
         self.n = n
+        self.use_padding = use_padding
 
 
 class PlateLinearTransformer(PlateTransformer, LinearMixIn):
@@ -64,15 +65,16 @@ class PlateLinearTransformer(PlateTransformer, LinearMixIn):
 
 class PlateOpenNGramTransformer(PlateTransformer, OpenNGramMixIn):
 
-    def __init__(self, vec_size, n):
-        super().__init__(vec_size)
+    def __init__(self, vec_size, n, field=None):
+        super().__init__(vec_size, field)
         self.n = n
 
 
 class PlateConstrainedOpenNGramTransformer(PlateTransformer,
                                            ConstrainedOpenNGramMixIn):
 
-    def __init__(self, vec_size, n, window):
-        super().__init__(vec_size)
+    def __init__(self, vec_size, n, window, use_padding=True, field=None):
+        super().__init__(vec_size, field)
         self.n = n
         self.window = window
+        self.use_padding = use_padding
