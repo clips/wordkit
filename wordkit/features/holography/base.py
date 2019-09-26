@@ -37,9 +37,12 @@ class HolographicTransformer(BaseTransformer):
         x = self.hierarchify(x)
         vec = np.zeros(self.vec_len)
         for item in x:
-            z = np.zeros(self.vec_len)
+            z = None
             for idx, char in enumerate(item):
-                z = self.add(z, self.compose(char, idx))
+                if z is None:
+                    z = self.compose(char, idx)
+                else:
+                    z = self.add(z, self.compose(char, idx))
             vec = self.add(vec, z)
 
         return vec
