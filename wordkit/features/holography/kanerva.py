@@ -44,6 +44,24 @@ class KanervaTransformer(HolographicTransformer):
     def add(self, a, b):
         return a + b
 
+    def inverse_transform(self, X, threshold=.25):
+        if np.ndim(X) == 1:
+            X = X[None, :]
+        words = []
+        letters, vecs = zip(*self.features.items())
+        vecs = np.stack(vecs)
+        vecs /= np.linalg.norm(vecs, axis=1)[:, None]
+        for x in X:
+            w = []
+            for inv_pos in self.inv:
+                dec = x[inv_pos]
+                dec /= np.linalg.norm(dec)
+                sim = dec.dot(vecs.T)
+                if sim.max() > threshold:
+                    w.append(letters[sim.argmax()])
+            words.append("".join(w))
+        return words
+
 
 class KanervaNGramTransformer(KanervaTransformer, NGramMixIn):
 
