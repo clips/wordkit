@@ -176,4 +176,4 @@ class WeightedOpenBigramTransformer(ConstrainedOpenNGramTransformer):
         for gram in grams:
             combs = combinations(zip(gram_index, gram), self.n)
             for (a, l1), (b, l2) in combs:
-                yield self.weights[abs(a-b)-1], (l1, l2)
+                yield self.weights[abs(a-b)-1], "".join(l1, l2)

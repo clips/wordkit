@@ -108,8 +108,8 @@ class NGramTransformer(BaseTransformer):
     def _ngrams(word, n, num_padding, strict=True):
         """Lazily get all ngrams in a string."""
         if num_padding:
-            padding = ("#",) * num_padding
-            word = tuple(chain(*[padding, word, padding]))
+            padding = "#" * num_padding
+            word = f"{padding}{word}{padding}"
         if len(word) < n:
             if strict:
                 raise ValueError("You tried to featurize words shorter than "
