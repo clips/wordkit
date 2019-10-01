@@ -1,7 +1,7 @@
 """Transform orthography."""
 import numpy as np
 from .ngram import NGramTransformer
-from itertools import combinations
+from itertools import combinations, chain
 
 
 class OpenNGramTransformer(NGramTransformer):
@@ -110,7 +110,7 @@ class ConstrainedOpenNGramTransformer(NGramTransformer):
     def _decompose(self, word):
         """Get all unordered n-combinations of characters in a word."""
         if self.use_padding:
-            word = "#{}#".format(word)
+            word = tuple(chain(*(("#",), word, ("#",))))
         for idx in range(len(word)):
             subword = word[idx:idx+(self.window+2)]
             focus_letter = word[idx]
@@ -176,4 +176,4 @@ class WeightedOpenBigramTransformer(ConstrainedOpenNGramTransformer):
         for gram in grams:
             combs = combinations(zip(gram_index, gram), self.n)
             for (a, l1), (b, l2) in combs:
-                yield self.weights[abs(a-b)-1], "".join(l1, l2)
+                yield self.weights[abs(a-b)-1], (l1, l2)
