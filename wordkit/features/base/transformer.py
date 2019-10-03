@@ -75,6 +75,20 @@ class BaseTransformer(object):
         """Vectorize a word."""
         raise NotImplementedError("Base class method.")
 
+    @property
+    def _dtype(self):
+        """Dynamically determine the dtype of the features."""
+        try:
+            v = next(iter(self.features.values()))
+            if isinstance(v, np.ndarray):
+                return v.dtype
+            elif isinstance(v, (tuple, list, float)):
+                return np.dtype(type(v[0]))
+            else:
+                return np.dtype(type(v))
+        except AttributeError:
+            return np.float
+
     def transform(self, X, strict=True):
         """
         Transform a list of words.
@@ -97,10 +111,10 @@ class BaseTransformer(object):
             self._validate(X)
 
         if isinstance(self.vec_len, int):
-            total = np.zeros((len(X), self.vec_len))
+            total = np.zeros((len(X), self.vec_len), dtype=self._dtype)
         else:
             # Support for tensors.
-            total = np.zeros((len(X), *self.vec_len))
+            total = np.zeros((len(X), *self.vec_len), dtype=self._dtype)
 
         # Looks silly, but much faster than adding to a list and then
         # turning this into an array.

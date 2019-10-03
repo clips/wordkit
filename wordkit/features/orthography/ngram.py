@@ -41,6 +41,10 @@ class NGramTransformer(BaseTransformer):
         self.n = n
         self.use_padding = use_padding
 
+    @property
+    def _dtype(self):
+        return np.int
+
     def fit(self, X):
         """
         Fit the transformer by finding all grams in the input data.
