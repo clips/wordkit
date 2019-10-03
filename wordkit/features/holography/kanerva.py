@@ -27,36 +27,37 @@ class KanervaTransformer(HolographicTransformer):
             x[high] = 1
             x[low] = -1
 
-        assert np.all(vecs.sum(1) == 0)
-
         return vecs
 
     def generate_positions(self, size):
-        assert len(size) == 2
-        num, size = size
-        p = np.stack([np.random.permutation(size) for x in range(num)])
-        self.inv = np.stack([np.argsort(x) for x in p])
-        return p
+        return self.generate(size)
+
+    @staticmethod
+    def xor(item, idx):
+        return (((item * idx) == -1) * 2) - 1
 
     def compose(self, item, idx):
-        return self.features[item][self.positions[idx]]
+        item = self.features[item]
+        idx = self.positions[idx]
+        return self.xor(item, idx)
 
-    def add(self, a, b):
-        return a + b
+    def add(self, X):
+        return ((np.mean(X, 0) > 0) * 2) - 1
 
     def inverse_transform(self, X, threshold=.25):
         if np.ndim(X) == 1:
             X = X[None, :]
         words = []
         letters, vecs = zip(*self.features.items())
-        vecs = np.stack(vecs)
+        vecs = np.stack(vecs).astype(np.float32)
         vecs /= np.linalg.norm(vecs, axis=1)[:, None]
         for x in X:
             w = []
-            for inv_pos in self.inv:
-                dec = x[inv_pos]
+            for pos in self.positions.values():
+                dec = self.xor(x, pos).astype(np.float32)
                 dec /= np.linalg.norm(dec)
                 sim = dec.dot(vecs.T)
+                print(sim)
                 if sim.max() > threshold:
                     w.append(letters[sim.argmax()])
             words.append("".join(w))

@@ -25,8 +25,8 @@ class PlateTransformer(HolographicTransformer):
     def circular_convolution(x, y):
         return np.fft.ifft(np.fft.fft(x) * np.fft.fft(y)).real
 
-    def add(self, a, b):
-        return a + b
+    def add(self, X):
+        return np.sum(X, 0)
 
     @staticmethod
     def involution(x):
