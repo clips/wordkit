@@ -10,31 +10,26 @@ from .base import (HolographicTransformer,
 
 class KanervaTransformer(HolographicTransformer):
 
-    def __init__(self, vec_size, density=1.0, field=None):
+    def __init__(self, vec_size, field=None):
         super().__init__(vec_size, field)
-        assert .0 < density <= 1.0
         assert (vec_size % 2) == 0
-        density = int(vec_size * density)
-        density += density % 2
-        self.density = density
 
     def generate(self, size):
         assert len(size) == 2
         vecs = np.zeros(size)
         for x in vecs:
-            idx = np.random.permutation(len(x))[:self.density]
+            idx = np.random.permutation(len(x))
             high, low = idx.reshape(2, -1)
             x[high] = 1
-            x[low] = -1
 
-        return vecs
+        return vecs.astype(np.bool)
 
     def generate_positions(self, size):
         return self.generate(size)
 
     @staticmethod
     def xor(item, idx):
-        return (((item * idx) == -1) * 2) - 1
+        return item ^ idx
 
     def compose(self, item, idx):
         item = self.features[item]
@@ -42,9 +37,9 @@ class KanervaTransformer(HolographicTransformer):
         return self.xor(item, idx)
 
     def add(self, X):
-        return ((np.mean(X, 0) > 0) * 2) - 1
+        return np.mean(X, 0) > .5
 
-    def inverse_transform(self, X, threshold=.25):
+    def inverse_transform(self, X, threshold=.15):
         if np.ndim(X) == 1:
             X = X[None, :]
         words = []
@@ -57,7 +52,6 @@ class KanervaTransformer(HolographicTransformer):
                 dec = self.xor(x, pos).astype(np.float32)
                 dec /= np.linalg.norm(dec)
                 sim = dec.dot(vecs.T)
-                print(sim)
                 if sim.max() > threshold:
                     w.append(letters[sim.argmax()])
             words.append("".join(w))
