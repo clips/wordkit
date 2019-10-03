@@ -1,6 +1,4 @@
 """Holographic feature methods."""
-import numpy as np
-
 from ..base import BaseTransformer
 from ..orthography import NGramTransformer
 from itertools import chain, combinations
@@ -35,17 +33,11 @@ class HolographicTransformer(BaseTransformer):
     def vectorize(self, x):
         """Vectorize a hierarchical item."""
         x = self.hierarchify(x)
-        vec = np.zeros(self.vec_len)
+        vec = []
         for item in x:
-            z = None
             for idx, char in enumerate(item):
-                if z is None:
-                    z = self.compose(char, idx)
-                else:
-                    z = self.add(z, self.compose(char, idx))
-            vec = self.add(vec, z)
-
-        return vec
+                vec.append(self.compose(char, idx))
+        return self.add(vec)
 
 
 class NGramMixIn(object):
@@ -72,7 +64,7 @@ class ConstrainedOpenNGramMixIn(object):
     def hierarchify(self, x):
         t = []
         if self.use_padding:
-            x = "#{}#".format(x)
+            x = tuple(chain(*(("#",), x, ("#",))))
         for idx in range(len(x)):
             subword = x[idx:idx+(self.window+2)]
             focus_letter = x[idx]
