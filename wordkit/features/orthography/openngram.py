@@ -1,6 +1,8 @@
 """Transform orthography."""
+import numpy as np
+
 from .ngram import NGramTransformer
-from itertools import combinations
+from itertools import combinations, chain
 
 
 class OpenNGramTransformer(NGramTransformer):
@@ -44,7 +46,7 @@ class OpenNGramTransformer(NGramTransformer):
 
     def _ngrams(self, word):
         word = self._pad(word)
-        return combinations(word)
+        return combinations(word, self.n)
 
     def inverse_transform(self, X):
         """Not implemented."""
@@ -94,7 +96,7 @@ class ConstrainedOpenNGramTransformer(NGramTransformer):
         """Initialize the transformer."""
         if (window - n) <= -2:
             raise ValueError("Your window needs to be larger than your n - 1"
-                             ", it is now 2")
+                             f", it is now {window}")
         super().__init__(n, field)
         self.window = window
         self.use_padding = use_padding
@@ -102,12 +104,9 @@ class ConstrainedOpenNGramTransformer(NGramTransformer):
     def _ngrams(self, word):
         word = self._pad(word)
         for idx in range(len(word)):
-            subword = word[idx:idx+(self.window+2)]
-            focus_letter = word[idx]
-            for x in combinations(subword, self.n):
-                if x[0] != (focus_letter):
-                    continue
-                yield x
+            subword = word[idx:idx+(self.window+1)]
+            for x in combinations(subword[1:], self.n-1):
+                yield tuple(chain(*(subword[0], chain(*x))))
 
 
 class WeightedOpenBigramTransformer(ConstrainedOpenNGramTransformer):
@@ -158,9 +157,13 @@ class WeightedOpenBigramTransformer(ConstrainedOpenNGramTransformer):
     def _decompose(self, word):
         """Decompose a word into its consituent letters."""
         grams = self._ngrams(word)
-        gram_index = list(range(self.window+1))
+        w = []
+        for idx in range(len(word)):
+            w.extend(self.weights[:min(idx, self.window)][::-1])
+        w = w[::-1]
+        for g in zip(w, grams):
+            yield g
 
-        for gram in grams:
-            combs = combinations(zip(gram_index, gram), self.n)
-            for (a, l1), (b, l2) in combs:
-                yield self.weights[abs(a-b)-1], (l1, l2)
+    @property
+    def _dtype(self):
+        return np.float
