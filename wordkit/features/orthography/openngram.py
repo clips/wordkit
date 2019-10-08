@@ -1,7 +1,6 @@
 """Transform orthography."""
-import numpy as np
 from .ngram import NGramTransformer
-from itertools import combinations, chain
+from itertools import combinations
 
 
 class OpenNGramTransformer(NGramTransformer):
@@ -41,18 +40,11 @@ class OpenNGramTransformer(NGramTransformer):
 
     def __init__(self, n, field=None):
         """Initialize the transformer."""
-        super().__init__(n, field)
+        super().__init__(n, field, use_padding=False)
 
-    def _decompose(self, word):
-        """Get all unordered n-combinations of characters in a word."""
-        if len(word) < self.n:
-            raise ValueError("You tried to featurize words shorter than "
-                             "{} characters, please remove these before "
-                             "featurization".format(self.n))
-        combs = set(combinations(word, self.n))
-        if not combs:
-            combs = [word]
-        return zip(np.ones(len(combs)), combs)
+    def _ngrams(self, word):
+        word = self._pad(word)
+        return combinations(word)
 
     def inverse_transform(self, X):
         """Not implemented."""
@@ -107,17 +99,15 @@ class ConstrainedOpenNGramTransformer(NGramTransformer):
         self.window = window
         self.use_padding = use_padding
 
-    def _decompose(self, word):
-        """Get all unordered n-combinations of characters in a word."""
-        if self.use_padding:
-            word = tuple(chain(*(("#",), word, ("#",))))
+    def _ngrams(self, word):
+        word = self._pad(word)
         for idx in range(len(word)):
             subword = word[idx:idx+(self.window+2)]
             focus_letter = word[idx]
             for x in combinations(subword, self.n):
                 if x[0] != (focus_letter):
                     continue
-                yield 1, x
+                yield x
 
 
 class WeightedOpenBigramTransformer(ConstrainedOpenNGramTransformer):
@@ -167,10 +157,7 @@ class WeightedOpenBigramTransformer(ConstrainedOpenNGramTransformer):
 
     def _decompose(self, word):
         """Decompose a word into its consituent letters."""
-        grams = self._ngrams(word,
-                             self.window+1,
-                             1 if self.use_padding else 0,
-                             strict=False)
+        grams = self._ngrams(word)
         gram_index = list(range(self.window+1))
 
         for gram in grams:

@@ -108,31 +108,28 @@ class NGramTransformer(BaseTransformer):
 
         return z
 
-    @staticmethod
-    def _ngrams(word, n, num_padding, strict=True):
-        """Lazily get all ngrams in a string."""
-        if num_padding:
-            padding = ("#",) * num_padding
+    def _pad(self, word):
+        if self.use_padding:
+            padding = ("#",) * (self.n - 1)
             word = tuple(chain(*(padding, word, padding)))
         else:
             word = tuple(word)
-        if len(word) < n:
-            if strict:
-                raise ValueError("You tried to featurize words shorter than "
-                                 "{} characters, please remove these before "
-                                 "featurization, or use padding".format(n))
-            else:
-                yield word
+        return word
 
-        for i in range(n, len(word)+1):
-            yield word[i-n: i]
+    def _ngrams(self, word):
+        """Lazily get all ngrams in a string."""
+        word = self._pad(word)
+        if len(word) < self.n:
+            raise ValueError("You tried to featurize words shorter than "
+                             "{} characters, please remove these before "
+                             "featurization, or use padding".format(self.n))
+
+        for i in range(self.n, len(word)+1):
+            yield word[i-self.n: i]
 
     def _decompose(self, word):
         """Decompose a string into ngrams."""
-        grams = self._ngrams(word,
-                             self.n,
-                             self.n - 1 if self.use_padding else 0)
-        grams = tuple(grams)
+        grams = tuple(self._ngrams(word))
         return tuple(zip(np.ones(len(grams)), grams))
 
     def inverse_transform(self, X, threshold=.9):
