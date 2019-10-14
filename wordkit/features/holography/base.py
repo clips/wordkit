@@ -1,6 +1,5 @@
 """Holographic feature methods."""
 from ..base import BaseTransformer
-from ..orthography import NGramTransformer
 from itertools import chain, combinations
 
 
@@ -19,7 +18,7 @@ class HolographicTransformer(BaseTransformer):
         """Input to HolographicTransformer is a tree."""
         super().fit(X)
         X = self._unpack(X)
-        X = [self.hierarchify(x) for x in X]
+        X = [list(self.hierarchify(x)) for x in X]
         # Flatten lists.
         features = set(chain(*chain(*X)))
         vectors = self.generate((len(features), self.vec_len))
@@ -40,36 +39,47 @@ class HolographicTransformer(BaseTransformer):
         return self.add(vec)
 
 
-class NGramMixIn(object):
-
-    def hierarchify(self, x):
-        padding = self.use_padding * (self.n - 1)
-        return list(map(tuple, NGramTransformer._ngrams(x, self.n, padding)))
-
-
-class OpenNGramMixIn(object):
-
-    def hierarchify(self, x):
-        return list(map(tuple, combinations(x, self.n)))
-
-
-class LinearMixIn(object):
+class LinearMixin(object):
 
     def hierarchify(self, x):
         return [tuple(x)]
 
 
-class ConstrainedOpenNGramMixIn(object):
+class NGramMixin(object):
 
-    def hierarchify(self, x):
-        t = []
+    def _pad(self, word):
         if self.use_padding:
-            x = tuple(chain(*(("#",), x, ("#",))))
-        for idx in range(len(x)):
-            subword = x[idx:idx+(self.window+2)]
-            focus_letter = x[idx]
-            for c in combinations(subword, self.n):
-                if c[0] != (focus_letter):
-                    continue
-                t.append(tuple(c))
-        return t
+            padding = ("#",) * (self.n - 1)
+            word = tuple(chain(*(padding, word, padding)))
+        else:
+            word = tuple(word)
+        return word
+
+    def hierarchify(self, word):
+        """Turn a word into an ngram hierarchy"""
+        word = self._pad(word)
+        if len(word) < self.n:
+            raise ValueError("You tried to featurize words shorter than "
+                             "{} characters, please remove these before "
+                             "featurization, or use padding".format(self.n))
+
+        for i in range(self.n, len(word)+1):
+            yield word[i-self.n: i]
+
+
+class OpenNgramMixin(NGramMixin):
+
+    def hierarchify(self, word):
+        """Turn a word into an ngram hierarchy"""
+        return combinations(word, self.n)
+
+
+class ConstrainedOpenNgramMixin(NGramMixin):
+
+    def hierarchify(self, word):
+        """Turn a word into an ngram hierarchy"""
+        word = self._pad(word)
+        for idx in range(len(word)):
+            subword = word[idx:idx+(self.window+1)]
+            for x in combinations(subword[1:], self.n-1):
+                yield tuple(chain(*(subword[0], chain(*x))))

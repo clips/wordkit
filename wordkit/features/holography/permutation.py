@@ -2,10 +2,10 @@
 import numpy as np
 
 from .base import (HolographicTransformer,
-                   OpenNGramMixIn,
-                   NGramMixIn,
-                   LinearMixIn,
-                   ConstrainedOpenNGramMixIn)
+                   LinearMixin,
+                   ConstrainedOpenNgramMixin,
+                   NGramMixin,
+                   OpenNgramMixin)
 
 
 class PermutationTransformer(HolographicTransformer):
@@ -48,19 +48,21 @@ class PermutationTransformer(HolographicTransformer):
         return words
 
 
-class PermutationNGramTransformer(PermutationTransformer, NGramMixIn):
+class PermutationNGramTransformer(PermutationTransformer, NGramMixin):
 
     def __init__(self, vec_size, n, use_padding=True, field=None):
         super().__init__(vec_size, field)
         self.n = n
         self.use_padding = use_padding
+        self.field = field
 
 
-class PermutationLinearTransformer(PermutationTransformer, LinearMixIn):
+class PermutationLinearTransformer(PermutationTransformer, LinearMixin):
+
     pass
 
 
-class PermutationOpenNGramTransformer(PermutationTransformer, OpenNGramMixIn):
+class PermutationOpenNGramTransformer(PermutationTransformer, OpenNgramMixin):
 
     def __init__(self, vec_size, n, field=None):
         super().__init__(vec_size, field)
@@ -68,9 +70,14 @@ class PermutationOpenNGramTransformer(PermutationTransformer, OpenNGramMixIn):
 
 
 class PermutationConstrainedOpenNGramTransformer(PermutationTransformer,
-                                                 ConstrainedOpenNGramMixIn):
+                                                 ConstrainedOpenNgramMixin):
 
-    def __init__(self, vec_size, n, window, use_padding=True, field=None):
+    def __init__(self,
+                 vec_size,
+                 n,
+                 window,
+                 use_padding=True,
+                 field=None):
         super().__init__(vec_size, field)
         self.n = n
         self.window = window

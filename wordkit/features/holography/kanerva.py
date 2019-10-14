@@ -2,16 +2,17 @@
 import numpy as np
 
 from .base import (HolographicTransformer,
-                   OpenNGramMixIn,
-                   NGramMixIn,
-                   LinearMixIn,
-                   ConstrainedOpenNGramMixIn)
+                   NGramMixin,
+                   OpenNgramMixin,
+                   ConstrainedOpenNgramMixin,
+                   LinearMixin)
 
 
 class KanervaTransformer(HolographicTransformer):
 
     def __init__(self, vec_size, field=None):
         super().__init__(vec_size, field)
+        print(vec_size)
         assert (vec_size % 2) == 0
 
     def generate(self, size):
@@ -58,19 +59,21 @@ class KanervaTransformer(HolographicTransformer):
         return words
 
 
-class KanervaNGramTransformer(KanervaTransformer, NGramMixIn):
+class KanervaNGramTransformer(KanervaTransformer, NGramMixin):
 
     def __init__(self, vec_size, n, use_padding=True, field=None):
         super().__init__(vec_size, field)
         self.n = n
         self.use_padding = use_padding
+        self.field = field
 
 
-class KanervaLinearTransformer(KanervaTransformer, LinearMixIn):
+class KanervaLinearTransformer(KanervaTransformer, LinearMixin):
+
     pass
 
 
-class KanervaOpenNGramTransformer(KanervaTransformer, OpenNGramMixIn):
+class KanervaOpenNGramTransformer(KanervaTransformer, OpenNgramMixin):
 
     def __init__(self, vec_size, n, field=None):
         super().__init__(vec_size, field)
@@ -78,7 +81,7 @@ class KanervaOpenNGramTransformer(KanervaTransformer, OpenNGramMixIn):
 
 
 class KanervaConstrainedOpenNGramTransformer(KanervaTransformer,
-                                             ConstrainedOpenNGramMixIn):
+                                             ConstrainedOpenNgramMixin):
 
     def __init__(self,
                  vec_size,

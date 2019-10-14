@@ -2,10 +2,10 @@
 import numpy as np
 
 from .base import (HolographicTransformer,
-                   OpenNGramMixIn,
-                   NGramMixIn,
-                   LinearMixIn,
-                   ConstrainedOpenNGramMixIn)
+                   LinearMixin,
+                   ConstrainedOpenNgramMixin,
+                   NGramMixin,
+                   OpenNgramMixin)
 
 
 class PlateTransformer(HolographicTransformer):
@@ -51,19 +51,21 @@ class PlateTransformer(HolographicTransformer):
         return words
 
 
-class PlateNGramTransformer(PlateTransformer, NGramMixIn):
+class PlateNGramTransformer(PlateTransformer, NGramMixin):
 
     def __init__(self, vec_size, n, use_padding=True, field=None):
         super().__init__(vec_size, field)
         self.n = n
         self.use_padding = use_padding
+        self.field = field
 
 
-class PlateLinearTransformer(PlateTransformer, LinearMixIn):
+class PlateLinearTransformer(PlateTransformer, LinearMixin):
+
     pass
 
 
-class PlateOpenNGramTransformer(PlateTransformer, OpenNGramMixIn):
+class PlateOpenNGramTransformer(PlateTransformer, OpenNgramMixin):
 
     def __init__(self, vec_size, n, field=None):
         super().__init__(vec_size, field)
@@ -71,9 +73,14 @@ class PlateOpenNGramTransformer(PlateTransformer, OpenNGramMixIn):
 
 
 class PlateConstrainedOpenNGramTransformer(PlateTransformer,
-                                           ConstrainedOpenNGramMixIn):
+                                           ConstrainedOpenNgramMixin):
 
-    def __init__(self, vec_size, n, window, use_padding=True, field=None):
+    def __init__(self,
+                 vec_size,
+                 n,
+                 window,
+                 use_padding=True,
+                 field=None):
         super().__init__(vec_size, field)
         self.n = n
         self.window = window
