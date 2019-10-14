@@ -27,9 +27,11 @@ from .semantics import (EmbeddingTransformer,
 from .holography import (KanervaNGramTransformer,
                          KanervaLinearTransformer,
                          KanervaOpenNGramTransformer,
+                         KanervaConstrainedOpenNGramTransformer,
                          PlateNGramTransformer,
                          PlateLinearTransformer,
-                         PlateOpenNGramTransformer)
+                         PlateOpenNGramTransformer,
+                         PlateConstrainedOpenNGramTransformer)
 
 __all__ = ["OneHotCharacterExtractor",
            "LinearTransformer",
@@ -59,6 +61,8 @@ __all__ = ["OneHotCharacterExtractor",
            "KanervaNGramTransformer",
            "KanervaLinearTransformer",
            "KanervaOpenNGramTransformer",
+           "KanervaConstrainedOpenNGramTransformer",
            "PlateNGramTransformer",
            "PlateLinearTransformer",
-           "PlateOpenNGramTransformer"]
+           "PlateOpenNGramTransformer",
+           "PlateConstrainedOpenNGramTransformer"]
