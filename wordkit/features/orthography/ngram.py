@@ -66,9 +66,10 @@ class NGramTransformer(BaseTransformer):
         self.feature_names = set(chain.from_iterable(X))
         grams = set()
         for x in X:
-            g = list(zip(*self._decompose(x)))[1]
-            if not g:
-                raise ValueError("{} did not contain any ngrams."
+            try:
+                w, g = list(zip(*self._decompose(x)))
+            except ValueError:
+                raise ValueError("'{}' did not contain any ngrams."
                                  "".format(x))
             grams.update(g)
 
