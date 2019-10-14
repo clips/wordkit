@@ -162,7 +162,7 @@ class WeightedOpenBigramTransformer(ConstrainedOpenNGramTransformer):
         w = list(self.weights * (word_len - num_w))
         for x in range(num_w-1, 0, -1):
             w.extend(self.weights[:x])
-        print(len(w), len(grams))
+
         for g in zip(w, grams):
             yield g
 
