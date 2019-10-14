@@ -156,11 +156,13 @@ class WeightedOpenBigramTransformer(ConstrainedOpenNGramTransformer):
 
     def _decompose(self, word):
         """Decompose a word into its consituent letters."""
-        grams = self._ngrams(word)
-        w = []
-        for idx in range(len(word)):
-            w.extend(self.weights[:min(idx, self.window)][::-1])
-        w = w[::-1]
+        grams = list(self._ngrams(word))
+        word_len = len(word) + 2 * self.use_padding
+        num_w = len(self.weights)
+        w = list(self.weights * (word_len - num_w))
+        for x in range(num_w-1, 0, -1):
+            w.extend(self.weights[:x])
+        print(len(w), len(grams))
         for g in zip(w, grams):
             yield g
 
