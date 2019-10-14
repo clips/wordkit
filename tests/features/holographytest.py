@@ -30,16 +30,23 @@ featurizers = (KanervaLinearTransformer(1024),
                                                     window=2,
                                                     use_padding=False))
 
-w = (("dog", "cat", "sheep", "spin"),) * len(featurizers)
+w = (("dog", "cat", "ruz", "spin"),) * len(featurizers)
 
 
 @pytest.mark.parametrize("v, words", zip(featurizers, w))
 def test_vectorize(v, words):
     X = v.fit_transform(words).astype(np.float)
-    m = np.mean(X)
+
     assert X.shape[0] == len(words)
     assert X.shape[1] == 1024
     X /= np.linalg.norm(X, axis=1)[:, None]
     print(X.dot(X.T))
 
-    assert -.1 < X.dot(X.T)[0, 1] - m < .1
+    if v._dtype == np.bool:
+        l, u = .3, .7
+    else:
+        l, u = -.2, .2
+
+    x_ = X.dot(X.T)
+    mask = ~np.eye(x_.shape[0], dtype=np.bool)
+    assert np.all(l < x_[mask]) & np.all(x_[mask] < u)
