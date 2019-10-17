@@ -7,8 +7,7 @@ from collections import defaultdict
 from itertools import chain
 
 
-nans = {'',
-        '#N/A',
+nans = {'#N/A',
         '#N/A N/A',
         '#NA',
         '-1.#IND',
@@ -96,6 +95,8 @@ def reader(path,
             df[k] = df[k].apply(v)
 
     df = df[fields]
+    if "orthography" in fields:
+        df["length"] = [len(x) for x in df["orthography"]]
     if "frequency" in fields:
         df["frequency"] = pd.to_numeric(df["frequency"])
 
@@ -109,7 +110,5 @@ def reader(path,
         tot = f.sum()
         df['frequency_per_million'] = f * (1e6 / tot)
         df['zipf_score'] = np.log10(df['frequency_per_million'])
-    if "orthography" in fields:
-        df["length"] = [len(x) for x in df["orthography"]]
 
     return df.drop_duplicates().dropna(axis=0)
