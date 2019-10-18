@@ -94,7 +94,7 @@ def reader(path,
                 continue
             df[k] = df[k].apply(v)
 
-    df = df[fields]
+    df = df[set(fields.keys())]
     if "orthography" in fields:
         df["length"] = [len(x) for x in df["orthography"]]
     if "frequency" in fields:
