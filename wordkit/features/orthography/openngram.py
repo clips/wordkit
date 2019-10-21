@@ -97,6 +97,10 @@ class ConstrainedOpenNGramTransformer(NGramTransformer):
         if (window - n) <= -2:
             raise ValueError("Your window needs to be larger than your n - 1"
                              f", it is now {window}")
+        if (window - n) == -1:
+            raise ValueError("Your window size is set in such a way that you "
+                             "instantiate a normal ngram model. Raise your "
+                             "window size.")
         super().__init__(n, field)
         self.window = window
         self.use_padding = use_padding
