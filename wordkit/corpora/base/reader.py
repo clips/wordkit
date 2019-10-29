@@ -112,4 +112,6 @@ def reader(path,
         df['zipf_score'] = np.log10(df['frequency_per_million'])
     if "orthography" in fields:
         df["length"] = df['orthography'].apply(lambda x: len(x))
+    if "language" not in df and language is not None:
+        df["language"] = language
     return df.drop_duplicates().dropna(axis=0)
