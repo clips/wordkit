@@ -104,14 +104,12 @@ def reader(path,
         f = df['frequency']
         min_freq = min(f[f > 0])
         df["frequency"] *= 1 / min_freq
-        df["frequency"] = df["frequency"].astype(np.int32) + 1
         # Smooth frequency to avoid infs.
-        f = df["frequency"]
+        f = df["frequency"] + 1
         df['log_frequency'] = np.log10(f)
         tot = f.sum()
         df['frequency_per_million'] = f * (1e6 / tot)
         df['zipf_score'] = np.log10(df['frequency_per_million'])
     if "orthography" in fields:
         df["length"] = df['orthography'].apply(lambda x: len(x))
-    print(df["frequency"])
     return df.drop_duplicates().dropna(axis=0)
