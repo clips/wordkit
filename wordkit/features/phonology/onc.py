@@ -43,8 +43,6 @@ class ONCTransformer(FeatureTransformer):
         """Encode syllables with Onset Nucleus Coda encoding."""
         super().__init__(features, field=field)
 
-        self._is_fit = False
-
         self.o = 0
         self.n = 0
         self.c = 0
@@ -178,7 +176,6 @@ class ONCTransformer(FeatureTransformer):
                 c = max(c_l, c)
 
         self._set_grid_params((o, n, c), self.num_syls)
-        self._is_fit = True
 
         return self
 

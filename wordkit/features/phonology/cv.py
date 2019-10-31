@@ -139,7 +139,6 @@ class CVTransformer(FeatureTransformer):
         self.phoneme2idx = {p: idx
                             for idx, p in enumerate(sorted(self.phonemes))}
 
-        self._is_fit = True
         return self
 
     def determine_grid(self, X):

@@ -78,7 +78,6 @@ class NGramTransformer(BaseTransformer):
         self.inv_features = {v: k for k, v in self.features.items()}
         # The vector length is equal to the number of features.
         self.vec_len = len(self.features)
-        self._is_fit = True
 
         return self
 

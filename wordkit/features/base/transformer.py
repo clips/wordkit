@@ -22,8 +22,22 @@ class BaseTransformer(object):
 
     def __init__(self, field):
         """Initialize the transformer."""
-        self._is_fit = False
         self.field = field
+
+    @property
+    def _is_fit(self):
+        """
+        Whether the transformer has been fit.
+
+        All transformers with feature_names as an attribute have been
+        through the fitting stage, which means we can use the presence of
+        _is_fit as a shorthand for the transformer being fit.
+
+        Other classes can override this property if they want to redefine
+        what it is to be _fit_.
+
+        """
+        return hasattr(self, "feature_names")
 
     def _validate(self, X):
         """

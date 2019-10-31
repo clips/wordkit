@@ -27,7 +27,6 @@ class HolographicTransformer(BaseTransformer):
         n_positions = max([max(len(g) for g in x) for x in X])
         position_vectors = self.generate_positions((n_positions, self.vec_len))
         self.positions = dict(zip(range(n_positions), position_vectors))
-        self._is_fit = True
 
     def vectorize(self, x):
         """Vectorize a hierarchical item."""

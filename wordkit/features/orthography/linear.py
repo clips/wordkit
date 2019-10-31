@@ -79,7 +79,6 @@ class LinearTransformer(FeatureTransformer):
         self._validate(X)
         self.max_word_length = max([len(x) for x in X])
         self.vec_len = self.max_word_length * self.dlen
-        self._is_fit = True
         return self
 
     def vectorize(self, x):

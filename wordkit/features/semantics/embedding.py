@@ -61,7 +61,6 @@ class EmbeddingTransformer(BaseTransformer):
         self.features = dict(zip(words, mtr))
         self.vec_len = mtr.shape[1]
         self.feature_names = set(self.features.keys())
-        self._is_fit = True
         return self
 
     def vectorize(self, x):

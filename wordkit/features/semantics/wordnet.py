@@ -58,7 +58,6 @@ class OneHotSemanticsTransformer(BaseTransformer):
         self.feature_names, _ = zip(*sorted(self.features.items(),
                                             key=lambda x: x[1]))
         self.vec_len = len(self.feature_names)
-        self._is_fit = True
         return self
 
     def vectorize(self, x):
@@ -131,7 +130,6 @@ class HypernymSemanticsTransformer(BaseTransformer):
         self.feature_names = set(chain.from_iterable(X))
         self.features = {k: idx for idx, k in enumerate(related)}
         self.vec_len = len(self.features)
-        self._is_fit = True
         return self
 
     def vectorize(self, x):
