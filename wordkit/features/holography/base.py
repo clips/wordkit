@@ -13,6 +13,7 @@ class HolographicTransformer(BaseTransformer):
         """Initialize the transformer."""
         super().__init__(field)
         self.vec_size = vec_size
+        self.vec_len = vec_size
 
     def fit(self, X):
         """Input to HolographicTransformer is a tree."""
