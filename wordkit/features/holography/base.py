@@ -9,10 +9,10 @@ class HolographicTransformer(BaseTransformer):
 
     """
 
-    def __init__(self, vec_len, field=None):
+    def __init__(self, vec_size, field=None):
         """Initialize the transformer."""
         super().__init__(field)
-        self.vec_len = vec_len
+        self.vec_size = vec_size
 
     def fit(self, X):
         """Input to HolographicTransformer is a tree."""
@@ -21,11 +21,12 @@ class HolographicTransformer(BaseTransformer):
         X = [list(self.hierarchify(x)) for x in X]
         # Flatten lists.
         features = set(chain(*chain(*X)))
-        vectors = self.generate((len(features), self.vec_len))
+        vectors = self.generate((len(features), self.vec_size))
         self.features = dict(zip(features, vectors))
         self.feature_names = list(self.features)
         n_positions = max([max(len(g) for g in x) for x in X])
-        position_vectors = self.generate_positions((n_positions, self.vec_len))
+        position_vectors = self.generate_positions((n_positions,
+                                                    self.vec_size))
         self.positions = dict(zip(range(n_positions), position_vectors))
 
     def vectorize(self, x):

@@ -12,7 +12,6 @@ class KanervaTransformer(HolographicTransformer):
 
     def __init__(self, vec_size, field=None):
         super().__init__(vec_size, field)
-        print(vec_size)
         assert (vec_size % 2) == 0
 
     def generate(self, size):
