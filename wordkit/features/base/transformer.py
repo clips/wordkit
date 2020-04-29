@@ -124,12 +124,7 @@ class BaseTransformer(object):
         if strict:
             self._validate(X)
 
-        if isinstance(self.vec_len, int):
-            total = np.zeros((len(X), self.vec_len), dtype=self._dtype)
-        else:
-            # Support for tensors.
-            total = np.zeros((len(X), *self.vec_len), dtype=self._dtype)
-
+        total = np.zeros((len(X), self.vec_len), dtype=self._dtype)
         # Looks silly, but much faster than adding to a list and then
         # turning this into an array.
         for idx, word in enumerate(X):
