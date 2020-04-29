@@ -11,7 +11,8 @@ from .base import (HolographicTransformer,
 class PlateTransformer(HolographicTransformer):
 
     def generate(self, size):
-        return np.random.normal(size=size, scale=1/size[1])
+        x = np.random.normal(size=size, scale=1/size[1])
+        return x / np.linalg.norm(x, axis=1)[:, None]
 
     def generate_positions(self, size):
         return self.generate(size)
