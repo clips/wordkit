@@ -1,11 +1,11 @@
 """Functions for extracting and handling phonological features."""
+from collections import defaultdict
+from functools import reduce
+
 import numpy as np
+from ipapy.ipastring import IPAString
 
 from ..base.feature_extraction import BaseExtractor
-from ipapy.ipastring import IPAString
-from functools import reduce
-from collections import defaultdict
-
 
 FORBIDDEN_DESCRIPTORS = {"suprasegmental", "vowel", "consonant", "diacritic"}
 
@@ -16,8 +16,7 @@ class BasePhonemeExtractor(BaseExtractor):
     @staticmethod
     def _phoneme_set_to_string(phonemes):
         """Convert a phoneme set (a tuple) into a single IPA character."""
-        return ["".join([x.unicode_repr for x in p])
-                for p in phonemes]
+        return ["".join([x.unicode_repr for x in p]) for p in phonemes]
 
     @staticmethod
     def _is_valid(phoneme):
@@ -34,8 +33,9 @@ class BasePhonemeExtractor(BaseExtractor):
 
     def _parse_phonemes(self, phonemes):
         """Parse the incoming tuple of phonemes as IPA characters."""
-        phonemes = [IPAString(unicode_string=p, single_char_parsing=True)
-                    for p in phonemes]
+        phonemes = [
+            IPAString(unicode_string=p, single_char_parsing=True) for p in phonemes
+        ]
 
         for x in phonemes:
             if not self._is_valid(x):
@@ -86,9 +86,7 @@ class BasePhonemeExtractor(BaseExtractor):
 
         return results
 
-    def _phoneme_feature_vectors(self,
-                                 phonemes,
-                                 forbidden=FORBIDDEN_DESCRIPTORS):
+    def _phoneme_feature_vectors(self, phonemes, forbidden=FORBIDDEN_DESCRIPTORS):
         """
         Create feature vectors for phonemes on the basis of their descriptors.
 
@@ -116,8 +114,7 @@ class BasePhonemeExtractor(BaseExtractor):
 
         all_descriptors = {v: idx for idx, v in enumerate(all_d)}
 
-        phoneme = np.zeros((len(d),
-                            len(all_descriptors)))
+        phoneme = np.zeros((len(d), len(all_descriptors)))
 
         for idx, p in enumerate(d):
             indices = [all_descriptors[d] for d in p]
@@ -270,9 +267,7 @@ class PredefinedFeatureExtractor(BasePhonemeExtractor):
 
     """
 
-    def __init__(self,
-                 phoneme_features,
-                 field=None):
+    def __init__(self, phoneme_features, field=None):
         """Initialize the extractor."""
         super().__init__(field=field)
         self.phoneme_features = phoneme_features
@@ -298,7 +293,7 @@ class PredefinedFeatureExtractor(BasePhonemeExtractor):
                 all_descriptors[k].add(v)
 
         groups_to_exclude = set()
-        for k, v in all_descriptors.items():
+        for k in all_descriptors:
             # There are features which are not in the predefined feature space
             # So we exclude the whole group.
             if all_descriptors[k] - self.feature_names:
@@ -306,17 +301,21 @@ class PredefinedFeatureExtractor(BasePhonemeExtractor):
 
         self.groups_excluded = groups_to_exclude
 
-        v_descriptors = [{k: v for k, v in d.items()
-                         if k not in groups_to_exclude} for d in v_descriptors]
+        v_descriptors = [
+            {k: v for k, v in d.items() if k not in groups_to_exclude}
+            for d in v_descriptors
+        ]
 
-        c_descriptors = [{k: v for k, v in d.items()
-                         if k not in groups_to_exclude} for d in c_descriptors]
+        c_descriptors = [
+            {k: v for k, v in d.items() if k not in groups_to_exclude}
+            for d in c_descriptors
+        ]
 
         vowel_vectors = []
         for descriptors in v_descriptors:
             vec = []
-            for k, v in sorted(descriptors.items()):
-                if v != 'absent':
+            for _, v in sorted(descriptors.items()):
+                if v != "absent":
                     vec.extend(self.phoneme_features[v])
                 else:
                     vec.append(0)
@@ -326,8 +325,8 @@ class PredefinedFeatureExtractor(BasePhonemeExtractor):
 
         for descriptors in c_descriptors:
             vec = []
-            for k, v in sorted(descriptors.items()):
-                if v != 'absent':
+            for _, v in sorted(descriptors.items()):
+                if v != "absent":
                     vec.extend(self.phoneme_features[v])
                 else:
                     vec.append(0)

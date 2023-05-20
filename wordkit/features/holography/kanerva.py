@@ -1,15 +1,16 @@
 """The kanerva method of holographic representation."""
 import numpy as np
 
-from .base import (HolographicTransformer,
-                   NGramMixin,
-                   OpenNgramMixin,
-                   ConstrainedOpenNgramMixin,
-                   LinearMixin)
+from .base import (
+    ConstrainedOpenNgramMixin,
+    HolographicTransformer,
+    LinearMixin,
+    NGramMixin,
+    OpenNgramMixin,
+)
 
 
 class KanervaTransformer(HolographicTransformer):
-
     def __init__(self, vec_size, field=None):
         super().__init__(vec_size, field)
         assert (vec_size % 2) == 0
@@ -37,9 +38,9 @@ class KanervaTransformer(HolographicTransformer):
         return self.xor(item, idx)
 
     def add(self, X):
-        return np.mean(X, 0) > .5
+        return np.mean(X, 0) > 0.5
 
-    def inverse_transform(self, X, threshold=.15):
+    def inverse_transform(self, X, threshold=0.15):
         if np.ndim(X) == 1:
             X = X[None, :]
         words = []
@@ -59,7 +60,6 @@ class KanervaTransformer(HolographicTransformer):
 
 
 class KanervaNGramTransformer(KanervaTransformer, NGramMixin):
-
     def __init__(self, vec_size, n, use_padding=True, field=None):
         super().__init__(vec_size, field)
         self.n = n
@@ -68,26 +68,19 @@ class KanervaNGramTransformer(KanervaTransformer, NGramMixin):
 
 
 class KanervaLinearTransformer(KanervaTransformer, LinearMixin):
-
     pass
 
 
 class KanervaOpenNGramTransformer(KanervaTransformer, OpenNgramMixin):
-
     def __init__(self, vec_size, n, field=None):
         super().__init__(vec_size, field)
         self.n = n
 
 
-class KanervaConstrainedOpenNGramTransformer(KanervaTransformer,
-                                             ConstrainedOpenNgramMixin):
-
-    def __init__(self,
-                 vec_size,
-                 n,
-                 window,
-                 use_padding=True,
-                 field=None):
+class KanervaConstrainedOpenNGramTransformer(
+    KanervaTransformer, ConstrainedOpenNgramMixin
+):
+    def __init__(self, vec_size, n, window, use_padding=True, field=None):
         super().__init__(vec_size, field)
         self.n = n
         self.window = window

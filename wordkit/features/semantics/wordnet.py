@@ -1,10 +1,11 @@
 """Wordnet semantics."""
-import numpy as np
-from ..base import BaseTransformer
-
-from nltk.corpus import wordnet as wn
-from itertools import chain
 from collections import Counter
+from itertools import chain
+
+import numpy as np
+from nltk.corpus import wordnet as wn
+
+from ..base import BaseTransformer
 
 
 class OneHotSemanticsTransformer(BaseTransformer):
@@ -51,12 +52,10 @@ class OneHotSemanticsTransformer(BaseTransformer):
             self.feature_names.update(x)
 
         if self.prune:
-            self.feature_names = {k for k, v in self.feature_names.items()
-                                  if v > 1}
+            self.feature_names = {k for k, v in self.feature_names.items() if v > 1}
 
         self.features = {k: idx for idx, k in enumerate(self.feature_names)}
-        self.feature_names, _ = zip(*sorted(self.features.items(),
-                                            key=lambda x: x[1]))
+        self.feature_names, _ = zip(*sorted(self.features.items(), key=lambda x: x[1]))
         self.vec_len = len(self.feature_names)
         return self
 
@@ -121,7 +120,7 @@ class HypernymSemanticsTransformer(BaseTransformer):
 
         related = Counter()
         for x in X:
-            for (offset, pos) in x:
+            for offset, pos in x:
                 s = wn.synset_from_pos_and_offset(pos, int(offset))
                 related.update(self.recursive_related(s))
 
@@ -135,7 +134,7 @@ class HypernymSemanticsTransformer(BaseTransformer):
     def vectorize(self, x):
         """Vectorize a word."""
         vec = np.zeros(self.vec_len)
-        for (offset, pos) in x:
+        for offset, pos in x:
             s = wn.synset_from_pos_and_offset(pos, int(offset))
             res = self.recursive_related(s)
             if self.prune:
@@ -147,6 +146,7 @@ class HypernymSemanticsTransformer(BaseTransformer):
 
     def recursive_related(self, synset):
         """Get recursive meronyms."""
+
         def find_related(synset, use_meronyms):
             """Recursive method."""
             if use_meronyms:

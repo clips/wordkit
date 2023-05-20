@@ -1,7 +1,9 @@
 """Semantics."""
-from .wordnet import OneHotSemanticsTransformer, HypernymSemanticsTransformer
 from .embedding import EmbeddingTransformer
+from .wordnet import HypernymSemanticsTransformer, OneHotSemanticsTransformer
 
-__all__ = ["EmbeddingTransformer",
-           "OneHotSemanticsTransformer",
-           "HypernymSemanticsTransformer"]
+__all__ = [
+    "EmbeddingTransformer",
+    "OneHotSemanticsTransformer",
+    "HypernymSemanticsTransformer",
+]

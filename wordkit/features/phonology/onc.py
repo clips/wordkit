@@ -1,9 +1,10 @@
 """Featurization based on Onset Nucleus Coda."""
-import numpy as np
 import re
+from itertools import chain
+
+import numpy as np
 
 from ..base.transformer import FeatureTransformer
-from itertools import chain
 
 
 class ONCTransformer(FeatureTransformer):
@@ -76,8 +77,7 @@ class ONCTransformer(FeatureTransformer):
             elif x in self.vowels:
                 cvc.append("V")
             else:
-                raise ValueError("{} was neither a consonant nor a vowel."
-                                 "".format(x))
+                raise ValueError("{} was neither a consonant nor a vowel.".format(x))
         return "".join(cvc)
 
     def _set_grid_params(self, grid, num_syls):
@@ -94,9 +94,9 @@ class ONCTransformer(FeatureTransformer):
 
         """
         self.o, self.n, self.c = grid
-        self.syl_len = (self.o * self.consonant_length)
-        self.syl_len += (self.n * self.vowel_length)
-        self.syl_len += (self.c * self.consonant_length)
+        self.syl_len = self.o * self.consonant_length
+        self.syl_len += self.n * self.vowel_length
+        self.syl_len += self.c * self.consonant_length
         self.vec_len = self.syl_len * num_syls
 
         grid = ["C" * self.o, "V" * self.n, "C" * self.c]
@@ -120,8 +120,9 @@ class ONCTransformer(FeatureTransformer):
         feats = set(chain.from_iterable([chain.from_iterable(x) for x in X]))
         overlap = feats.difference(self.feature_names)
         if overlap:
-            raise ValueError("The sequence contained illegal features: {0}"
-                             .format(overlap))
+            raise ValueError(
+                "The sequence contained illegal features: {0}".format(overlap)
+            )
 
     def fit(self, X):
         """
@@ -164,7 +165,6 @@ class ONCTransformer(FeatureTransformer):
         c = 0
 
         for syll in set(chain.from_iterable(X)):
-
             cvc = self._make_cvc(syll)
             c_l = len(cvc)
             try:
@@ -202,12 +202,12 @@ class ONCTransformer(FeatureTransformer):
                 c = len(m.group()) + n
                 for idx in range(n):
                     syll[idx] = s[idx]
-                for idx in range(c-n):
-                    syll[grid_n + idx] = s[n+idx]
+                for idx in range(c - n):
+                    syll[grid_n + idx] = s[n + idx]
                 for idx in range(0, len(cvc) - c):
-                    syll[grid_c + idx] = s[c+idx]
+                    syll[grid_c + idx] = s[c + idx]
             except StopIteration:
-                syll[-len(cvc):] = s
+                syll[-len(cvc) :] = s
             grid.extend(syll)
         empty_grid = [" " for x in "".join(self.syllable_grid)]
         grid.extend((self.num_syls - len(x)) * empty_grid)
@@ -262,9 +262,11 @@ class ONCTransformer(FeatureTransformer):
         if np.ndim(X) == 1:
             X = X[None, :]
         if X.shape[1] != self.vec_len:
-            raise ValueError("Your matrix was not the correct shape. "
-                             "Expected a (N, {}) matrix, but got a "
-                             "{} shaped one".format(self.vec_len, X.shape))
+            raise ValueError(
+                "Your matrix was not the correct shape. "
+                "Expected a (N, {}) matrix, but got a "
+                "{} shaped one".format(self.vec_len, X.shape)
+            )
         vowel_keys, vowels = zip(*self.vowels.items())
         consonant_keys, consonants = zip(*self.consonants.items())
 
@@ -281,15 +283,16 @@ class ONCTransformer(FeatureTransformer):
             else:
                 s = vowels
                 s_k = vowel_keys
-            diff = X[:, idx:idx+s.shape[1]][:, None, :] - s[None, :, :]
+            diff = X[:, idx : idx + s.shape[1]][:, None, :] - s[None, :, :]
             indices = np.linalg.norm(diff, axis=-1).argmin(-1)
             words.append([s_k[x] for x in indices])
             idx += s.shape[1]
 
         reshaped = np.array(words).T.reshape(X.shape[0], self.num_syls, -1)
-        return [tuple([tuple(x) for x in
-                      [[p for p in x if p != " "]
-                      for x in word] if x]) for word in reshaped]
+        return [
+            tuple([tuple(x) for x in [[p for p in x if p != " "] for x in word] if x])
+            for word in reshaped
+        ]
 
     def list_features(self, words):
         """List the features."""

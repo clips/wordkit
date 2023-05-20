@@ -1,8 +1,9 @@
 """Transform orthography."""
+from itertools import chain, combinations
+
 import numpy as np
 
 from .ngram import NGramTransformer
-from itertools import combinations, chain
 
 
 class OpenNGramTransformer(NGramTransformer):
@@ -95,12 +96,15 @@ class ConstrainedOpenNGramTransformer(NGramTransformer):
     def __init__(self, n, window, field=None, use_padding=False):
         """Initialize the transformer."""
         if (window - n) <= -2:
-            raise ValueError("Your window needs to be larger than your n - 1"
-                             f", it is now {window}")
+            raise ValueError(
+                f"Your window needs to be larger than your n - 1, it is now {window}"
+            )
         if (window - n) == -1:
-            raise ValueError("Your window size is set in such a way that you "
-                             "instantiate a normal ngram model. Raise your "
-                             "window size.")
+            raise ValueError(
+                "Your window size is set in such a way that you "
+                "instantiate a normal ngram model. Raise your "
+                "window size."
+            )
         super().__init__(n, field)
         self.window = window
         self.use_padding = use_padding
@@ -108,8 +112,8 @@ class ConstrainedOpenNGramTransformer(NGramTransformer):
     def _ngrams(self, word):
         word = self._pad(word)
         for idx in range(len(word)):
-            subword = word[idx:idx+(self.window+1)]
-            for x in combinations(subword[1:], self.n-1):
+            subword = word[idx : idx + (self.window + 1)]
+            for x in combinations(subword[1:], self.n - 1):
                 yield tuple(chain(*(subword[0], chain(*x))))
 
 
@@ -164,7 +168,7 @@ class WeightedOpenBigramTransformer(ConstrainedOpenNGramTransformer):
         word_len = len(word) + 2 * self.use_padding
         num_w = len(self.weights)
         w = list(self.weights * (word_len - num_w))
-        for x in range(num_w-1, 0, -1):
+        for x in range(num_w - 1, 0, -1):
             w.extend(self.weights[:x])
 
         for g in zip(w, grams):

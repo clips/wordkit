@@ -1,8 +1,9 @@
 """Wickelcoding."""
+from itertools import chain
+
 import numpy as np
 
 from ..base.transformer import BaseTransformer
-from itertools import chain
 
 
 class NGramTransformer(BaseTransformer):
@@ -67,10 +68,9 @@ class NGramTransformer(BaseTransformer):
         grams = set()
         for x in X:
             try:
-                w, g = list(zip(*self._decompose(x)))
-            except ValueError:
-                raise ValueError("'{}' did not contain any ngrams."
-                                 "".format(x))
+                _, g = list(zip(*self._decompose(x)))
+            except ValueError as e:
+                raise ValueError("'{}' did not contain any ngrams.".format(x)) from e
             grams.update(g)
 
         grams = sorted(grams)
@@ -120,31 +120,33 @@ class NGramTransformer(BaseTransformer):
         """Lazily get all ngrams in a string."""
         word = self._pad(word)
         if len(word) < self.n:
-            raise ValueError("You tried to featurize words shorter than "
-                             "{} characters, please remove these before "
-                             "featurization, or use padding".format(self.n))
+            raise ValueError(
+                "You tried to featurize words shorter than "
+                "{} characters, please remove these before "
+                "featurization, or use padding".format(self.n)
+            )
 
-        for i in range(self.n, len(word)+1):
-            yield word[i-self.n: i]
+        for i in range(self.n, len(word) + 1):
+            yield word[i - self.n : i]
 
     def _decompose(self, word):
         """Decompose a string into ngrams."""
         grams = tuple(self._ngrams(word))
         return tuple(zip(np.ones(len(grams)), grams))
 
-    def inverse_transform(self, X, threshold=.9):
+    def inverse_transform(self, X, threshold=0.9):
         """
         Convert a vector back into its constituent ngrams.
 
         WARNING: this currently does not work.
         """
         inverted = []
-        inverted_features = {v: k for k, v in
-                             self.features.items()}
+        inverted_features = {v: k for k, v in self.features.items()}
 
         if not self.use_padding:
-            raise ValueError("This function is only supported when use_padding"
-                             " is set to True.")
+            raise ValueError(
+                "This function is only supported when use_padding is set to True."
+            )
 
         if np.ndim(X) == 1:
             X = X[None, :]
@@ -157,7 +159,7 @@ class NGramTransformer(BaseTransformer):
             cols = list(zip(*t))
 
             s, e = list(zip(*cols[:-1])), list(zip(*cols[1:]))
-            pad = tuple(["#"] * (self.n-1))
+            pad = tuple(["#"] * (self.n - 1))
             f = list(set(s) - (set(e) - {pad}))[0]
             word = []
             while len(word) < len(t):
@@ -175,8 +177,7 @@ class NGramTransformer(BaseTransformer):
         """Lists the features for each word."""
         if isinstance(X, np.ndarray):
             for x in X:
-                yield tuple([self.inv_features[idx]
-                             for idx in np.flatnonzero(x)])
+                yield tuple([self.inv_features[idx] for idx in np.flatnonzero(x)])
         else:
             X = self._unpack(X)
             for x in X:

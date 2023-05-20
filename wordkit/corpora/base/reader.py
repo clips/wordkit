@@ -1,65 +1,64 @@
 """Base class for corpus readers."""
 import os
-import pandas as pd
-import numpy as np
-
 from collections import defaultdict
 from itertools import chain
 
+import numpy as np
+import pandas as pd
 
-nans = {'#N/A',
-        '#N/A N/A',
-        '#NA',
-        '-1.#IND',
-        '-1.#QNAN',
-        '-NaN',
-        '-nan',
-        '1.#IND',
-        '1.#QNAN',
-        'N/A',
-        'NA',
-        'NULL',
-        'NaN'}
+nans = {
+    "#N/A",
+    "#N/A N/A",
+    "#NA",
+    "-1.#IND",
+    "-1.#QNAN",
+    "-NaN",
+    "-nan",
+    "1.#IND",
+    "1.#QNAN",
+    "N/A",
+    "NA",
+    "NULL",
+    "NaN",
+}
 
 
 def _open(path, **kwargs):
     """Open a file for reading."""
     extension = os.path.splitext(path)[-1]
     if extension in {".xls", ".xlsx"}:
-        df = pd.read_excel(path,
-                           na_values=nans,
-                           keep_default_na=False,
-                           **kwargs)
+        df = pd.read_excel(path, na_values=nans, keep_default_na=False, **kwargs)
     else:
         try:
-            df = pd.read_csv(path,
-                             na_values=nans,
-                             keep_default_na=False,
-                             engine="python",
-                             **kwargs)
+            df = pd.read_csv(
+                path, na_values=nans, keep_default_na=False, engine="python", **kwargs
+            )
         except ValueError as e:
             sep = kwargs.get("sep", ",")
             encoding = kwargs.get("encoding", "utf-8")
-            raise ValueError("Something went wrong during reading of "
-                             "your data. Things that could be wrong: \n"
-                             f"- separator: you supplied {sep}\n"
-                             f"- encoding: you supplied {encoding}\n"
-                             f"The original error was: {e}")
+            raise ValueError(
+                "Something went wrong during reading of "
+                "your data. Things that could be wrong: \n"
+                f"- separator: you supplied {sep}\n"
+                f"- encoding: you supplied {encoding}\n"
+                f"The original error was: {e}"
+            ) from e
 
     return df
 
 
-def reader(path,
-           fields=None,
-           field_ids=None,
-           language=None,
-           preprocessors=None,
-           opener=_open,
-           **kwargs):
+def reader(
+    path,
+    fields=None,
+    field_ids=None,
+    language=None,
+    preprocessors=None,
+    opener=_open,
+    **kwargs,
+):
     """Init the base class."""
     if not os.path.exists(path):
-        raise FileNotFoundError("The file you specified does not "
-                                f"exist: {path}")
+        raise FileNotFoundError(f"The file you specified does not exist: {path}")
     if isinstance(fields, str):
         fields = (fields,)
     if fields is None:
@@ -77,9 +76,11 @@ def reader(path,
     c = set(chain.from_iterable([rev.get(x, [x]) for x in colnames]))
     redundant = set(fields) - c
     if redundant:
-        raise ValueError("You passed fields which were not in "
-                         f"the dataset {redundant}. The available fields "
-                         f"are: {c}")
+        raise ValueError(
+            "You passed fields which were not in "
+            f"the dataset {redundant}. The available fields "
+            f"are: {c}"
+        )
     if not fields:
         fields = c
     fields = {k: field_ids.get(k, k) for k in fields}
@@ -101,17 +102,17 @@ def reader(path,
         f = list(set(fields.keys()) - {"frequency"})
         df = df.groupby(f, as_index=False).agg({"frequency": "sum"})
 
-        f = df['frequency']
+        f = df["frequency"]
         min_freq = min(f[f > 0])
         df["frequency"] *= 1 / min_freq
         # Smooth frequency to avoid infs.
         f = df["frequency"] + 1
-        df['log_frequency'] = np.log10(f)
+        df["log_frequency"] = np.log10(f)
         tot = f.sum()
-        df['frequency_per_million'] = f * (1e6 / tot)
-        df['zipf_score'] = np.log10(df['frequency_per_million'])
+        df["frequency_per_million"] = f * (1e6 / tot)
+        df["zipf_score"] = np.log10(df["frequency_per_million"])
     if "orthography" in fields:
-        df["length"] = df['orthography'].apply(lambda x: len(x))
+        df["length"] = df["orthography"].apply(lambda x: len(x))
     if "language" not in df and language is not None:
         df["language"] = language
     return df.drop_duplicates().dropna(axis=0)

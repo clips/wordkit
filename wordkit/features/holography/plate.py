@@ -1,17 +1,18 @@
 """The plate method of holographic representation."""
 import numpy as np
 
-from .base import (HolographicTransformer,
-                   LinearMixin,
-                   ConstrainedOpenNgramMixin,
-                   NGramMixin,
-                   OpenNgramMixin)
+from .base import (
+    ConstrainedOpenNgramMixin,
+    HolographicTransformer,
+    LinearMixin,
+    NGramMixin,
+    OpenNgramMixin,
+)
 
 
 class PlateTransformer(HolographicTransformer):
-
     def generate(self, size):
-        x = np.random.normal(size=size, scale=1/size[1])
+        x = np.random.normal(size=size, scale=1 / size[1])
         return x / np.linalg.norm(x, axis=1)[:, None]
 
     def generate_positions(self, size):
@@ -33,7 +34,7 @@ class PlateTransformer(HolographicTransformer):
     def involution(x):
         return np.concatenate([x[None, 0], x[-1:0:-1]])
 
-    def inverse_transform(self, X, threshold=.25):
+    def inverse_transform(self, X, threshold=0.25):
         if np.ndim(X) == 1:
             X = X[None, :]
         words = []
@@ -53,7 +54,6 @@ class PlateTransformer(HolographicTransformer):
 
 
 class PlateNGramTransformer(PlateTransformer, NGramMixin):
-
     def __init__(self, vec_size, n, use_padding=True, field=None):
         super().__init__(vec_size, field)
         self.n = n
@@ -62,26 +62,17 @@ class PlateNGramTransformer(PlateTransformer, NGramMixin):
 
 
 class PlateLinearTransformer(PlateTransformer, LinearMixin):
-
     pass
 
 
 class PlateOpenNGramTransformer(PlateTransformer, OpenNgramMixin):
-
     def __init__(self, vec_size, n, field=None):
         super().__init__(vec_size, field)
         self.n = n
 
 
-class PlateConstrainedOpenNGramTransformer(PlateTransformer,
-                                           ConstrainedOpenNgramMixin):
-
-    def __init__(self,
-                 vec_size,
-                 n,
-                 window,
-                 use_padding=True,
-                 field=None):
+class PlateConstrainedOpenNGramTransformer(PlateTransformer, ConstrainedOpenNgramMixin):
+    def __init__(self, vec_size, n, window, use_padding=True, field=None):
         super().__init__(vec_size, field)
         self.n = n
         self.window = window

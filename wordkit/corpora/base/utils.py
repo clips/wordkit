@@ -1,28 +1,31 @@
-import numpy as np
 import re
 
-diacritics = {'ː',
-              '̤',
-              'ˠ',
-              '̠',
-              '̈',
-              '̞',
-              '̩',
-              '̻',
-              'ʰ',
-              'ʼ',
-              '̝',
-              'ʲ',
-              '̥',
-              '̟',
-              'ˤ',
-              '̃',
-              '̺',
-              '͡',
-              '̯',
-              '̪',
-              '̰',
-              'ʷ'}
+import numpy as np
+
+diacritics = {
+    "ː",
+    "̤",
+    "ˠ",
+    "̠",
+    "̈",
+    "̞",
+    "̩",
+    "̻",
+    "ʰ",
+    "ʼ",
+    "̝",
+    "ʲ",
+    "̥",
+    "̟",
+    "ˤ",
+    "̃",
+    "̺",
+    "͡",
+    "̯",
+    "̪",
+    "̰",
+    "ʷ",
+}
 
 
 remove_double = re.compile(r"(ː)(\1){1,}")
@@ -72,7 +75,7 @@ def segment_phonology(phonemes, items=diacritics, to_keep=diacritics):
         x = phonemes[idx]
         if x[0] in items:
             if x[0] in to_keep:
-                phonemes[idx-1].append(x[0])
+                phonemes[idx - 1].append(x[0])
             phonemes.pop(idx)
         else:
             idx += 1
