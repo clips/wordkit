@@ -2,7 +2,7 @@ import re
 
 import numpy as np
 
-diacritics = {
+DIACRITICS = {
     "ː",
     "̤",
     "ˠ",
@@ -39,7 +39,7 @@ def apply_if_not_na(x, func):
         return func(x)
 
 
-def segment_phonology(phonemes, items=diacritics, to_keep=diacritics):
+def segment_phonology(phonemes, items=None, to_keep=None):
     """
     Segment a list of characters into chunks by joining diacritics.
 
@@ -56,18 +56,23 @@ def segment_phonology(phonemes, items=diacritics, to_keep=diacritics):
 
     Parameters
     ----------
-    phonemes : list
+    phonemes : iterable
         A list of phoneme characters to segment.
 
-    items : list
+    items : iterable
         A list of characters which to treat as diacritics.
 
-    to_keep : list
+    to_keep : iterable
         A list of diacritics from the list passed to items which to keep.
         Any items in this list are not removed as spurious diacritics.
         If to_keep and items are the same list, all items are kept.
 
     """
+    if items is None:
+        items = DIACRITICS
+    if to_keep is None:
+        to_keep = DIACRITICS
+
     phonemes = remove_double.sub(r"\g<1>", phonemes)
     phonemes = [list(p) for p in phonemes]
     idx = 0

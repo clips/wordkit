@@ -20,7 +20,7 @@ PROJECT2FIELD = {
     ("deu", True): {"orthography": 1, "phonology": 4, "frequency": 2, "syllables": 4},
 }
 
-lengths = {
+LENGTHS = {
     ("nld", True): (11, 0),
     ("eng", True): (4, 4),
     ("deu", True): (11, 0),
@@ -76,23 +76,23 @@ CELEX_2IPA = {
     ":": "ː",
 }
 
-celex_regex = re.compile(r"{}".format("|".join(CELEX_2IPA.keys())))
-replace = re.compile(r"(,|r\*)")
-braces = re.compile(r"[\[\]]+")
-double_braces = re.compile(r"(\[[^\]]+?)\[(.+?)\]([^\[])")
+CELEX_REGEX = re.compile(r"{}".format("|".join(CELEX_2IPA.keys())))
+REPLACE = re.compile(r"(,|r\*)")
+BRACES = re.compile(r"[\[\]]+")
+DOUBLE_BRACES = re.compile(r"(\[[^\]]+?)\[(.+?)\]([^\[])")
 
 
 def syll_func(string):
     """Process a CELEX syllable string."""
-    syll = double_braces.sub(r"\g<1>\g<2>][\g<2>\g<3>", string)
-    syll = [replace.sub("", x) for x in braces.split(syll) if x]
+    syll = DOUBLE_BRACES.sub(r"\g<1>\g<2>][\g<2>\g<3>", string)
+    syll = [REPLACE.sub("", x) for x in BRACES.split(syll) if x]
     syll = [segment_phonology(x) for x in celex_to_ipa(syll)]
     return tuple(syll)
 
 
 def phon_func(string):
     """Process a CELEX phonology string."""
-    phon = [replace.sub("", x) for x in braces.split(string) if x]
+    phon = [REPLACE.sub("", x) for x in BRACES.split(string) if x]
     phon = [segment_phonology(x) for x in celex_to_ipa(phon)]
     return tuple(chain.from_iterable(phon))
 
@@ -100,7 +100,7 @@ def phon_func(string):
 def celex_to_ipa(syllables):
     """Convert celex phonemes to IPA unicode format."""
     for syll in syllables:
-        yield "".join([CELEX_2IPA[p] for p in celex_regex.findall(syll)])
+        yield "".join([CELEX_2IPA[p] for p in CELEX_REGEX.findall(syll)])
 
 
 def _celex_opener(path, word_length, struct_length=0, **kwargs):
@@ -126,7 +126,7 @@ def _celex_opener(path, word_length, struct_length=0, **kwargs):
 
 
 def _celex(path, fields, lemmas, language):
-    w_length, s_length = lengths[(language, lemmas)]
+    w_length, s_length = LENGTHS[(language, lemmas)]
     _opener = partial(_celex_opener, word_length=w_length, struct_length=s_length)
 
     return reader(

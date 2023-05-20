@@ -41,13 +41,13 @@ BPAL_2IPA = {
     "y": "ʝ",
 }
 
-bpal_regex = re.compile(r"{}".format("|".join(BPAL_2IPA.keys())))
+BPAL_REGEX = re.compile(r"{}".format("|".join(BPAL_2IPA.keys())))
 
 
 def bpal_to_ipa(syllables):
     """Convert bpal phonemes to IPA unicode format."""
     for idx, x in enumerate(syllables):
-        converted = "".join([BPAL_2IPA[p] for p in bpal_regex.findall(x)])
+        converted = "".join([BPAL_2IPA[p] for p in BPAL_REGEX.findall(x)])
         if idx == 0:
             converted = converted.replace("ð", "d")
             converted = converted.replace("β", "b")

@@ -5,7 +5,7 @@ import pandas as pd
 
 from wordkit.corpora.base import reader
 
-CMU_2IPA = {
+CMU_IPA_MAPPING = {
     "AO": "ɔ",
     "AO0": "ɔ",
     "AO1": "ɔ",
@@ -103,7 +103,7 @@ CMU_2IPA = {
 
 def cmu_to_ipa(phonemes):
     """Convert CMU phonemes to IPA unicode format."""
-    return tuple([CMU_2IPA[p] for p in phonemes])
+    return tuple([CMU_IPA_MAPPING[p] for p in phonemes])
 
 
 def _open(path, **kwargs):
