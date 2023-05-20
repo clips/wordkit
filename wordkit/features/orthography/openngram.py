@@ -176,4 +176,4 @@ class WeightedOpenBigramTransformer(ConstrainedOpenNGramTransformer):
 
     @property
     def _dtype(self):
-        return np.float
+        return np.float32

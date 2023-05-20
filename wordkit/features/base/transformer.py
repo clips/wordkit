@@ -107,7 +107,7 @@ class BaseTransformer(object):
             else:
                 return np.dtype(type(v))
         except AttributeError:
-            return np.float
+            return np.float32
 
     def transform(self, X, strict=True):
         """

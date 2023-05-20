@@ -4,3 +4,4 @@ setuptools>=39.0.1
 ipapy>=0.0.8.0
 numpy>=1.12.1
 reach>=3.0.0
+pytest>=7.3.1

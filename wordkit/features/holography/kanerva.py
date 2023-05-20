@@ -23,7 +23,7 @@ class KanervaTransformer(HolographicTransformer):
             high, low = idx.reshape(2, -1)
             x[high] = 1
 
-        return vecs.astype(np.bool)
+        return vecs.astype(bool)
 
     def generate_positions(self, size):
         return self.generate(size)

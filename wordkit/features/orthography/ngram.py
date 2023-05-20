@@ -44,7 +44,7 @@ class NGramTransformer(BaseTransformer):
 
     @property
     def _dtype(self):
-        return np.int
+        return np.int32
 
     def fit(self, X):
         """

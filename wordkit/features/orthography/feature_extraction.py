@@ -30,7 +30,7 @@ class OneHotCharacterExtractor(BaseExtractor):
         """Create one hot encoded features."""
         if self.include_space and " " not in symbols:
             symbols = [" "] + list(symbols)
-        features = np.eye(len(symbols), dtype=np.int)
+        features = np.eye(len(symbols), dtype=np.int32)
         return dict(zip(symbols, features))
 
 
