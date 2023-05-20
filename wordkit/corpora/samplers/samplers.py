@@ -1,6 +1,7 @@
 """Sampler class."""
-import numpy as np
 from collections import defaultdict
+
+import numpy as np
 
 
 class Sampler(object):
@@ -32,16 +33,13 @@ class Sampler(object):
 
     """
 
-    def __init__(self,
-                 X,
-                 frequencies=None,
-                 replacement=True):
+    def __init__(self, X, frequencies=None, replacement=True):
         """Sample from a distribution over words."""
         if frequencies is None:
             frequencies = np.ones(len(X))
         else:
             frequencies = np.asarray(frequencies)
-        assert(len(frequencies) == len(X))
+        assert len(frequencies) == len(X)
 
         self.X = X
         self.frequencies = frequencies / np.sum(frequencies)
@@ -63,15 +61,19 @@ class Sampler(object):
 
         """
         if not self.replacement and num_to_sample > len(self.X):
-            raise ValueError("You tried to sample without replacement from "
-                             "a set which is smaller than your sample size "
-                             ": sample size: {} set size: {}"
-                             "".format(num_to_sample, len(self.X)))
+            raise ValueError(
+                "You tried to sample without replacement from "
+                "a set which is smaller than your sample size "
+                ": sample size: {} set size: {}"
+                "".format(num_to_sample, len(self.X))
+            )
 
-        samples = np.random.choice(np.arange(len(self.X)),
-                                   size=num_to_sample,
-                                   p=self.frequencies,
-                                   replace=self.replacement)
+        samples = np.random.choice(
+            np.arange(len(self.X)),
+            size=num_to_sample,
+            p=self.frequencies,
+            replace=self.replacement,
+        )
 
         # We can't use smart indexing because we don't know whether our
         # base data is an array.
@@ -151,10 +153,12 @@ class BinnedSampler(object):
 
         """
         if num_to_sample > self.total and not self.replacement:
-            raise ValueError("You requested a bigger sample than your "
-                             "population, but replacement was set to False. "
-                             "Please set replacement to True, or lower your "
-                             "sample size.")
+            raise ValueError(
+                "You requested a bigger sample than your "
+                "population, but replacement was set to False. "
+                "Please set replacement to True, or lower your "
+                "sample size."
+            )
         result = []
         props = np.floor(self.proportions * num_to_sample).astype(np.int32)
         error = num_to_sample - props.sum()

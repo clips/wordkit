@@ -1,8 +1,8 @@
 """Transform orthography."""
 import numpy as np
 
-from ..base.transformer import FeatureTransformer
-from .feature_extraction import IndexCharacterExtractor
+from wordkit.features.base.transformer import FeatureTransformer
+from wordkit.features.orthography.feature_extraction import IndexCharacterExtractor
 
 
 class LinearTransformer(FeatureTransformer):
@@ -55,8 +55,10 @@ class LinearTransformer(FeatureTransformer):
         self.left = left
         self.variable_length = variable_length
         if not self.left and variable_length:
-            raise ValueError("You set left to False and variable_length to "
-                             "True. These settings are incompatible.")
+            raise ValueError(
+                "You set left to False and variable_length to "
+                "True. These settings are incompatible."
+            )
 
     def fit(self, X):
         """
@@ -132,9 +134,11 @@ class LinearTransformer(FeatureTransformer):
             if np.ndim(X) == 1:
                 X = X[None, :]
             if X.shape[1] != self.vec_len:
-                raise ValueError("Your matrix was not the correct shape. "
-                                 "Expected a (N, {}) matrix, but got a "
-                                 "{} shaped one".format(self.vec_len, X.shape))
+                raise ValueError(
+                    "Your matrix was not the correct shape. "
+                    "Expected a (N, {}) matrix, but got a "
+                    "{} shaped one".format(self.vec_len, X.shape)
+                )
             feature_length = self.vec_len // self.max_word_length
             X_ = X.reshape((-1, self.max_word_length, feature_length))
 
@@ -155,11 +159,9 @@ class LinearTransformer(FeatureTransformer):
 class OneHotLinearTransformer(LinearTransformer):
     """A LinearTransformer that automatically performs one hot encoding."""
 
-    def __init__(self,
-                 field=None,
-                 left=True,
-                 variable_length=False,
-                 include_space=True):
+    def __init__(
+        self, field=None, left=True, variable_length=False, include_space=True
+    ):
         """Init the transformer."""
         index = IndexCharacterExtractor(include_space=include_space)
         super().__init__(index, field, left, variable_length)

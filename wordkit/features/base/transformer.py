@@ -1,9 +1,10 @@
 """Base classes for transformers."""
+from itertools import chain
+
 import numpy as np
 import pandas as pd
 
-from itertools import chain
-from .feature_extraction import BaseExtractor
+from wordkit.features.base.feature_extraction import BaseExtractor
 
 
 class BaseTransformer(object):
@@ -55,8 +56,9 @@ class BaseTransformer(object):
         feats = set(chain.from_iterable(X))
         overlap = feats.difference(self.feature_names)
         if overlap:
-            raise ValueError("The sequence contained illegal features: {0}"
-                             .format(overlap))
+            raise ValueError(
+                "The sequence contained illegal features: {0}".format(overlap)
+            )
 
     def _unpack(self, X):
         """Unpack the input data."""
@@ -64,15 +66,19 @@ class BaseTransformer(object):
             return X.values
         elif isinstance(X, pd.DataFrame):
             if self.field is None:
-                raise ValueError("Your field was set to None, but you passed"
-                                 " a DataFrame. Please pass an explicit field"
-                                 " when passing a DataFrame.")
+                raise ValueError(
+                    "Your field was set to None, but you passed"
+                    " a DataFrame. Please pass an explicit field"
+                    " when passing a DataFrame."
+                )
             return X[self.field].values
         elif isinstance(X[0], dict):
             if self.field is None:
-                raise ValueError("Your field was set to None, but you passed a"
-                                 " dict. Please pass an explicit field when "
-                                 "passing a dict.")
+                raise ValueError(
+                    "Your field was set to None, but you passed a"
+                    " dict. Please pass an explicit field when "
+                    "passing a dict."
+                )
             return [x[self.field] for x in X]
 
         return X
@@ -101,7 +107,7 @@ class BaseTransformer(object):
             else:
                 return np.dtype(type(v))
         except AttributeError:
-            return np.float
+            return np.float32
 
     def transform(self, X, strict=True):
         """
@@ -161,9 +167,7 @@ class FeatureTransformer(BaseTransformer):
 
     """
 
-    def __init__(self,
-                 features,
-                 field):
+    def __init__(self, features, field):
         """Wordkit transformer base class."""
         super().__init__(field)
         if isinstance(features, dict):
@@ -171,8 +175,10 @@ class FeatureTransformer(BaseTransformer):
             self.dlen = max([len(x) for x in features.values()])
             self.extractor = None
         elif isinstance(features, tuple):
-            self.features = ({k: np.array(v) for k, v in features[0].items()},
-                             {k: np.array(v) for k, v in features[1].items()})
+            self.features = (
+                {k: np.array(v) for k, v in features[0].items()},
+                {k: np.array(v) for k, v in features[1].items()},
+            )
             self.extractor = None
         elif isinstance(features, BaseExtractor) or isinstance(features, type):
             self.features = {}
@@ -181,9 +187,11 @@ class FeatureTransformer(BaseTransformer):
             self.extractor = features
             self.extractor.field = self.field
         else:
-            raise ValueError("The features you passed were not of the "
-                             "correct type: expected (tuple, dict, "
-                             "BaseExtractor), got {}".format(type(features)))
+            raise ValueError(
+                "The features you passed were not of the "
+                "correct type: expected (tuple, dict, "
+                "BaseExtractor), got {}".format(type(features))
+            )
 
     def fit(self, X, y=None):
         """Fit the transformer."""
@@ -191,8 +199,10 @@ class FeatureTransformer(BaseTransformer):
             features = self.extractor.extract(X)
             if not isinstance(features, dict):
                 c, v = features
-                self.features = ({k: np.array(v) for k, v in c.items()},
-                                 {k: np.array(v) for k, v in v.items()})
+                self.features = (
+                    {k: np.array(v) for k, v in c.items()},
+                    {k: np.array(v) for k, v in v.items()},
+                )
             else:
                 self.dlen = max([len(x) for x in features.values()])
                 self.features = {k: np.array(v) for k, v in features.items()}

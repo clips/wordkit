@@ -1,4 +1,4 @@
 """Samplers."""
-from .samplers import Sampler, BinnedSampler
+from wordkit.corpora.samplers import BinnedSampler, Sampler
 
 __all__ = ["Sampler", "BinnedSampler"]

@@ -1,28 +1,31 @@
-import numpy as np
 import re
 
-diacritics = {'ː',
-              '̤',
-              'ˠ',
-              '̠',
-              '̈',
-              '̞',
-              '̩',
-              '̻',
-              'ʰ',
-              'ʼ',
-              '̝',
-              'ʲ',
-              '̥',
-              '̟',
-              'ˤ',
-              '̃',
-              '̺',
-              '͡',
-              '̯',
-              '̪',
-              '̰',
-              'ʷ'}
+import numpy as np
+
+DIACRITICS = {
+    "ː",
+    "̤",
+    "ˠ",
+    "̠",
+    "̈",
+    "̞",
+    "̩",
+    "̻",
+    "ʰ",
+    "ʼ",
+    "̝",
+    "ʲ",
+    "̥",
+    "̟",
+    "ˤ",
+    "̃",
+    "̺",
+    "͡",
+    "̯",
+    "̪",
+    "̰",
+    "ʷ",
+}
 
 
 remove_double = re.compile(r"(ː)(\1){1,}")
@@ -36,7 +39,7 @@ def apply_if_not_na(x, func):
         return func(x)
 
 
-def segment_phonology(phonemes, items=diacritics, to_keep=diacritics):
+def segment_phonology(phonemes, items=None, to_keep=None):
     """
     Segment a list of characters into chunks by joining diacritics.
 
@@ -53,18 +56,23 @@ def segment_phonology(phonemes, items=diacritics, to_keep=diacritics):
 
     Parameters
     ----------
-    phonemes : list
+    phonemes : iterable
         A list of phoneme characters to segment.
 
-    items : list
+    items : iterable
         A list of characters which to treat as diacritics.
 
-    to_keep : list
+    to_keep : iterable
         A list of diacritics from the list passed to items which to keep.
         Any items in this list are not removed as spurious diacritics.
         If to_keep and items are the same list, all items are kept.
 
     """
+    if items is None:
+        items = DIACRITICS
+    if to_keep is None:
+        to_keep = DIACRITICS
+
     phonemes = remove_double.sub(r"\g<1>", phonemes)
     phonemes = [list(p) for p in phonemes]
     idx = 0
@@ -72,7 +80,7 @@ def segment_phonology(phonemes, items=diacritics, to_keep=diacritics):
         x = phonemes[idx]
         if x[0] in items:
             if x[0] in to_keep:
-                phonemes[idx-1].append(x[0])
+                phonemes[idx - 1].append(x[0])
             phonemes.pop(idx)
         else:
             idx += 1

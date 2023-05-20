@@ -1,5 +1,5 @@
 """Base things."""
-from .feature_extraction import BaseExtractor
-from .transformer import BaseTransformer, FeatureTransformer
+from wordkit.features.base.feature_extraction import BaseExtractor
+from wordkit.features.base.transformer import BaseTransformer, FeatureTransformer
 
 __all__ = ["BaseExtractor", "BaseTransformer", "FeatureTransformer"]

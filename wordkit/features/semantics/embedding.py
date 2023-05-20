@@ -1,7 +1,8 @@
 """Word embeddings."""
 # We use reach to load stuff.
 from reach import Reach
-from ..base import BaseTransformer
+
+from wordkit.features.base import BaseTransformer
 
 
 class EmbeddingTransformer(BaseTransformer):
@@ -28,10 +29,7 @@ class EmbeddingTransformer(BaseTransformer):
 
     """
 
-    def __init__(self,
-                 path_to_embeddings,
-                 field=None,
-                 normalize=False):
+    def __init__(self, path_to_embeddings, field=None, normalize=False):
         """Transform words into embeddings."""
         super().__init__(field)
         self.path = path_to_embeddings
@@ -42,9 +40,10 @@ class EmbeddingTransformer(BaseTransformer):
         """Validate the input data."""
         difference = set(X) - self.feature_names
         if difference:
-            raise ValueError("Tried to retrieve semantic vectors for words "
-                             "for which you do not have embeddings "
-                             "".format(difference))
+            raise ValueError(
+                "Tried to retrieve semantic vectors for words "
+                "for which you do not have embeddings"
+            )
 
     def fit(self, X):
         """

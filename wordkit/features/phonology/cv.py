@@ -1,7 +1,7 @@
 """Description."""
 import numpy as np
 
-from ..base.transformer import FeatureTransformer
+from wordkit.features.base.transformer import FeatureTransformer
 
 
 class CVTransformer(FeatureTransformer):
@@ -58,11 +58,7 @@ class CVTransformer(FeatureTransformer):
 
     """
 
-    def __init__(self,
-                 features,
-                 grid_structure="CCCVV",
-                 left=True,
-                 field=None):
+    def __init__(self, features, grid_structure="CCCVV", left=True, field=None):
         """Put phonemes on a consonant vowel grid."""
         super().__init__(features, field)
         self.grid_structure = grid_structure
@@ -130,14 +126,11 @@ class CVTransformer(FeatureTransformer):
         self.determine_grid(X)
 
         # indexes
-        self.idx2consonant = {idx: c
-                              for idx, c in enumerate(sorted(self.consonants))}
+        self.idx2consonant = {idx: c for idx, c in enumerate(sorted(self.consonants))}
         self.consonant2idx = {v: k for k, v in self.idx2consonant.items()}
-        self.idx2vowel = {idx: v
-                          for idx, v in enumerate(sorted(self.vowels))}
+        self.idx2vowel = {idx: v for idx, v in enumerate(sorted(self.vowels))}
         self.vowel2idx = {v: k for k, v in self.idx2vowel.items()}
-        self.phoneme2idx = {p: idx
-                            for idx, p in enumerate(sorted(self.phonemes))}
+        self.phoneme2idx = {p: idx for idx, p in enumerate(sorted(self.phonemes))}
 
         return self
 
@@ -209,7 +202,7 @@ class CVTransformer(FeatureTransformer):
             except KeyError:
                 continue
             g_idx = self.grid_indexer[idx]
-            phon_vector[g_idx: g_idx+len(p)] = p
+            phon_vector[g_idx : g_idx + len(p)] = p
 
         return np.array(phon_vector)
 
@@ -240,7 +233,7 @@ class CVTransformer(FeatureTransformer):
 
         return indices
 
-    def grid_indices(self, x):
+    def grid_indices(self, phonemes):
         """
         Get the grid indices for a given phoneme input.
 
@@ -248,7 +241,7 @@ class CVTransformer(FeatureTransformer):
         in their consonants and vowels (as opposed to their
         features)
         """
-        for x in x:
+        for x in phonemes:
             grid = self.put_on_grid(x)
             indices = []
             for idx, v in enumerate(grid):
@@ -267,9 +260,11 @@ class CVTransformer(FeatureTransformer):
         if np.ndim(X) == 1:
             X = X[None, :]
         if X.shape[1] != self.vec_len:
-            raise ValueError("Your matrix was not the correct shape. "
-                             "Expected a (N, {}) matrix, but got a "
-                             "{} shaped one".format(self.vec_len, X.shape))
+            raise ValueError(
+                "Your matrix was not the correct shape. "
+                "Expected a (N, {}) matrix, but got a "
+                "{} shaped one".format(self.vec_len, X.shape)
+            )
 
         vowel_keys, vowels = zip(*self.vowels.items())
         consonant_keys, consonants = zip(*self.consonants.items())
@@ -289,7 +284,7 @@ class CVTransformer(FeatureTransformer):
                 s_k = vowel_keys
             else:
                 raise ValueError("Error in grid: {}".format(x))
-            diff = X[:, idx:idx+s.shape[1]][:, None, :] - s[None, :, :]
+            diff = X[:, idx : idx + s.shape[1]][:, None, :] - s[None, :, :]
             indices = np.linalg.norm(diff, axis=-1).argmin(-1)
             words.append([s_k[x] for x in indices])
             idx += s.shape[1]

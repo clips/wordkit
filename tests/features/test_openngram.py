@@ -80,4 +80,4 @@ def test_ngram_nopad(ngram_nopad):
 
 def test_paper_weight(ngram_weighted):
     X = ngram_weighted.fit_transform(["bird"])
-    assert X.dot(X.T)[0, 0] == 4.44
+    assert np.isclose(X.dot(X.T)[0, 0], 4.44)

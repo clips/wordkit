@@ -1,6 +1,7 @@
 """Base class for feature extractors."""
-import pandas as pd
 from itertools import chain
+
+import pandas as pd
 
 
 class BaseExtractor(object):
@@ -16,16 +17,19 @@ class BaseExtractor(object):
         # Unpack dataframes correctly.
         if isinstance(X, pd.DataFrame):
             if self.field is None:
-                raise ValueError("You didn't pass a field value to the "
-                                 "extractor but also passed a DataFrame.")
+                raise ValueError(
+                    "You didn't pass a field value to the "
+                    "extractor but also passed a DataFrame."
+                )
             X = X[self.field].values
         elif isinstance(X, pd.Series):
             X = X.values
         elif isinstance(X[0], dict):
-
             if self.field is None:
-                raise ValueError("You didn't pass a field value to the "
-                                 "extractor but also passed a dict.")
+                raise ValueError(
+                    "You didn't pass a field value to the "
+                    "extractor but also passed a dict."
+                )
             X = [x[self.field] for x in X]
 
         if isinstance(X[0][0], str):
