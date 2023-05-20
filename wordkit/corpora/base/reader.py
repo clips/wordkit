@@ -6,7 +6,7 @@ from itertools import chain
 import numpy as np
 import pandas as pd
 
-nans = {
+NANS = {
     "#N/A",
     "#N/A N/A",
     "#NA",
@@ -27,11 +27,11 @@ def _open(path, **kwargs):
     """Open a file for reading."""
     extension = os.path.splitext(path)[-1]
     if extension in {".xls", ".xlsx"}:
-        df = pd.read_excel(path, na_values=nans, keep_default_na=False, **kwargs)
+        df = pd.read_excel(path, na_values=NANS, keep_default_na=False, **kwargs)
     else:
         try:
             df = pd.read_csv(
-                path, na_values=nans, keep_default_na=False, engine="python", **kwargs
+                path, na_values=NANS, keep_default_na=False, engine="python", **kwargs
             )
         except ValueError as e:
             sep = kwargs.get("sep", ",")
