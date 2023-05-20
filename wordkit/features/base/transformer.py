@@ -4,7 +4,7 @@ from itertools import chain
 import numpy as np
 import pandas as pd
 
-from .feature_extraction import BaseExtractor
+from wordkit.features.base.feature_extraction import BaseExtractor
 
 
 class BaseTransformer(object):

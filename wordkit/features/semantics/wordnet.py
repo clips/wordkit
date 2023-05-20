@@ -5,7 +5,7 @@ from itertools import chain
 import numpy as np
 from nltk.corpus import wordnet as wn
 
-from ..base import BaseTransformer
+from wordkit.features.base import BaseTransformer
 
 
 class OneHotSemanticsTransformer(BaseTransformer):

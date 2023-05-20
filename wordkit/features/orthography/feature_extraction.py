@@ -1,7 +1,7 @@
 """Functions for extracting orthographical features."""
 import numpy as np
 
-from ..base.feature_extraction import BaseExtractor
+from wordkit.features.base.feature_extraction import BaseExtractor
 
 
 class OneHotCharacterExtractor(BaseExtractor):

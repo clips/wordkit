@@ -1,25 +1,25 @@
 """Phonology."""
-from ..orthography.ngram import NGramTransformer
-from ..orthography.openngram import (
+from wordkit.features.orthography.ngram import NGramTransformer
+from wordkit.features.orthography.openngram import (
     ConstrainedOpenNGramTransformer,
     OpenNGramTransformer,
     WeightedOpenBigramTransformer,
 )
-from .cv import CVTransformer
-from .feature_extraction import (
+from wordkit.features.phonology.cv import CVTransformer
+from wordkit.features.phonology.feature_extraction import (
     OneHotPhonemeExtractor,
     PhonemeFeatureExtractor,
     PredefinedFeatureExtractor,
 )
-from .features import (
+from wordkit.features.phonology.features import (
     binary_features,
     dislex_features,
     patpho_bin,
     patpho_real,
     plunkett_phonemes,
 )
-from .grid import put_on_grid
-from .onc import ONCTransformer
+from wordkit.features.phonology.grid import put_on_grid
+from wordkit.features.phonology.onc import ONCTransformer
 
 __all__ = [
     "CVTransformer",

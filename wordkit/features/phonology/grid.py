@@ -1,6 +1,6 @@
 """Put things on a grid."""
-from .cv import CVTransformer
-from .feature_extraction import OneHotPhonemeExtractor
+from wordkit.features.phonology.cv import CVTransformer
+from wordkit.features.phonology.feature_extraction import OneHotPhonemeExtractor
 
 
 def put_on_grid(words, field="phonology", left=True):

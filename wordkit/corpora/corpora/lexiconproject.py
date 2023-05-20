@@ -1,5 +1,5 @@
 """Readers for lexicon project corpora."""
-from ..base import reader
+from wordkit.corpora.base import reader
 
 PROJECT2SEP = {"blp": "\t", "dlp2": "\t", "dlp1": "\t"}
 PROJECT2FIELD = {

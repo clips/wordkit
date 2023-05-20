@@ -1,5 +1,5 @@
 """Import from orthography and phonology."""
-from .holography import (
+from wordkit.features.holography import (
     KanervaConstrainedOpenNGramTransformer,
     KanervaLinearTransformer,
     KanervaNGramTransformer,
@@ -9,7 +9,7 @@ from .holography import (
     PlateNGramTransformer,
     PlateOpenNGramTransformer,
 )
-from .orthography import (
+from wordkit.features.orthography import (
     ConstrainedOpenNGramTransformer,
     IndexCharacterExtractor,
     LinearTransformer,
@@ -22,7 +22,7 @@ from .orthography import (
     fourteen,
     sixteen,
 )
-from .phonology import (
+from wordkit.features.phonology import (
     CVTransformer,
     ONCTransformer,
     OneHotPhonemeExtractor,
@@ -35,7 +35,7 @@ from .phonology import (
     plunkett_phonemes,
     put_on_grid,
 )
-from .semantics import (
+from wordkit.features.semantics import (
     EmbeddingTransformer,
     HypernymSemanticsTransformer,
     OneHotSemanticsTransformer,

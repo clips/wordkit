@@ -1,8 +1,8 @@
 """Transform orthography."""
 import numpy as np
 
-from ..base.transformer import FeatureTransformer
-from .feature_extraction import IndexCharacterExtractor
+from wordkit.features.base.transformer import FeatureTransformer
+from wordkit.features.orthography.feature_extraction import IndexCharacterExtractor
 
 
 class LinearTransformer(FeatureTransformer):

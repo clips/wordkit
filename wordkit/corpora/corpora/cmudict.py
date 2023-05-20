@@ -3,7 +3,7 @@ import re
 
 import pandas as pd
 
-from ..base import reader
+from wordkit.corpora.base import reader
 
 CMU_2IPA = {
     "AO": "ɔ",

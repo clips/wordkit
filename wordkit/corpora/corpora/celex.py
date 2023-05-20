@@ -6,7 +6,7 @@ from itertools import chain
 
 import pandas as pd
 
-from ..base import reader, segment_phonology
+from wordkit.corpora.base import reader, segment_phonology
 
 remove_double = re.compile(r"ː+")
 

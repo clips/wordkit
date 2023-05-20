@@ -2,7 +2,7 @@
 from functools import partial
 from itertools import chain
 
-from ..base import reader, segment_phonology
+from wordkit.corpora.base import reader, segment_phonology
 
 LEXIQUE_2IPA = {
     "°": "ə",

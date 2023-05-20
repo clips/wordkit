@@ -3,7 +3,7 @@ from itertools import chain, combinations
 
 import numpy as np
 
-from .ngram import NGramTransformer
+from wordkit.features.orthography.ngram import NGramTransformer
 
 
 class OpenNGramTransformer(NGramTransformer):

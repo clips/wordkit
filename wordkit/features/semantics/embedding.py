@@ -2,7 +2,7 @@
 # We use reach to load stuff.
 from reach import Reach
 
-from ..base import BaseTransformer
+from wordkit.features.base import BaseTransformer
 
 
 class EmbeddingTransformer(BaseTransformer):

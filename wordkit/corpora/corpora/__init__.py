@@ -1,11 +1,11 @@
 """Import the various corpora."""
-from .bpal import bpal
-from .celex import celex_dutch, celex_english, celex_german
-from .cmudict import cmu
-from .lexiconproject import blp, clp, dlp1, dlp2, elp, flp, klp
-from .lexique import lexique
-from .subtlex import subtlexnl, subtlexuk, subtlexus, subtlexzh
-from .wordnet import wordnet
+from wordkit.corpora.corpora.bpal import bpal
+from wordkit.corpora.corpora.celex import celex_dutch, celex_english, celex_german
+from wordkit.corpora.corpora.cmudict import cmu
+from wordkit.corpora.corpora.lexiconproject import blp, clp, dlp1, dlp2, elp, flp, klp
+from wordkit.corpora.corpora.lexique import lexique
+from wordkit.corpora.corpora.subtlex import subtlexnl, subtlexuk, subtlexus, subtlexzh
+from wordkit.corpora.corpora.wordnet import wordnet
 
 __all__ = [
     "celex_english",

@@ -3,7 +3,7 @@ import re
 from functools import partial
 from itertools import chain
 
-from ..base import reader
+from wordkit.corpora.base import reader
 
 BPAL_2IPA = {
     "TIO": "sjo",

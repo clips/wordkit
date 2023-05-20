@@ -4,7 +4,7 @@ from itertools import chain
 
 import numpy as np
 
-from ..base.transformer import FeatureTransformer
+from wordkit.features.base.transformer import FeatureTransformer
 
 
 class ONCTransformer(FeatureTransformer):

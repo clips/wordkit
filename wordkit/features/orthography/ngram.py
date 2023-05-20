@@ -3,7 +3,7 @@ from itertools import chain
 
 import numpy as np
 
-from ..base.transformer import BaseTransformer
+from wordkit.features.base.transformer import BaseTransformer
 
 
 class NGramTransformer(BaseTransformer):

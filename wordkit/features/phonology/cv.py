@@ -1,7 +1,7 @@
 """Description."""
 import numpy as np
 
-from ..base.transformer import FeatureTransformer
+from wordkit.features.base.transformer import FeatureTransformer
 
 
 class CVTransformer(FeatureTransformer):

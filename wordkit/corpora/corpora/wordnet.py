@@ -1,5 +1,5 @@
 """Read semantic information from multilingual wordnets."""
-from ..base import reader
+from wordkit.corpora.base import reader
 
 
 def wordnet(path, language, restrict_pos=None, fields=("orthography", "semantics")):

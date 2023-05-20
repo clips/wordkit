@@ -5,7 +5,7 @@ from functools import reduce
 import numpy as np
 from ipapy.ipastring import IPAString
 
-from ..base.feature_extraction import BaseExtractor
+from wordkit.features.base.feature_extraction import BaseExtractor
 
 FORBIDDEN_DESCRIPTORS = {"suprasegmental", "vowel", "consonant", "diacritic"}
 

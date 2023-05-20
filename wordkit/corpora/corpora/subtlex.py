@@ -1,5 +1,5 @@
 """Corpus readers for Subtlex."""
-from ..base import reader
+from wordkit.corpora.base import reader
 
 LANG2FIELD = {
     "eng-uk": {"orthography": "Spelling", "frequency": "FreqCount"},
