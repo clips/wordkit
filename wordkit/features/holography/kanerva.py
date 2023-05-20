@@ -1,7 +1,7 @@
 """The kanerva method of holographic representation."""
 import numpy as np
 
-from .base import (
+from wordkit.features.holography.base import (
     ConstrainedOpenNgramMixin,
     HolographicTransformer,
     LinearMixin,

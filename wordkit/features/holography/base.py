@@ -1,7 +1,7 @@
 """Holographic feature methods."""
 from itertools import chain, combinations
 
-from ..base import BaseTransformer
+from wordkit.features.base import BaseTransformer
 
 
 class HolographicTransformer(BaseTransformer):
